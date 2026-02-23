@@ -1,3 +1,12 @@
 <resources>
     <string name="app_name">SnapTaPlaque</string>
+    <string name="rejoignez_nous">Rejoignez-nous !</string>
+    <string name="NomUtilisateur">Nom d\'utilisateur</string>
+    <string name="Prenom">Prénom</string>
+    <string name="Nom">Nom</string>
+    <string name="Mail">Adresse mail</string>
+    <string name="MotDePasse">Mot de passe</string>
+    <string name="s_inscire">S\'inscrire</string>
+    <string name="se_connecter">Se connecter</string>
+    <string name="content_de_te_revoir">Content de te revoir !</string>
 </resources>
