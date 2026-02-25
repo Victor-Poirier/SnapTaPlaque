@@ -1,0 +1,315 @@
+openapi: 3.0.0
+info:
+  title: API Credit Scoring - DevOps M1 IA
+  description: |
+    API de credit scoring basée sur un modèle AutoML.
+    Conçue dans le cadre du projet DevOps pour les étudiants de Master 1 Informatique parcours IA à l'Université du Mans.
+  contact:
+    email: aghilas.sini@univ-lemans.fr
+  license:
+    name: CeCILL 2.1
+    url: https://cecill.info/licences/Licence_CeCILL_V2.1-en.html
+  version: 1.0.0
+servers:
+- url: https://virtserver.swaggerhub.com/liumunivlemans/automl-api/1.0.0
+  description: SwaggerHub API Auto Mocking
+- url: http://localhost:8000
+  description: Local development server
+paths:
+  /health:
+    get:
+      summary: Vérifier l'état de l'API
+      responses:
+        "200":
+          description: API opérationnelle
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/inline_response_200"
+  /auth/register:
+    post:
+      summary: Inscription d'un nouvel utilisateur
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserCreate"
+        required: true
+      responses:
+        "201":
+          description: Utilisateur créé
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+        "400":
+          description: Email ou username déjà existant
+  /auth/login:
+    post:
+      summary: Authentification utilisateur
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/auth_login_body"
+        required: true
+      responses:
+        "200":
+          description: Token JWT
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Token"
+        "401":
+          description: Credentials invalides
+  /auth/me:
+    get:
+      summary: Récupérer les informations de l'utilisateur connecté
+      responses:
+        "200":
+          description: Informations utilisateur
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+        "401":
+          description: Utilisateur non authentifié
+  /predict:
+    post:
+      summary: Évaluer une demande de crédit
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreditRequest"
+        required: true
+      responses:
+        "200":
+          description: Décision de crédit
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreditResponse"
+        "400":
+          description: Requête invalide
+        "500":
+          description: Erreur interne du serveur
+  /predictions/history:
+    get:
+      summary: Récupérer l'historique des prédictions
+      responses:
+        "200":
+          description: Liste des prédictions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PredictionHistory"
+        "401":
+          description: Utilisateur non authentifié
+  /predictions/stats:
+    get:
+      summary: Statistiques des prédictions de l'utilisateur
+      responses:
+        "200":
+          description: Statistiques utilisateur
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PredictionStats"
+        "401":
+          description: Utilisateur non authentifié
+  /admin/users:
+    get:
+      summary: Liste de tous les utilisateurs (admin only)
+      responses:
+        "200":
+          description: Liste des utilisateurs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/UserResponse"
+        "401":
+          description: Admin non authentifié
+  /admin/stats:
+    get:
+      summary: Statistiques globales (admin only)
+      responses:
+        "200":
+          description: Statistiques globales
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserStats"
+        "401":
+          description: Admin non authentifié
+  /model/info:
+    get:
+      summary: Informations sur le modèle AutoML
+      responses:
+        "200":
+          description: Métadonnées du modèle
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ModelInfo"
+        "500":
+          description: Erreur interne du serveur
+components:
+  schemas:
+    CreditRequest:
+      required:
+      - age
+      - credit_amount
+      - duration
+      - income
+      type: object
+      properties:
+        age:
+          type: integer
+          example: 35
+        income:
+          type: number
+          example: 3200
+        credit_amount:
+          type: number
+          example: 15000
+        duration:
+          type: integer
+          description: Durée du crédit en mois
+          example: 48
+    CreditResponse:
+      type: object
+      properties:
+        decision:
+          type: string
+          example: APPROVED
+          enum:
+          - APPROVED
+          - REJECTED
+        probability:
+          type: number
+          format: float
+          example: 0.82
+        model_version:
+          type: string
+          example: credit_scoring_model_v1
+        prediction_id:
+          type: integer
+          example: 123
+    UserCreate:
+      required:
+      - email
+      - password
+      - username
+      type: object
+      properties:
+        username:
+          type: string
+          example: ag_sini
+        email:
+          type: string
+          example: aghilas.sini@univ-lemans.fr
+        password:
+          type: string
+          example: Password123
+    UserResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        username:
+          type: string
+          example: ag_sini
+        email:
+          type: string
+          example: aghilas.sini@univ-lemans.fr
+        is_active:
+          type: boolean
+          example: true
+        is_admin:
+          type: boolean
+          example: false
+    Token:
+      type: object
+      properties:
+        access_token:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        token_type:
+          type: string
+          example: bearer
+    PredictionHistory:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        decision:
+          type: string
+          example: APPROVED
+        probability:
+          type: number
+          format: float
+          example: 0.82
+        created_at:
+          type: string
+          format: date-time
+    PredictionStats:
+      type: object
+      properties:
+        total_predictions:
+          type: integer
+          example: 120
+        approved_count:
+          type: integer
+          example: 80
+        rejected_count:
+          type: integer
+          example: 40
+    UserStats:
+      type: object
+      properties:
+        total_users:
+          type: integer
+          example: 50
+        active_users:
+          type: integer
+          example: 45
+        admin_users:
+          type: integer
+          example: 5
+    ModelInfo:
+      type: object
+      properties:
+        model_name:
+          type: string
+          example: Credit Scoring AutoML
+        algorithm:
+          type: string
+          example: AutoML (FLAML)
+        version:
+          type: string
+          example: "1.0"
+    inline_response_200:
+      type: object
+      properties:
+        status:
+          type: string
+        model_loaded:
+          type: boolean
+        database:
+          type: string
+        version:
+          type: string
+    auth_login_body:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string

@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  # Base de données PostgreSQL
+  db:
+    image: postgres:15-alpine
+    container_name: credit-scoring-db
+    environment:
+      POSTGRES_USER: credit_user
+      POSTGRES_PASSWORD: credit_password
+      POSTGRES_DB: credit_scoring_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U credit_user -d credit_scoring_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - credit-network
+
+  # API FastAPI
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: credit-scoring-api
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://credit_user:credit_password@db:5432/credit_scoring_db
+      - SECRET_KEY=${SECRET_KEY:-dev-secret-key-change-in-production}
+      - DEBUG=False
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - credit-network
+    restart: unless-stopped
+
+# Volumes persistants
+volumes:
+  postgres_data:
+
+# Réseau
+networks:
+  credit-network:
+    driver: bridge
