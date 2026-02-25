@@ -15,7 +15,7 @@ public class HistoryActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_history);
 
         viewPager = findViewById(R.id.viewPager);
         bottomNav = findViewById(R.id.bottomNavigation);
