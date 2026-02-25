@@ -15,12 +15,20 @@ passlib[bcrypt]==1.7.4
 python-multipart==0.0.6
 bcrypt==4.1.2
 
-# Machine Learning
-# scikit-learn==1.3.2
-# flaml==2.1.1
-# joblib==1.3.2
-# numpy==1.26.2
-# pandas==2.1.3
+# Machine Learning / LPR Pipeline
+numpy==1.23.5
+opencv-python-headless==4.11.0.86
+ultralytics==8.4.14
+easyocr==1.7.0
+torch==2.4.1
+torchvision==0.19.1
+pillow==9.5.0
+pyyaml==6.0.3
+scipy==1.15.3
+scikit-image==0.24.0
+shapely==2.1.2
+pyclipper==1.4.0
+pandas==2.0.3
 
 # Testing
 # pytest==7.4.3
@@ -30,4 +38,4 @@ bcrypt==4.1.2
 # Utilities
 python-dotenv==1.0.0
 email-validator>=2.0.0
-
+requests==2.32.5

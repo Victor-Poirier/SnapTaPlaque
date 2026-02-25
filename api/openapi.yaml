@@ -1,18 +1,16 @@
 openapi: 3.0.0
 info:
-  title: API Credit Scoring - DevOps M1 IA
+  title: API SnapTaPlaque - Reconnaissance de Plaques d'Immatriculation
   description: |
-    API de credit scoring basée sur un modèle AutoML.
-    Conçue dans le cadre du projet DevOps pour les étudiants de Master 1 Informatique parcours IA à l'Université du Mans.
+    API de reconnaissance de plaques d'immatriculation basée sur un modèle YOLO + EasyOCR.
+    Projet DevOps - Master 1 Informatique parcours IA, Université du Mans.
   contact:
-    email: aghilas.sini@univ-lemans.fr
+    email: vincent.proudy.etu@univ-lemans.fr
   license:
     name: CeCILL 2.1
     url: https://cecill.info/licences/Licence_CeCILL_V2.1-en.html
   version: 1.0.0
 servers:
-- url: https://virtserver.swaggerhub.com/liumunivlemans/automl-api/1.0.0
-  description: SwaggerHub API Auto Mocking
 - url: http://localhost:8000
   description: Local development server
 paths:
@@ -25,7 +23,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/inline_response_200"
+                $ref: "#/components/schemas/HealthResponse"
   /auth/register:
     post:
       summary: Inscription d'un nouvel utilisateur
@@ -76,48 +74,48 @@ paths:
           description: Utilisateur non authentifié
   /predict:
     post:
-      summary: Évaluer une demande de crédit
+      summary: Détecter et lire une plaque d'immatriculation sur une image
       requestBody:
         content:
-          application/json:
+          multipart/form-data:
             schema:
-              $ref: "#/components/schemas/CreditRequest"
+              $ref: "#/components/schemas/PlateDetectionRequest"
         required: true
       responses:
         "200":
-          description: Décision de crédit
+          description: Résultat de la détection de plaque
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/CreditResponse"
+                $ref: "#/components/schemas/PlateDetectionResponse"
         "400":
-          description: Requête invalide
+          description: Image invalide ou requête incorrecte
         "500":
           description: Erreur interne du serveur
   /predictions/history:
     get:
-      summary: Récupérer l'historique des prédictions
+      summary: Récupérer l'historique des détections de plaques
       responses:
         "200":
-          description: Liste des prédictions
+          description: Liste des détections
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/PredictionHistory"
+                  $ref: "#/components/schemas/DetectionHistory"
         "401":
           description: Utilisateur non authentifié
   /predictions/stats:
     get:
-      summary: Statistiques des prédictions de l'utilisateur
+      summary: Statistiques des détections de l'utilisateur
       responses:
         "200":
           description: Statistiques utilisateur
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/PredictionStats"
+                $ref: "#/components/schemas/DetectionStats"
         "401":
           description: Utilisateur non authentifié
   /admin/users:
@@ -148,7 +146,7 @@ paths:
           description: Admin non authentifié
   /model/info:
     get:
-      summary: Informations sur le modèle AutoML
+      summary: Informations sur le modèle de détection
       responses:
         "200":
           description: Métadonnées du modèle
@@ -160,43 +158,45 @@ paths:
           description: Erreur interne du serveur
 components:
   schemas:
-    CreditRequest:
+    PlateDetectionRequest:
       required:
-      - age
-      - credit_amount
-      - duration
-      - income
+      - file
       type: object
       properties:
-        age:
-          type: integer
-          example: 35
-        income:
-          type: number
-          example: 3200
-        credit_amount:
-          type: number
-          example: 15000
-        duration:
-          type: integer
-          description: Durée du crédit en mois
-          example: 48
-    CreditResponse:
-      type: object
-      properties:
-        decision:
+        file:
           type: string
-          example: APPROVED
-          enum:
-          - APPROVED
-          - REJECTED
-        probability:
+          format: binary
+          description: Image contenant un véhicule avec plaque d'immatriculation
+    PlateDetectionResponse:
+      type: object
+      properties:
+        plate_text:
+          type: string
+          description: Texte lu sur la plaque d'immatriculation
+          example: AB-123-CD
+        confidence:
           type: number
           format: float
-          example: 0.82
+          description: Score de confiance de la détection
+          example: 0.95
+        bounding_box:
+          type: object
+          properties:
+            x_min:
+              type: integer
+              example: 120
+            y_min:
+              type: integer
+              example: 340
+            x_max:
+              type: integer
+              example: 380
+            y_max:
+              type: integer
+              example: 410
         model_version:
           type: string
-          example: credit_scoring_model_v1
+          example: yolov8_plate_v1
         prediction_id:
           type: integer
           example: 123
@@ -209,10 +209,10 @@ components:
       properties:
         username:
           type: string
-          example: ag_sini
+          example: vincent_prd
         email:
           type: string
-          example: aghilas.sini@univ-lemans.fr
+          example: vincent@example.com
         password:
           type: string
           example: Password123
@@ -224,10 +224,10 @@ components:
           example: 1
         username:
           type: string
-          example: ag_sini
+          example: vincent_prd
         email:
           type: string
-          example: aghilas.sini@univ-lemans.fr
+          example: vincent@example.com
         is_active:
           type: boolean
           example: true
@@ -243,34 +243,40 @@ components:
         token_type:
           type: string
           example: bearer
-    PredictionHistory:
+    DetectionHistory:
       type: object
       properties:
         id:
           type: integer
           example: 1
-        decision:
+        plate_text:
           type: string
-          example: APPROVED
-        probability:
+          example: AB-123-CD
+        confidence:
           type: number
           format: float
-          example: 0.82
+          example: 0.95
         created_at:
           type: string
           format: date-time
-    PredictionStats:
+    DetectionStats:
       type: object
       properties:
-        total_predictions:
+        total_detections:
           type: integer
           example: 120
-        approved_count:
+        successful_reads:
           type: integer
-          example: 80
-        rejected_count:
+          description: Nombre de plaques lues avec succès
+          example: 105
+        failed_reads:
           type: integer
-          example: 40
+          description: Nombre de détections sans lecture réussie
+          example: 15
+        average_confidence:
+          type: number
+          format: float
+          example: 0.89
     UserStats:
       type: object
       properties:
@@ -288,24 +294,28 @@ components:
       properties:
         model_name:
           type: string
-          example: Credit Scoring AutoML
+          example: SnapTaPlaque - YOLO + EasyOCR
         algorithm:
           type: string
-          example: AutoML (FLAML)
+          example: YOLOv8 + EasyOCR
         version:
           type: string
           example: "1.0"
-    inline_response_200:
+    HealthResponse:
       type: object
       properties:
         status:
           type: string
+          example: healthy
         model_loaded:
           type: boolean
+          example: true
         database:
           type: string
+          example: connected
         version:
           type: string
+          example: "1.0"
     auth_login_body:
       type: object
       properties:

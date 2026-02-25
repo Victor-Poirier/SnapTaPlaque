@@ -11,10 +11,9 @@ class Settings(BaseSettings):
 
     # Chemins
     BASE_DIR: Path = Path(__file__).resolve().parent.parent
-    # MODEL_PATH: Path = BASE_DIR / "models" / "credit_scoring_model.pkl"
 
     # Database
-    DATABASE_URL: str = "postgresql://credit_user:credit_password@localhost:5432/credit_scoring_db"
+    DATABASE_URL: str = "postgresql://plate_user:plate_password@localhost:5432/snaptaplaque_db"
 
     # JWT
     SECRET_KEY: str = "your-secret-key-change-in-production"
@@ -32,7 +31,6 @@ class Settings(BaseSettings):
         "name": "snapTaPlaque LPR Model",
         "algorithm": "YOLO + OCR",
         "version": "1.0",
-        # a définir
         "features": [],
     }
 

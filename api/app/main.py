@@ -3,7 +3,7 @@ from fastapi import FastAPI
 import logging
 
 from app.database import create_tables
-from app.predictor import predictor
+from app.predictor import plate_predictor
 from app.routers import auth, predictions, admin, model
 
 from app.crud import (
@@ -28,25 +28,19 @@ app = FastAPI(
 # ==================== Startup & Shutdown ====================
 @app.on_event("startup")
 async def startup_event():
-    """Événement exécuté au démarrage de l'API"""
-    logger.info("🚀 Démarrage de l'API Credit Scoring")
-
-    # Créer les tables si nécessaire
+    logger.info("🚀 Démarrage de l'API LRS")
     create_tables()
     logger.info("✅ Tables de base de données créées")
 
-    """
-    Il va falloir faire une modif ici
-    """
-    # Vérifier le modèle ML
-    if predictor.is_loaded():
+    # Charger le modèle au démarrage
+    if plate_predictor.load_model():
         logger.info("✅ Modèle ML chargé avec succès")
     else:
         logger.error("❌ Modèle ML non chargé")
 
 @app.on_event("shutdown")
 async def shutdown_event():
-    logger.info("🛑 Arrêt de l'API Credit Scoring")
+    logger.info("🛑 Arrêt de l'API LRS")
 
 # ==================== Include Routers ====================
 app.include_router(auth.router, prefix="/auth", tags=["Authentication"])
@@ -54,7 +48,6 @@ app.include_router(predictions.router, prefix="/predictions", tags=["Predictions
 app.include_router(admin.router, prefix="/admin", tags=["Admin"])
 app.include_router(model.router, prefix="/model", tags=["Model"])
 
-# ==================== Root ====================
 @app.get("/", include_in_schema=False)
 async def root():
     return {
@@ -63,14 +56,6 @@ async def root():
         "version": "1.0.0"
     }
 
-# ==================== Entry Point ====================
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(
-        "app.main:app",
-        host="0.0.0.0",
-        port=8000,
-        reload=True,
-        log_level="info"
-    )
-
+    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True, log_level="info")

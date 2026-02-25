@@ -53,8 +53,9 @@ class CFG:
         plate_conf: seuil de confiance pour la détection de plaques.
         ocr_conf: seuil de confiance pour l'extraction de texte via OCR.
     """
-    weights = 'vehicule_model.pt'
-    plate_weights = 'plate_model.pt'
+    # Ces chemins relatifs sont résolus depuis le répertoire de travail (WORKDIR /app)
+    weights = 'app/model/vehicule_model.pt'
+    plate_weights = 'app/model/plate_model.pt'
     vehicles_class = [2, 3, 5, 7]
     vehicle_conf = 0.5
     plate_conf = 0.3

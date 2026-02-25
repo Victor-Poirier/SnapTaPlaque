@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, Boolean, ForeignKey, Index
+from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, Boolean, ForeignKey, Index, JSON
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 from datetime import datetime
@@ -40,17 +40,11 @@ A modifier en dessous pour adapter a notre modèle LPR
 class Prediction(Base):
     __tablename__ = "predictions"
 
-    # user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    # id = Column(Integer, primary_key=True, index=True)
-    # age = Column(Integer, nullable=False)
-    # income = Column(Float, nullable=False)
-    # credit_amount = Column(Float, nullable=False)
-    # duration = Column(Integer, nullable=False)
-    # decision = Column(String, nullable=False)
-    # probability = Column(Float, nullable=False)
-    # model_version = Column(String, nullable=False)
-    # created_at = Column(DateTime, default=datetime.utcnow)
-    # ip_address = Column(String, nullable=True)
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    filename = Column(String, nullable=False)
+    results = Column(JSON, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
 
     user = relationship("User", back_populates="predictions")
 

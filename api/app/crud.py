@@ -52,70 +52,27 @@ def authenticate_user(db: Session, username: str, password: str):
 def create_prediction(
     db: Session,
     user_id: int,
-    age: int,
-    income: float,
-    credit_amount: float,
-    duration: int,
-    decision: str,
-    probability: float,
-    model_version: str,
-    ip_address: Optional[str] = None
+    filename: str,
+    results: dict,
 ) -> Prediction:
     db_prediction = Prediction(
         user_id=user_id,
-        age=age,
-        income=income,
-        credit_amount=credit_amount,
-        duration=duration,
-        decision=decision,
-        probability=probability,
-        model_version=model_version,
-        ip_address=ip_address
+        filename=filename,
+        results=results,
     )
     db.add(db_prediction)
     db.commit()
     db.refresh(db_prediction)
     return db_prediction
 
+
 def get_user_predictions(db: Session, user_id: int, skip: int = 0, limit: int = 100):
-    return db.query(Prediction).filter(Prediction.user_id == user_id).order_by(Prediction.created_at.desc()).offset(skip).limit(limit).all()
+    return db.query(Prediction).filter(Prediction.user_id == user_id).offset(skip).limit(limit).all()
 
+def get_user_prediction_stats(db: Session, user_id: int):
+    total = db.query(Prediction).filter(Prediction.user_id == user_id).count()
+    return {"total_predictions": total}
 
-
-def get_user_prediction_stats(db: Session, user_id: int) -> dict:
-    """
-    Statistiques des prédictions pour un utilisateur donné
-    """
-
-    # Total des prédictions
-    total = db.query(func.count(Prediction.id)) \
-              .filter(Prediction.user_id == user_id) \
-              .scalar()
-
-    # Nombre de crédits approuvés
-    approved = db.query(func.count(Prediction.id)) \
-                 .filter(
-                     Prediction.user_id == user_id,
-                     Prediction.decision == "APPROVED"
-                 ) \
-                 .scalar()
-
-    # Nombre de crédits rejetés
-    rejected = db.query(func.count(Prediction.id)) \
-                 .filter(
-                     Prediction.user_id == user_id,
-                     Prediction.decision == "REJECTED"
-                 ) \
-                 .scalar()
-
-    approval_rate = (approved / total) if total > 0 else 0.0
-
-    return {
-        "total_predictions": total,
-        "approved": approved,
-        "rejected": rejected,
-        "approval_rate": round(approval_rate, 3),
-    }
 
 #######################################################################
 

@@ -4,40 +4,40 @@ services:
   # Base de données PostgreSQL
   db:
     image: postgres:15-alpine
-    container_name: credit-scoring-db
+    container_name: snaptaplaque-db
     environment:
-      POSTGRES_USER: credit_user
-      POSTGRES_PASSWORD: credit_password
-      POSTGRES_DB: credit_scoring_db
+      POSTGRES_USER: plate_user
+      POSTGRES_PASSWORD: plate_password
+      POSTGRES_DB: snaptaplaque_db
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U credit_user -d credit_scoring_db"]
+      test: ["CMD-SHELL", "pg_isready -U plate_user -d snaptaplaque_db"]
       interval: 10s
       timeout: 5s
       retries: 5
     networks:
-      - credit-network
+      - snaptaplaque-network
 
   # API FastAPI
   api:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: credit-scoring-api
+    container_name: snaptaplaque-api
     ports:
       - "8000:8000"
     environment:
-      - DATABASE_URL=postgresql://credit_user:credit_password@db:5432/credit_scoring_db
+      - DATABASE_URL=postgresql://plate_user:plate_password@db:5432/snaptaplaque_db
       - SECRET_KEY=${SECRET_KEY:-dev-secret-key-change-in-production}
       - DEBUG=False
     depends_on:
       db:
         condition: service_healthy
     networks:
-      - credit-network
+      - snaptaplaque-network
     restart: unless-stopped
 
 # Volumes persistants
@@ -46,5 +46,5 @@ volumes:
 
 # Réseau
 networks:
-  credit-network:
+  snaptaplaque-network:
     driver: bridge
