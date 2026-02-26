@@ -1,4 +1,37 @@
+# ==============================================================================
+# OpenAPI 3.0 Specification — SnapTaPlaque API
+# ==============================================================================
+# This file describes the complete REST API contract for the SnapTaPlaque
+# license plate recognition service. It follows the OpenAPI 3.0.0 standard
+# and can be used to:
+#
+#   - Generate interactive documentation (Swagger UI / ReDoc)
+#   - Auto-generate client SDKs (openapi-generator, swagger-codegen)
+#   - Validate incoming requests and outgoing responses
+#   - Serve as a single source of truth for front-end / mobile developers
+#
+# The API is built with FastAPI and combines a YOLOv8 object detection model
+# with EasyOCR to locate and read vehicle license plates from uploaded images.
+#
+# Base URL (local dev): http://localhost:8000
+#
+# Authentication:
+#   Most endpoints require a Bearer JWT token obtained via POST /auth/login.
+#   Admin-only endpoints (/admin/*) additionally check the is_admin flag.
+#
+# Project context:
+#   Master 1 Informatique — parcours IA, Université du Mans
+#   License: CeCILL 2.1
+# ==============================================================================
+
 openapi: 3.0.0
+
+# ------------------------------------------------------------------------------
+# API Metadata
+# ------------------------------------------------------------------------------
+# General information about the API: title, description, version, contact
+# details, and license. Rendered at the top of Swagger UI / ReDoc pages.
+# ------------------------------------------------------------------------------
 info:
   title: API SnapTaPlaque - Reconnaissance de Plaques d'Immatriculation
   description: |
@@ -10,10 +43,35 @@ info:
     name: CeCILL 2.1
     url: https://cecill.info/licences/Licence_CeCILL_V2.1-en.html
   version: 1.0.0
+
+# ------------------------------------------------------------------------------
+# Server Definitions
+# ------------------------------------------------------------------------------
+# Lists the environments where the API can be reached. Additional entries
+# (staging, production) can be added as the project matures.
+# ------------------------------------------------------------------------------
 servers:
 - url: http://localhost:8000
   description: Local development server
+
+# ==============================================================================
+# API Endpoints (Paths)
+# ==============================================================================
+# Organised into five functional groups:
+#
+#   1. Health         — /health              (public)
+#   2. Authentication — /auth/*              (public / authenticated)
+#   3. Predictions    — /predict, /predictions/* (authenticated)
+#   4. Administration — /admin/*             (admin only)
+#   5. Model          — /model/info          (public)
+# ==============================================================================
 paths:
+  # Health Check
+  # ----------------------------------------------------------------------------
+  # Lightweight probe used by Docker HEALTHCHECK, load balancers, and
+  # monitoring systems to verify the API is running, the YOLO model is
+  # loaded, and the database connection is alive.
+  # ----------------------------------------------------------------------------
   /health:
     get:
       summary: Vérifier l'état de l'API
@@ -24,6 +82,14 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthResponse"
+
+  # ----------------------------------------------------------------------------
+  # Authentication — Registration
+  # ----------------------------------------------------------------------------
+  # Creates a new user account. The password is hashed server-side with
+  # bcrypt before being stored. Returns 400 if the email or username is
+  # already taken.
+  # ----------------------------------------------------------------------------
   /auth/register:
     post:
       summary: Inscription d'un nouvel utilisateur
@@ -42,6 +108,14 @@ paths:
                 $ref: "#/components/schemas/UserResponse"
         "400":
           description: Email ou username déjà existant
+
+  # ----------------------------------------------------------------------------
+  # Authentication — Login
+  # ----------------------------------------------------------------------------
+  # Accepts OAuth2-compatible form data (username + password) and returns a
+  # signed JWT access token. The token must be included as a Bearer token
+  # in the Authorization header for all authenticated endpoints.
+  # ----------------------------------------------------------------------------
   /auth/login:
     post:
       summary: Authentification utilisateur
@@ -60,6 +134,14 @@ paths:
                 $ref: "#/components/schemas/Token"
         "401":
           description: Credentials invalides
+
+  # ----------------------------------------------------------------------------
+  # Authentication — Current User Profile
+  # ----------------------------------------------------------------------------
+  # Returns the profile of the currently authenticated user, derived from
+  # the JWT token in the Authorization header. Useful for front-end apps
+  # to display the logged-in user's info without an extra user ID parameter.
+  # ----------------------------------------------------------------------------
   /auth/me:
     get:
       summary: Récupérer les informations de l'utilisateur connecté
@@ -72,6 +154,18 @@ paths:
                 $ref: "#/components/schemas/UserResponse"
         "401":
           description: Utilisateur non authentifié
+
+  # ----------------------------------------------------------------------------
+  # Prediction — License Plate Detection & OCR
+  # ----------------------------------------------------------------------------
+  # Core endpoint of the application. Accepts an image file (JPEG, PNG, etc.)
+  # via multipart/form-data, runs YOLOv8 detection to locate the license
+  # plate region, then applies EasyOCR to extract the plate text.
+  #
+  # The result includes the recognised text, a confidence score, bounding box
+  # coordinates, model version, and a unique prediction ID for traceability.
+  # The prediction is also persisted in the database for history/stats.
+  # ----------------------------------------------------------------------------
   /predict:
     post:
       summary: Détecter et lire une plaque d'immatriculation sur une image
@@ -92,6 +186,14 @@ paths:
           description: Image invalide ou requête incorrecte
         "500":
           description: Erreur interne du serveur
+
+  # ----------------------------------------------------------------------------
+  # Predictions — History
+  # ----------------------------------------------------------------------------
+  # Returns a chronological list of all plate detections performed by the
+  # authenticated user. Each entry includes the detected text, confidence
+  # score, and timestamp. Requires a valid JWT token.
+  # ----------------------------------------------------------------------------
   /predictions/history:
     get:
       summary: Récupérer l'historique des détections de plaques
@@ -106,6 +208,14 @@ paths:
                   $ref: "#/components/schemas/DetectionHistory"
         "401":
           description: Utilisateur non authentifié
+
+  # ----------------------------------------------------------------------------
+  # Predictions — User Statistics
+  # ----------------------------------------------------------------------------
+  # Aggregated statistics for the authenticated user: total detections,
+  # successful vs. failed reads, and average confidence score. Useful for
+  # dashboards and usage analytics.
+  # ----------------------------------------------------------------------------
   /predictions/stats:
     get:
       summary: Statistiques des détections de l'utilisateur
@@ -118,6 +228,13 @@ paths:
                 $ref: "#/components/schemas/DetectionStats"
         "401":
           description: Utilisateur non authentifié
+
+  # ----------------------------------------------------------------------------
+  # Admin — User Management
+  # ----------------------------------------------------------------------------
+  # Lists all registered users. Restricted to users with is_admin=True.
+  # Returns 401 if the caller is not authenticated or lacks admin privileges.
+  # ----------------------------------------------------------------------------
   /admin/users:
     get:
       summary: Liste de tous les utilisateurs (admin only)
@@ -132,6 +249,13 @@ paths:
                   $ref: "#/components/schemas/UserResponse"
         "401":
           description: Admin non authentifié
+
+  # ----------------------------------------------------------------------------
+  # Admin — Global Statistics
+  # ----------------------------------------------------------------------------
+  # Platform-wide user statistics: total, active, and admin user counts.
+  # Restricted to admin users. Useful for operational monitoring dashboards.
+  # ----------------------------------------------------------------------------
   /admin/stats:
     get:
       summary: Statistiques globales (admin only)
@@ -144,6 +268,14 @@ paths:
                 $ref: "#/components/schemas/UserStats"
         "401":
           description: Admin non authentifié
+
+  # ----------------------------------------------------------------------------
+  # Model — Metadata
+  # ----------------------------------------------------------------------------
+  # Returns metadata about the currently loaded detection model (name,
+  # algorithm, version). Useful for debugging, auditing, and front-end
+  # "about" panels.
+  # ----------------------------------------------------------------------------
   /model/info:
     get:
       summary: Informations sur le modèle de détection
@@ -156,8 +288,30 @@ paths:
                 $ref: "#/components/schemas/ModelInfo"
         "500":
           description: Erreur interne du serveur
+
+# ==============================================================================
+# Components — Reusable Schemas
+# ==============================================================================
+# All data transfer objects (DTOs) used across the API are defined here as
+# JSON Schema objects. They are referenced from path definitions via $ref.
+#
+# Schema categories:
+#   - Request bodies  : PlateDetectionRequest, UserCreate, auth_login_body
+#   - Response bodies : PlateDetectionResponse, UserResponse, Token,
+#                       DetectionHistory, DetectionStats, UserStats,
+#                       ModelInfo, HealthResponse
+# ==============================================================================
 components:
   schemas:
+
+    # --------------------------------------------------------------------------
+    # PlateDetectionRequest
+    # --------------------------------------------------------------------------
+    # Multipart form payload for the /predict endpoint.
+    # Contains a single required field: the image file to analyse.
+    # Supported formats depend on the server-side implementation (typically
+    # JPEG, PNG, BMP, TIFF).
+    # --------------------------------------------------------------------------
     PlateDetectionRequest:
       required:
       - file
@@ -167,6 +321,22 @@ components:
           type: string
           format: binary
           description: Image contenant un véhicule avec plaque d'immatriculation
+
+    # --------------------------------------------------------------------------
+    # PlateDetectionResponse
+    # --------------------------------------------------------------------------
+    # Result returned by the /predict endpoint after running YOLO detection
+    # and EasyOCR text recognition on the uploaded image.
+    #
+    # Fields:
+    #   plate_text    — The recognised license plate string (e.g., "AB-123-CD")
+    #   confidence    — Detection confidence score (0.0–1.0)
+    #   bounding_box  — Pixel coordinates of the detected plate region
+    #     x_min / y_min — Top-left corner
+    #     x_max / y_max — Bottom-right corner
+    #   model_version — Identifier of the YOLO model checkpoint used
+    #   prediction_id — Database primary key for this prediction record
+    # --------------------------------------------------------------------------
     PlateDetectionResponse:
       type: object
       properties:
@@ -200,22 +370,41 @@ components:
         prediction_id:
           type: integer
           example: 123
+
+    # --------------------------------------------------------------------------
+    # UserCreate
+    # --------------------------------------------------------------------------
+    # Request body for POST /auth/register.
+    # All four fields are required. The password is transmitted in plain text
+    # over HTTPS and hashed server-side with bcrypt before storage.
+    # --------------------------------------------------------------------------
     UserCreate:
       required:
       - email
       - password
       - username
+      - full_name
       type: object
       properties:
         username:
           type: string
-          example: vincent_prd
+          example: vincent_devops
         email:
           type: string
           example: vincent@example.com
         password:
           type: string
           example: Password123
+        full_name:
+            type: string
+            example: Vincent Devops
+
+    # --------------------------------------------------------------------------
+    # UserResponse
+    # --------------------------------------------------------------------------
+    # Public representation of a user account returned by authentication and
+    # admin endpoints. Sensitive fields (hashed_password) are excluded.
+    # --------------------------------------------------------------------------
     UserResponse:
       type: object
       properties:
@@ -224,7 +413,7 @@ components:
           example: 1
         username:
           type: string
-          example: vincent_prd
+          example: vincent_devops
         email:
           type: string
           example: vincent@example.com
@@ -234,6 +423,14 @@ components:
         is_admin:
           type: boolean
           example: false
+
+    # --------------------------------------------------------------------------
+    # Token
+    # --------------------------------------------------------------------------
+    # JWT response returned by POST /auth/login on successful authentication.
+    # The access_token should be included in subsequent requests as:
+    #   Authorization: Bearer <access_token>
+    # --------------------------------------------------------------------------
     Token:
       type: object
       properties:
@@ -243,6 +440,13 @@ components:
         token_type:
           type: string
           example: bearer
+
+    # --------------------------------------------------------------------------
+    # DetectionHistory
+    # --------------------------------------------------------------------------
+    # Single entry in the user's detection history, returned as an array
+    # element by GET /predictions/history.
+    # --------------------------------------------------------------------------
     DetectionHistory:
       type: object
       properties:
@@ -259,6 +463,18 @@ components:
         created_at:
           type: string
           format: date-time
+
+    # --------------------------------------------------------------------------
+    # DetectionStats
+    # --------------------------------------------------------------------------
+    # Aggregated detection statistics for a single user, returned by
+    # GET /predictions/stats.
+    #
+    #   total_detections   — Total number of /predict calls made
+    #   successful_reads   — Detections where a plate text was extracted
+    #   failed_reads       — Detections where OCR could not read the plate
+    #   average_confidence — Mean confidence score across all detections
+    # --------------------------------------------------------------------------
     DetectionStats:
       type: object
       properties:
@@ -277,6 +493,13 @@ components:
           type: number
           format: float
           example: 0.89
+
+    # --------------------------------------------------------------------------
+    # UserStats
+    # --------------------------------------------------------------------------
+    # Platform-wide user statistics returned by GET /admin/stats.
+    # Provides a quick overview of user base health for administrators.
+    # --------------------------------------------------------------------------
     UserStats:
       type: object
       properties:
@@ -289,6 +512,13 @@ components:
         admin_users:
           type: integer
           example: 5
+
+    # --------------------------------------------------------------------------
+    # ModelInfo
+    # --------------------------------------------------------------------------
+    # Metadata about the loaded detection model, returned by GET /model/info.
+    # Useful for versioning, auditing, and debugging purposes.
+    # --------------------------------------------------------------------------
     ModelInfo:
       type: object
       properties:
@@ -301,6 +531,14 @@ components:
         version:
           type: string
           example: "1.0"
+
+    # --------------------------------------------------------------------------
+    # HealthResponse
+    # --------------------------------------------------------------------------
+    # Response body for GET /health. Indicates the overall API status,
+    # whether the YOLO model is loaded in memory, the database connection
+    # state, and the current API version.
+    # --------------------------------------------------------------------------
     HealthResponse:
       type: object
       properties:
@@ -316,6 +554,15 @@ components:
         version:
           type: string
           example: "1.0"
+
+    # --------------------------------------------------------------------------
+    # auth_login_body
+    # --------------------------------------------------------------------------
+    # OAuth2-compatible form body for POST /auth/login.
+    # Sent as application/x-www-form-urlencoded (not JSON) to comply with
+    # the OAuth2 "Resource Owner Password Credentials" grant type used by
+    # FastAPI's OAuth2PasswordRequestForm.
+    # --------------------------------------------------------------------------
     auth_login_body:
       type: object
       properties:

@@ -1,21 +1,84 @@
-# API Framework
+# ==============================================================================
+# requirements.txt — Python Dependencies for SnapTaPlaque API
+# ==============================================================================
+# Pinned dependency manifest for the SnapTaPlaque license plate recognition
+# API. All packages are version-locked to ensure reproducible builds across
+# development, CI/CD, and production environments.
+#
+# Install all dependencies:
+#   pip install -r requirements.txt
+#
+# Update a single package (then re-pin):
+#   pip install <package>==<new_version>
+#
+# Generate a full lock file from the current environment:
+#   pip freeze > requirements.txt
+#
+# Sections:
+#   1. API Framework        — FastAPI, Uvicorn, Pydantic
+#   2. Database             — SQLAlchemy ORM, PostgreSQL driver, Alembic migrations
+#   3. Authentication       — JWT tokens, password hashing, multipart form parsing
+#   4. Machine Learning     — YOLO detection, EasyOCR, PyTorch, image processing
+#   5. Testing (disabled)   — pytest, httpx (commented out; enable for CI)
+#   6. Utilities            — Environment loading, email validation, HTTP client
+#
+# Python version: ≥ 3.10 recommended (required by some ML dependencies)
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# 1. API Framework
+# ------------------------------------------------------------------------------
+# FastAPI   — High-performance async web framework with automatic OpenAPI docs
+# Uvicorn   — ASGI server; [standard] extras add uvloop & httptools for speed
+# Pydantic  — Data validation and serialisation for request/response schemas
+# Pydantic-settings — Typed application settings loaded from env vars / .env
+# ------------------------------------------------------------------------------
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
 pydantic==2.5.0
 pydantic-settings==2.1.0
 
-# Database
+# ------------------------------------------------------------------------------
+# 2. Database
+# ------------------------------------------------------------------------------
+# SQLAlchemy      — ORM and SQL toolkit for database modelling and queries
+# psycopg2-binary — PostgreSQL adapter (binary wheel; no libpq build needed)
+# Alembic         — Database migration tool integrated with SQLAlchemy
+# ------------------------------------------------------------------------------
 sqlalchemy==2.0.23
 psycopg2-binary==2.9.9
 alembic==1.13.0
 
-# Authentication & Security
+# ------------------------------------------------------------------------------
+# 3. Authentication & Security
+# ------------------------------------------------------------------------------
+# python-jose        — JWT creation & verification; [cryptography] backend
+# passlib            — Password hashing framework; [bcrypt] scheme used
+# python-multipart   — Parses multipart/form-data (required for OAuth2 login)
+# bcrypt             — Underlying bcrypt C library used by passlib
+# ------------------------------------------------------------------------------
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
 python-multipart==0.0.6
 bcrypt==4.1.2
 
-# Machine Learning / LPR Pipeline
+# ------------------------------------------------------------------------------
+# 4. Machine Learning / License Plate Recognition (LPR) Pipeline
+# ------------------------------------------------------------------------------
+# numpy              — N-dimensional array operations (core numerical library)
+# opencv-python-headless — Image I/O and preprocessing (no GUI dependencies)
+# ultralytics        — YOLOv8 object detection framework (plate localisation)
+# easyocr            — Optical character recognition for plate text extraction
+# torch              — PyTorch deep learning runtime (YOLO & EasyOCR backend)
+# torchvision        — Image transforms and pre-trained model utilities
+# pillow             — Python Imaging Library fork (image loading/saving)
+# pyyaml             — YAML parser (used by Ultralytics config files)
+# scipy              — Scientific computing (image filtering, optimisation)
+# scikit-image       — Advanced image processing algorithms
+# shapely            — Geometric operations (bounding box manipulation)
+# pyclipper          — Polygon clipping library (text detection post-processing)
+# pandas             — Data analysis (used for result aggregation & export)
+# ------------------------------------------------------------------------------
 numpy==1.23.5
 opencv-python-headless==4.11.0.86
 ultralytics==8.4.14
@@ -30,12 +93,26 @@ shapely==2.1.2
 pyclipper==1.4.0
 pandas==2.0.3
 
-# Testing
+# ------------------------------------------------------------------------------
+# 5. Testing (currently disabled)
+# ------------------------------------------------------------------------------
+# Uncomment the lines below to enable the test suite in CI/CD pipelines.
+#
+# pytest          — Test runner and assertion framework
+# httpx           — Async HTTP client used by FastAPI's TestClient
+# pytest-asyncio  — pytest plugin for testing async/await code
+# ------------------------------------------------------------------------------
 # pytest==7.4.3
 # httpx==0.25.2
 # pytest-asyncio==0.21.1
 
-# Utilities
+# ------------------------------------------------------------------------------
+# 6. Utilities
+# ------------------------------------------------------------------------------
+# python-dotenv    — Loads .env files into os.environ (local dev config)
+# email-validator  — RFC-compliant email validation (used by Pydantic schemas)
+# requests         — Synchronous HTTP client (health checks, external calls)
+# ------------------------------------------------------------------------------
 python-dotenv==1.0.0
 email-validator>=2.0.0
 requests==2.32.5

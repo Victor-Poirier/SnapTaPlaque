@@ -1,50 +1,132 @@
+# ==============================================================================
+# Docker Compose Configuration — SnapTaPlaque API
+# ==============================================================================
+# Orchestrates the multi-container setup for the SnapTaPlaque license plate
+# recognition application. This file defines two services:
+#
+#   1. db  — PostgreSQL 15 database for persisting users, predictions, and
+#            detection history.
+#   2. api — FastAPI application serving the YOLO + EasyOCR plate recognition
+#            endpoints via Uvicorn.
+#
+# The services communicate over a dedicated bridge network
+# (snaptaplaque-network) and the database data is stored in a named Docker
+# volume (postgres_data) so it survives container restarts.
+#
+# Usage:
+#   Start the stack:
+#     docker-compose up --build
+#
+#   Stop the stack (data is preserved):
+#     docker-compose down
+#
+#   Stop the stack AND delete all data (wipes the database volume):
+#     docker-compose down -v
+#
+# Environment variables:
+#   SECRET_KEY — JWT signing key. Falls back to a dev default if not set.
+#                Override via a .env file or shell export for production.
+#
+# Prerequisites:
+#   - Docker Engine ≥ 20.10
+#   - Docker Compose ≥ 1.29 (or Compose V2)
+# ==============================================================================
+
 version: '3.8'
 
 services:
-  # Base de données PostgreSQL
+  # ============================================================================
+  # PostgreSQL Database
+  # ============================================================================
+  # Lightweight Alpine-based PostgreSQL 15 instance.
+  # Stores all application data: users, predictions, and detection history.
+  #
+  # Credentials and database name are configured via environment variables
+  # and must match the DATABASE_URL passed to the api service.
+  #
+  # A health check ensures the api service does not start until the database
+  # is ready to accept connections (see depends_on → condition below).
+  # ============================================================================
   db:
     image: postgres:15-alpine
     container_name: snaptaplaque-db
     environment:
+      # Database superuser name used for connections
       POSTGRES_USER: plate_user
+      # Database superuser password (change in production)
       POSTGRES_PASSWORD: plate_password
+      # Name of the default database created on first start
       POSTGRES_DB: snaptaplaque_db
     ports:
+      # Expose PostgreSQL on the host for local tooling (pgAdmin, psql, etc.)
       - "5432:5432"
     volumes:
+      # Named volume — persists database files across container restarts.
+      # Data is only removed when running `docker-compose down -v`.
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
+      # pg_isready returns 0 when the server is accepting connections
       test: ["CMD-SHELL", "pg_isready -U plate_user -d snaptaplaque_db"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      interval: 10s    # Time between health check attempts
+      timeout: 5s      # Maximum time a single check may take
+      retries: 5       # Number of consecutive failures before "unhealthy"
     networks:
       - snaptaplaque-network
 
-  # API FastAPI
+  # ============================================================================
+  # FastAPI Application (SnapTaPlaque API)
+  # ============================================================================
+  # Builds the API image from the Dockerfile in the current directory.
+  # Runs Uvicorn on port 8000 to serve the FastAPI application.
+  #
+  # The service waits for the db health check to pass before starting,
+  # ensuring the database is available when the application boots.
+  #
+  # NOTE: For Alembic migrations to run automatically on startup, add an
+  #       entrypoint script that executes `alembic upgrade head` before
+  #       launching Uvicorn (see Dockerfile / entrypoint.sh).
+  # ============================================================================
   api:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: .             # Build context is the api/ directory
+      dockerfile: Dockerfile # Dockerfile located at api/Dockerfile
     container_name: snaptaplaque-api
     ports:
+      # Expose the API on the host so clients can reach it at localhost:8000
       - "8000:8000"
     environment:
+      # SQLAlchemy connection string — references the db service by hostname
       - DATABASE_URL=postgresql://plate_user:plate_password@db:5432/snaptaplaque_db
+      # JWT secret key — defaults to a dev value; override via .env in production
       - SECRET_KEY=${SECRET_KEY:-dev-secret-key-change-in-production}
+      # Disable debug mode (set to True for verbose SQLAlchemy query logging)
       - DEBUG=False
     depends_on:
       db:
+        # Wait until the db health check reports healthy before starting
         condition: service_healthy
     networks:
       - snaptaplaque-network
+    # Automatically restart the container unless it was explicitly stopped
     restart: unless-stopped
 
-# Volumes persistants
+# ==============================================================================
+# Named Volumes
+# ==============================================================================
+# postgres_data — Persistent storage for the PostgreSQL data directory.
+#                 Ensures database contents survive `docker-compose down`
+#                 (without the -v flag).
+# ==============================================================================
 volumes:
   postgres_data:
 
-# Réseau
+# ==============================================================================
+# Networks
+# ==============================================================================
+# snaptaplaque-network — Isolated bridge network allowing the api and db
+#                        services to communicate using their service names
+#                        as hostnames (e.g., db:5432).
+# ==============================================================================
 networks:
   snaptaplaque-network:
     driver: bridge

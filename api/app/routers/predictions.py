@@ -8,8 +8,6 @@ from app.crud import create_prediction, get_user_predictions, get_user_predictio
 from app.predictor import plate_predictor
 from app.schemas import PlateHistory, PlateStats
 
-import cv2
-import numpy as np
 
 router = APIRouter()
 
@@ -45,7 +43,6 @@ async def predict_plate(
         "prediction_id": prediction.id
     }
 
-
 @router.get("/history", response_model=List[PlateHistory])
 async def get_prediction_history(
     skip: int = 0,
@@ -53,8 +50,25 @@ async def get_prediction_history(
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
-    return get_user_predictions(db, current_user.id, skip=skip, limit=limit)
-
+    predictions = get_user_predictions(db, current_user.id, skip=skip, limit=limit)
+    history = []
+    for pred in predictions:
+        if pred.results and len(pred.results) > 0:
+            for result in pred.results:
+                history.append(PlateHistory(
+                    id=pred.id,
+                    plate_text=result.get("plate_text"),
+                    confidence=result.get("confidence"),
+                    created_at=pred.created_at
+                ))
+        else:
+            history.append(PlateHistory(
+                id=pred.id,
+                plate_text=None,
+                confidence=None,
+                created_at=pred.created_at
+            ))
+    return history
 
 @router.get("/stats", response_model=PlateStats)
 async def get_prediction_statistics(

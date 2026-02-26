@@ -7,6 +7,13 @@
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)
 
+## Utilisation
+```bash
+docker-compose down && docker-compose up --build
+
+# Accéder à l'API : http://localhost:8000
+# Documentation interactive : http://localhost:8000/docs
+```
 
 ## Résumé des modifications
 
@@ -139,8 +146,8 @@ Ce README détaille toutes les modifications apportées pour transformer l'ancie
 ```Python
     class PlateHistory(BaseModel):
         id: int
-        filename: str
-        results: Dict[str, Any]
+        plate_text: Optional[str] = None
+        confidence: Optional[float] = None
         created_at: datetime
 
         class Config:

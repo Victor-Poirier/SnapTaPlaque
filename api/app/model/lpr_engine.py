@@ -7,30 +7,6 @@ détectés. Les résultats incluent les plaques trouvées et leurs confiances.
 
 Date de création : 25 février 2026
 Version : 1.0
-
-
-
-================ Exemple de code pour l'API ================
-    pipeline = LPRPipeline()
-
-    @app.post("/predict")
-    async def predict_plate(file: UploadFile = File(...)):
-        # Lecture de l'image envoyée
-        contents = await file.read()
-        nparr = np.frombuffer(contents, np.uint8)
-        image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-
-        if image is None:
-            raise HTTPException(status_code=400, detail="Invalid image file")
-
-        # Exécution de la pipeline
-        results = pipeline.run(image)
-
-        return {
-            "filename": file.filename,
-            "results": results
-        }
-===========================================================
 """
 
 import cv2
