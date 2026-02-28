@@ -3,6 +3,7 @@
     <string name="title_history">Search History</string>
     <string name="title_search">Search</string>
     <string name="title_profile">Profile</string>
+    <string name="title_favorite">Favorite Vehicles</string>
     <string name="bnt_search_other">Search another vehicle</string>
     <string name="hint_immatriculation">License Plate Number</string>
     <string name="placeholder_make_model">Make Model Trim Engine ...</string>

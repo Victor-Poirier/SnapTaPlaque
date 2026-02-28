@@ -4,6 +4,7 @@
     <string name="title_history">Historique des recherches</string>
     <string name="title_search">Rechercher</string>
     <string name="title_profile">Profil</string>
+    <string name="title_favorite">Véhicules Favoris</string>
     <string name="bnt_search_other">Rechercher un autre véhicule</string>
     <string name="hint_immatriculation">N° Immatriculation</string>
     <string name="placeholder_make_model">Marque Modèle Finition Motorisation ...</string>
