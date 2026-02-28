@@ -7,7 +7,7 @@ import com.example.snaptaplaque.R;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.example.snaptaplaque.adapters.ViewPageAdapter;
 
-public class HistoryActivity extends AppCompatActivity {
+public class SearchActivity extends AppCompatActivity {
 
     private ViewPager2 viewPager;
     private BottomNavigationView bottomNav;
@@ -15,16 +15,16 @@ public class HistoryActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_history);
+        setContentView(R.layout.activity_search);
 
         viewPager = findViewById(R.id.viewPager);
         bottomNav = findViewById(R.id.bottomNavigation);
 
-        // Configuration de l'adaptateur du ViewPager (Fragments pour chaque page)
+        // Configuration de l'adaptateur du ViewPager (Fragment pour chaque page)
         ViewPageAdapter adapter = new ViewPageAdapter(this);
         viewPager.setAdapter(adapter);
 
-        // Sync : Clic sur menu -> Change la page
+        // Clic sur un bouton de la Sidebar -> change la page
         bottomNav.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
             if (id == R.id.nav_history) viewPager.setCurrentItem(0);
@@ -33,7 +33,10 @@ public class HistoryActivity extends AppCompatActivity {
             return true;
         });
 
-        // Sync : Slide de la page -> Change l'icône active en bas
+        // Coche l'icône Search dans la Sidebar
+        bottomNav.setSelectedItemId(R.id.nav_search);
+
+        // Slide de la page -> Change l'icône actif en bas
         viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
             @Override
             public void onPageSelected(int position) {
@@ -41,5 +44,8 @@ public class HistoryActivity extends AppCompatActivity {
                 bottomNav.getMenu().getItem(position).setChecked(true);
             }
         });
+
+        // Force le ViewPager à aller sur l'index 1 (Search) au démarrage
+        viewPager.setCurrentItem(1, false);
     }
 }
