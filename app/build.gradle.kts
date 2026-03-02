@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.android.application)
+    id("org.jetbrains.kotlin.android")
 }
 
 android {
@@ -25,6 +26,9 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
+    }
+    kotlinOptions {
+        jvmTarget = "11"
     }
 }
 

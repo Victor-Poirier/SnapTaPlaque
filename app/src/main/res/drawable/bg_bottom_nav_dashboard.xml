@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Fond principal : dégradé noir -> gris -->
+    <item>
+        <shape>
+            <solid android:color="#6B6B6B"/>
+            <corners android:radius="20dp"/>
+        </shape>
+    </item>
+
+</layer-list>

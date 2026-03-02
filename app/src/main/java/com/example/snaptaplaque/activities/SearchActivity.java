@@ -1,16 +1,19 @@
 package com.example.snaptaplaque.activities;
 
 import android.os.Bundle;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.viewpager2.widget.ViewPager2;
 import com.example.snaptaplaque.R;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.example.snaptaplaque.views.DashBoardGauge;
 import com.example.snaptaplaque.adapters.ViewPageAdapter;
 
 public class SearchActivity extends AppCompatActivity {
 
     private ViewPager2 viewPager;
-    private BottomNavigationView bottomNav;
+    private DashBoardGauge gaugeHistory;
+    private DashBoardGauge gaugeSearch;
+    private DashBoardGauge gaugeProfile;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -18,34 +21,55 @@ public class SearchActivity extends AppCompatActivity {
         setContentView(R.layout.activity_search);
 
         viewPager = findViewById(R.id.viewPager);
-        bottomNav = findViewById(R.id.bottomNavigation);
+        gaugeHistory = findViewById(R.id.gaugeHistory);
+        gaugeSearch = findViewById(R.id.gaugeSearch);
+        gaugeProfile = findViewById(R.id.gaugeProfile);
 
-        // Configuration de l'adaptateur du ViewPager (Fragment pour chaque page)
+        if (viewPager == null || gaugeHistory == null || gaugeSearch == null || gaugeProfile == null)
+            return;
+
+        gaugeHistory.setIconResId(R.drawable.ic_history);
+        gaugeSearch.setIconResId(R.drawable.ic_search);
+        gaugeProfile.setIconResId(R.drawable.ic_profile);
+
+        // Configuration de l'adaptateur
         ViewPageAdapter adapter = new ViewPageAdapter(this);
         viewPager.setAdapter(adapter);
 
-        // Clic sur un bouton de la Sidebar -> change la page
-        bottomNav.setOnItemSelectedListener(item -> {
-            int id = item.getItemId();
-            if (id == R.id.nav_history) viewPager.setCurrentItem(0);
-            else if (id == R.id.nav_search) viewPager.setCurrentItem(1);
-            else if (id == R.id.nav_profile) viewPager.setCurrentItem(2);
-            return true;
-        });
+        // Clicks sur les gauges
+        gaugeHistory.setOnClickListener(v -> selectTab(0));
+        gaugeSearch.setOnClickListener(v -> selectTab(1));
+        gaugeProfile.setOnClickListener(v -> selectTab(2));
 
-        // Coche l'icône Search dans la Sidebar
-        bottomNav.setSelectedItemId(R.id.nav_search);
-
-        // Slide de la page -> Change l'icône actif en bas
+        // Synchronisation ViewPager → Gauges
         viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
             @Override
             public void onPageSelected(int position) {
                 super.onPageSelected(position);
-                bottomNav.getMenu().getItem(position).setChecked(true);
+                updateGaugeSelection(position);
             }
         });
 
-        // Force le ViewPager à aller sur l'index 1 (Search) au démarrage
+        // Positionnement initial sur "Search" (index 1)
         viewPager.setCurrentItem(1, false);
+        updateGaugeSelection(1);
+    }
+
+    // Change de page
+    private void selectTab(int index) {
+        viewPager.setCurrentItem(index, true);
+        updateGaugeSelection(index);
+    }
+
+    // Met à jour visuellement les gauges
+    private void updateGaugeSelection(int selectedIndex) {
+
+        gaugeHistory.setSelectedGauge(selectedIndex == 0);
+        gaugeSearch.setSelectedGauge(selectedIndex == 1);
+        gaugeProfile.setSelectedGauge(selectedIndex == 2);
+
+        gaugeHistory.setTabIndex(selectedIndex);
+        gaugeSearch.setTabIndex(selectedIndex);
+        gaugeProfile.setTabIndex(selectedIndex);
     }
 }
