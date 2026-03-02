@@ -24,9 +24,9 @@ public class ViewPageAdapter extends FragmentStateAdapter {
         // Retourne le Fragment correspondant à la position
         switch (position) {
             case 0: return new HistoryFragment(); // Historique
-            //case 1: return new SearchFragment();  // Recherche
-            //case 2: return new ProfileFragment(); // Profil
-            default: return new HistoryFragment(); // Par défaut
+            case 1: return new SearchFragment();  // Recherche
+            case 2: return new ProfileFragment(); // Profil
+            default: return new SearchFragment(); // Par défaut
         }
     }
 

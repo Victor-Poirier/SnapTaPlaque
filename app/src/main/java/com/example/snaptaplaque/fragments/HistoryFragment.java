@@ -17,15 +17,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class HistoryFragment extends Fragment {
-        /*
-        * Ce fragment affichera l'historique des plaques scannées par l'utilisateur.
-        * Il peut inclure une liste (RecyclerView) des plaques avec des détails comme :
-        * - Date et heure du scan
-        * - Image de la plaque
-        * - Informations associées (marque, modèle, etc.)
-        *
-        * Le fragment peut aussi permettre de filtrer ou trier l'historique.
-        */
+    /*
+    * Ce fragment affichera l'historique des plaques scannées par l'utilisateur.
+    * Il peut inclure une liste (RecyclerView) des plaques avec des détails comme :
+    * - Date et heure du scan
+    * - Image de la plaque
+    * - Informations associées (marque, modèle, etc.)
+    *
+    * Le fragment peut aussi permettre de filtrer ou trier l'historique.
+    */
 
     private RecyclerView recyclerView;
     private VehicleAdapter adapter; // Adapter pour afficher les véhicules dans le RecyclerView
@@ -33,7 +33,7 @@ public class HistoryFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedIntanceState){
-        View view = inflater.inflate(R.layout.framgent_history, container, false);
+        View view = inflater.inflate(R.layout.fragment_history, container, false);
 
         recyclerView = view.findViewById(R.id.rvVehicles);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -51,6 +51,4 @@ public class HistoryFragment extends Fragment {
 
         return view;
     }
-
-
 }
