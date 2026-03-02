@@ -254,7 +254,7 @@ Le modèle est chargé une seule fois en mémoire au démarrage du serveur. Si l
 
 ---
 
-## 🗄 Base de données
+## Base de données
 
 L'API utilise **PostgreSQL** en production (via Docker Compose) et peut fonctionner avec **SQLite** en développement local. L'ORM **SQLAlchemy** gère l'abstraction de la base de données.
 
