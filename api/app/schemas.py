@@ -19,7 +19,6 @@ Catégories de schémas :
 
 Version : 1.0.0
 """
-
 from pydantic import BaseModel, EmailStr, Field
 from typing import Optional, Dict, Any, List
 from datetime import datetime
@@ -257,3 +256,44 @@ class UserResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+# ================== Vehicles Info ==================
+class VehicleInfoResponse(BaseModel):
+    """
+    Schéma de sérialisation pour les informations détaillées d'un véhicule.
+
+    Utilisé pour les réponses API retournant les informations complètes
+    d'un véhicule identifié par sa plaque d'immatriculation. Ce schéma
+    est typiquement retourné par l'endpoint ``GET /vehicles/info`` après
+    une recherche en base de données à partir de la plaque détectée par
+    le pipeline de reconnaissance.
+
+    Attributes:
+        license_plate (str): Plaque d'immatriculation du véhicule
+            (identifiant unique en base de données).
+        brand (str): Marque du véhicule (ex. : Renault, Peugeot, BMW).
+        model (str): Modèle du véhicule (ex. : Clio, 308, Série 3).
+        year (int): Année de mise en circulation du véhicule.
+        color (str): Couleur principale du véhicule.
+        engine (str): Type de motorisation du véhicule (ex. : 1.5 dCi,
+            2.0 TDI, électrique).
+        trim (str): Niveau de finition du véhicule (ex. : Intens,
+            Allure, Sport).
+
+    Configuration:
+        ``from_attributes`` — Active la compatibilité avec les instances
+        ORM SQLAlchemy, permettant de construire le schéma directement
+        à partir d'un objet ``Vehicle`` (anciennement ``orm_mode``).
+    """
+
+    license_plate: str
+    brand: str
+    model: str
+    year: int
+    color: str
+    engine: str
+    trim: str
+
+    class Config:
+        from_attributes = True
+

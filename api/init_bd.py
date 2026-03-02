@@ -3,8 +3,8 @@ init_bd.py — Database initialization and seed script for SnapTaPlaque.
 
 This script bootstraps the PostgreSQL database by creating all
 SQLAlchemy-mapped tables and seeding default user accounts (an administrator
-and a test user). It is designed to be run once during initial deployment
-or after a complete database reset.
+and a test user) as well as sample vehicles. It is designed to be run once
+during initial deployment or after a complete database reset.
 
 Usage::
 
@@ -15,7 +15,8 @@ Behaviour:
        ``create_tables()`` (idempotent — safe to call multiple times).
     2. Seeds a default **admin** account if one does not already exist.
     3. Seeds a default **test user** account if one does not already exist.
-    4. Rolls back the current transaction on any unexpected error to leave
+    4. Seeds sample **vehicles** if they do not already exist.
+    5. Rolls back the current transaction on any unexpected error to leave
        the database in a consistent state.
 
 Default credentials (change immediately in production):
@@ -40,7 +41,7 @@ NOTE:
 """
 
 from sqlalchemy.orm import Session
-from app.database import SessionLocal, create_tables, User
+from app.database import SessionLocal, create_tables, User, Vehicle
 from app.auth import get_password_hash
 import logging
 
@@ -49,9 +50,21 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Sample vehicles for testing purposes
+SAMPLE_VEHICLES = [
+    {
+        "license_plate": "AB-123-CD",
+        "brand": "Peugeot",
+        "model": "308",
+        "year": 2021,
+        "color": "Gris",
+        "engine": "1.5 BlueHDi 130",
+        "trim": "Allure",
+    }
+]
 
 def init_database():
-    """Initialise the database schema and seed default user accounts.
+    """Initialise the database schema and seed default user accounts and vehicles.
 
     This function performs the following steps in order:
 
@@ -61,6 +74,8 @@ def init_database():
        privileges (``is_admin=True``) unless one already exists.
     3. **Test user seeding** — inserts a ``testuser`` account intended for
        development / QA use unless one already exists.
+    4. **Vehicle seeding** — inserts sample vehicles for testing unless
+       they already exist.
 
     Each seed step is idempotent: running the function multiple times will
     never create duplicate rows.
@@ -87,14 +102,13 @@ def init_database():
         if existing_admin:
             logger.info("✅ L'utilisateur admin existe déjà")
         else:
-            # Build the admin user with a bcrypt-hashed password
             admin = User(
                 email="admin@credit-scoring.com",
                 username="admin",
-                hashed_password=get_password_hash("admin123"),  # Changer en production !
+                hashed_password=get_password_hash("admin123"),
                 full_name="Administrator",
                 is_active=True,
-                is_admin=True
+                is_admin=True,
             )
             db.add(admin)
             db.commit()
@@ -112,22 +126,39 @@ def init_database():
                 hashed_password=get_password_hash("test123"),
                 full_name="Test User",
                 is_active=True,
-                is_admin=False
+                is_admin=False,
             )
             db.add(test_user)
             db.commit()
             logger.info("✅ Utilisateur de test créé (username: testuser, password: test123)")
 
+        # ----------------------------------------------------------------------
+        # Seed: Sample vehicles
+        # ----------------------------------------------------------------------
+        vehicles_added = 0
+        for vehicle_data in SAMPLE_VEHICLES:
+            existing = (
+                db.query(Vehicle)
+                .filter(Vehicle.license_plate == vehicle_data["license_plate"])
+                .first()
+            )
+            if not existing:
+                vehicle = Vehicle(**vehicle_data)
+                db.add(vehicle)
+                vehicles_added += 1
+
+        if vehicles_added > 0:
+            db.commit()
+            logger.info(f"✅ {vehicles_added} véhicule(s) de test ajouté(s)")
+        else:
+            logger.info("✅ Tous les véhicules de test existent déjà")
+
         logger.info("✅ Base de données initialisée avec succès")
 
     except Exception as e:
-        # Roll back the current transaction to avoid leaving the session in a
-        # broken state and log the error for operational visibility.
         logger.error(f"❌ Erreur lors de l'initialisation : {str(e)}")
         db.rollback()
     finally:
-        # Always close the session to release the underlying database
-        # connection back to the pool.
         db.close()
 
 

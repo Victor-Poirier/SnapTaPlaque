@@ -61,25 +61,34 @@ class PlatePredictor:
 
     def load_model(self) -> bool:
         """
-        Charger les modèles YOLO et EasyOCR via LPRPipeline.
+        Charger les modèles YOLO et EasyOCR via LPRPipeline de manière asynchrone.
 
-        Instancie le pipeline ``LPRPipeline`` qui charge en mémoire le
-        modèle de détection YOLO et le moteur de reconnaissance optique
-        de caractères EasyOCR. En cas d'échec (modèle introuvable,
-        erreur de dépendance, mémoire insuffisante), l'attribut
-        ``pipeline`` reste à ``None`` et l'erreur est journalisée.
+        Lance le chargement du pipeline ``LPRPipeline`` dans un thread
+        séparé afin de ne pas bloquer le démarrage de l'application
+        FastAPI. Le statut de chargement peut être vérifié via
+        ``is_loaded()``.
 
         Returns:
-            bool: ``True`` si le chargement du pipeline a réussi,
-                ``False`` en cas d'erreur.
+            bool: ``True`` indiquant que le chargement a été lancé
+                avec succès en arrière-plan.
         """
-        try:
-            self.pipeline = LPRPipeline()
-            return True
-        except Exception as e:
-            print(f"Erreur chargement modèle: {e}")
-            self.pipeline = None
-            return False
+        import threading
+        import logging
+
+        logger = logging.getLogger(__name__)
+
+        def _load():
+            try:
+                logger.info("⏳ Chargement du modèle en arrière-plan...")
+                self.pipeline = LPRPipeline()
+                logger.info("✅ Modèle chargé avec succès en arrière-plan")
+            except Exception as e:
+                logger.error(f"❌ Erreur chargement modèle: {e}")
+                self.pipeline = None
+
+        thread = threading.Thread(target=_load, daemon=True)
+        thread.start()
+        return True
 
     def is_loaded(self) -> bool:
         """

@@ -25,15 +25,18 @@ Fonctions exposées :
       utilisateurs enregistrés.
     - ``get_global_stats``         — Retourne les statistiques globales
       de la plateforme (nombre d'utilisateurs et de prédictions).
+    - ``get_vehicle_by_license_plate`` — Recherche les informations d'un
+      vehicule par sa plaque d'immatriculation.
 
 Version : 1.0.0
 """
 
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-from app.database import User, Prediction
+from app.database import User, Prediction, Vehicle, user_favorites
 from app.models import UserCreate
 from sqlalchemy.orm import Session
+
 
 from app import models
 from app.security import get_password_hash
@@ -143,10 +146,6 @@ def authenticate_user(db: Session, username: str, password: str):
         return None
     return user
 
-
-#######################################################################
-# A Modifier en dessous
-
 def create_prediction(
         db: Session,
         user_id: int,
@@ -229,8 +228,6 @@ def get_user_prediction_stats(db: Session, user_id: int):
     return {"total_predictions": total}
 
 
-#######################################################################
-
 def get_all_users(db: Session):
     """
     Récupérer la liste complète des utilisateurs enregistrés.
@@ -275,3 +272,92 @@ def get_global_stats(db: Session) -> dict:
         "total_users": total_users,
         "total_predictions": total_predictions,
     }
+
+def add_favorite(db: Session, user_id: int, license_plate: str):
+    """
+    Ajouter un véhicule aux favoris d'un utilisateur.
+
+    Insère une nouvelle entrée dans la table d'association
+    ``user_favorites`` liant l'identifiant de l'utilisateur à la plaque
+    d'immatriculation du véhicule. Si l'association existe déjà, une
+    exception d'intégrité sera levée par la base de données (contrainte
+    d'unicité sur le couple ``user_id`` / ``license_plate``).
+
+    Args:
+        db (Session): Session SQLAlchemy active.
+        user_id (int): Identifiant de l'utilisateur souhaitant ajouter
+            le véhicule à ses favoris.
+        license_plate (str): Plaque d'immatriculation du véhicule à
+            ajouter aux favoris.Raises:
+        IntegrityError: Si le véhicule est déjà présent dans la liste
+            des favoris de l'utilisateur (doublon détecté par la base).
+    """
+    stmt = user_favorites.insert().values(user_id=user_id, license_plate=license_plate)
+    db.execute(stmt)
+    db.commit()
+
+
+def remove_favorite(db: Session, user_id: int, license_plate: str):
+    """
+    Retirer un véhicule des favoris d'un utilisateur.
+
+    Supprime l'entrée correspondant au couple ``user_id`` /
+    ``license_plate`` dans la table d'association ``user_favorites``.
+    Si l'association n'existe pas, l'opération est silencieusement
+    ignorée (aucune ligne supprimée, pas d'erreur levée).
+
+    Args:
+        db (Session): Session SQLAlchemy active.
+        user_id (int): Identifiant de l'utilisateur souhaitant retirer
+            le véhicule de ses favoris.
+        license_plate (str): Plaque d'immatriculation du véhicule à
+            retirer des favoris.
+    """
+    stmt = user_favorites.delete().where(
+        (user_favorites.c.user_id == user_id) &
+        (user_favorites.c.license_plate == license_plate)
+    )
+    db.execute(stmt)
+    db.commit()
+
+
+def get_user_favorites(db: Session, user_id: int):
+    """
+    Récupérer la liste des véhicules favoris d'un utilisateur.
+
+    Charge l'utilisateur depuis la base de données par son identifiant,
+    puis accède à la relation ``favorites`` définie sur le modèle
+    ``User``. Cette relation exploite la table d'association
+    ``user_favorites`` pour résoudre les véhicules liés.
+
+    Args:
+        db (Session): Session SQLAlchemy active.
+        user_id (int): Identifiant de l'utilisateur dont on souhaite
+            récupérer les véhicules favoris.
+
+    Returns:
+        list[Vehicle]: Liste des instances ORM ``Vehicle`` présentes
+            dans les favoris de l'utilisateur. Retourne une liste vide
+            si l'utilisateur n'existe pas ou s'il n'a aucun favori.
+    """
+    user = db.query(User).filter(User.id == user_id).first()
+    return user.favorites if user else []
+
+
+def get_vehicle_by_license_plate(db: Session, license_plate: str) :
+    """
+    Rechercher les informations d'un véhicule par sa plaque d'immatriculation.
+
+    Effectue une requête sur la table ``vehicles`` pour trouver le premier
+    enregistrement dont la plaque d'immatriculation correspond exactement à
+    la valeur fournie.
+
+    Args:
+        db (Session): Session SQLAlchemy active.
+        license_plate (str): Plaque d'immatriculation à rechercher.
+
+    Returns:
+        Instance ORM de ``Vehicle`` correspondant à la plaque d'immatriculation fournie,
+        ou ``None`` si aucun véhicule ne correspond.
+    """
+    return db.query(Vehicle).filter(Vehicle.license_plate == license_plate).first()

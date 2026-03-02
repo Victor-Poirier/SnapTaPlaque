@@ -57,13 +57,15 @@ servers:
 # ==============================================================================
 # API Endpoints (Paths)
 # ==============================================================================
-# Organised into five functional groups:
+# Organised into seven functional groups:
 #
 #   1. Health         — /health              (public)
 #   2. Authentication — /auth/*              (public / authenticated)
 #   3. Predictions    — /predict, /predictions/* (authenticated)
 #   4. Administration — /admin/*             (admin only)
 #   5. Model          — /model/info          (public)
+#   6. Vehicles       — /vehicles/*          (authenticated)
+#   7. Favorites      — /favorites/*         (authenticated)
 # ==============================================================================
 paths:
   # Health Check
@@ -75,6 +77,8 @@ paths:
   /health:
     get:
       summary: Vérifier l'état de l'API
+      tags:
+        - Health
       responses:
         "200":
           description: API opérationnelle
@@ -93,6 +97,8 @@ paths:
   /auth/register:
     post:
       summary: Inscription d'un nouvel utilisateur
+      tags:
+        - Authentication
       requestBody:
         content:
           application/json:
@@ -119,6 +125,8 @@ paths:
   /auth/login:
     post:
       summary: Authentification utilisateur
+      tags:
+        - Authentication
       requestBody:
         content:
           application/x-www-form-urlencoded:
@@ -145,6 +153,10 @@ paths:
   /auth/me:
     get:
       summary: Récupérer les informations de l'utilisateur connecté
+      tags:
+        - Authentication
+      security:
+        - BearerAuth: []
       responses:
         "200":
           description: Informations utilisateur
@@ -169,6 +181,10 @@ paths:
   /predict:
     post:
       summary: Détecter et lire une plaque d'immatriculation sur une image
+      tags:
+        - Predictions
+      security:
+        - BearerAuth: []
       requestBody:
         content:
           multipart/form-data:
@@ -184,6 +200,8 @@ paths:
                 $ref: "#/components/schemas/PlateDetectionResponse"
         "400":
           description: Image invalide ou requête incorrecte
+        "401":
+          description: Utilisateur non authentifié
         "500":
           description: Erreur interne du serveur
 
@@ -197,6 +215,10 @@ paths:
   /predictions/history:
     get:
       summary: Récupérer l'historique des détections de plaques
+      tags:
+        - Predictions
+      security:
+        - BearerAuth: []
       responses:
         "200":
           description: Liste des détections
@@ -219,6 +241,10 @@ paths:
   /predictions/stats:
     get:
       summary: Statistiques des détections de l'utilisateur
+      tags:
+        - Predictions
+      security:
+        - BearerAuth: []
       responses:
         "200":
           description: Statistiques utilisateur
@@ -238,6 +264,10 @@ paths:
   /admin/users:
     get:
       summary: Liste de tous les utilisateurs (admin only)
+      tags:
+        - Admin
+      security:
+        - BearerAuth: []
       responses:
         "200":
           description: Liste des utilisateurs
@@ -259,6 +289,10 @@ paths:
   /admin/stats:
     get:
       summary: Statistiques globales (admin only)
+      tags:
+        - Admin
+      security:
+        - BearerAuth: []
       responses:
         "200":
           description: Statistiques globales
@@ -279,6 +313,8 @@ paths:
   /model/info:
     get:
       summary: Informations sur le modèle de détection
+      tags:
+        - Model
       responses:
         "200":
           description: Métadonnées du modèle
@@ -289,8 +325,139 @@ paths:
         "500":
           description: Erreur interne du serveur
 
+  # ----------------------------------------------------------------------------
+  # Vehicles — Vehicle Information Lookup
+  # ----------------------------------------------------------------------------
+  # Retrieves detailed vehicle information (brand, model, year, color,
+  # engine, trim) from the database using the license plate as lookup key.
+  # Typically called after a successful plate detection to enrich the OCR
+  # result with vehicle metadata. Requires a valid JWT token.
+  # ----------------------------------------------------------------------------
+  /vehicles/info:
+    get:
+      summary: Récupérer les informations d'un véhicule par sa plaque d'immatriculation
+      tags:
+        - Vehicles Info
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: license_plate
+          in: query
+          required: true
+          description: Plaque d'immatriculation du véhicule à rechercher
+          schema:
+            type: string
+            example: AB-123-CD
+      responses:
+        "200":
+          description: Informations complètes du véhicule
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VehicleInfoResponse"
+        "401":
+          description: Utilisateur non authentifié
+        "404":
+          description: Véhicule non trouvé pour la plaque d'immatriculation fournie
+
+  # ----------------------------------------------------------------------------
+  # Favorites — Add a Vehicle to Favorites
+  # ----------------------------------------------------------------------------
+  # Adds a vehicle (identified by its license plate) to the authenticated
+  # user's favorites list. Creates an entry in the user_favorites association
+  # table. Returns 400 if the vehicle is already in the user's favorites.
+  # Requires a valid JWT token.
+  # ----------------------------------------------------------------------------
+  /favorites/add:
+    post:
+      summary: Ajouter un véhicule aux favoris de l'utilisateur connecté
+      tags:
+        - Favorites
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: license_plate
+          in: query
+          required: true
+          description: Plaque d'immatriculation du véhicule à ajouter aux favoris
+          schema:
+            type: string
+            example: AB-123-CD
+      responses:
+        "200":
+          description: Véhicule ajouté aux favoris avec succès
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FavoriteActionResponse"
+        "400":
+          description: Véhicule déjà présent dans les favoris
+        "401":
+          description: Utilisateur non authentifié
+
+  # ----------------------------------------------------------------------------
+  # Favorites — Remove a Vehicle from Favorites
+  # ----------------------------------------------------------------------------
+  # Removes a vehicle (identified by its license plate) from the authenticated
+  # user's favorites list. Deletes the corresponding entry in the
+  # user_favorites association table. The operation is idempotent — removing
+  # a vehicle that is not in the favorites list does not produce an error.
+  # Requires a valid JWT token.
+  # ----------------------------------------------------------------------------
+  /favorites/remove:
+    delete:
+      summary: Retirer un véhicule des favoris de l'utilisateur connecté
+      tags:
+        - Favorites
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: license_plate
+          in: query
+          required: true
+          description: Plaque d'immatriculation du véhicule à retirer des favoris
+          schema:
+            type: string
+            example: AB-123-CD
+      responses:
+        "200":
+          description: Véhicule retiré des favoris avec succès
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FavoriteActionResponse"
+        "401":
+          description: Utilisateur non authentifié
+
+  # ----------------------------------------------------------------------------
+  # Favorites — List User's Favorite Vehicles
+  # ----------------------------------------------------------------------------
+  # Returns the list of all vehicles the authenticated user has marked as
+  # favorites. Each entry contains the full vehicle information (license
+  # plate, brand, model, year, color, engine, trim). Requires a valid JWT
+  # token.
+  # ----------------------------------------------------------------------------
+  /favorites/:
+    get:
+      summary: Récupérer la liste des véhicules favoris de l'utilisateur connecté
+      tags:
+        - Favorites
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Liste des véhicules favoris
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/VehicleInfoResponse"
+        "401":
+          description: Utilisateur non authentifié
+
 # ==============================================================================
-# Components — Reusable Schemas
+# Components — Reusable Schemas & Security
 # ==============================================================================
 # All data transfer objects (DTOs) used across the API are defined here as
 # JSON Schema objects. They are referenced from path definitions via $ref.
@@ -299,9 +466,28 @@ paths:
 #   - Request bodies  : PlateDetectionRequest, UserCreate, auth_login_body
 #   - Response bodies : PlateDetectionResponse, UserResponse, Token,
 #                       DetectionHistory, DetectionStats, UserStats,
-#                       ModelInfo, HealthResponse
+#                       ModelInfo, HealthResponse, VehicleInfoResponse,
+#                       FavoriteActionResponse
+#
+# Security schemes:
+#   - BearerAuth      : HTTP Bearer token (JWT) for authenticated endpoints
 # ==============================================================================
 components:
+
+  # ----------------------------------------------------------------------------
+  # Security Schemes
+  # ----------------------------------------------------------------------------
+  # Defines the Bearer JWT authentication scheme used by all protected
+  # endpoints. The token is obtained via POST /auth/login and must be
+  # included in the Authorization header as: Bearer <token>
+  # ----------------------------------------------------------------------------
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Token JWT obtenu via POST /auth/login
+
   schemas:
 
     # --------------------------------------------------------------------------
@@ -554,6 +740,59 @@ components:
         version:
           type: string
           example: "1.0"
+
+    # --------------------------------------------------------------------------
+    # VehicleInfoResponse
+    # --------------------------------------------------------------------------
+    # Detailed vehicle information returned by GET /vehicles/info and
+    # GET /favorites/. Contains all technical and descriptive fields
+    # associated with a vehicle identified by its license plate.
+    # --------------------------------------------------------------------------
+    VehicleInfoResponse:
+      type: object
+      properties:
+        license_plate:
+          type: string
+          description: Plaque d'immatriculation du véhicule (identifiant unique)
+          example: AB-123-CD
+        brand:
+          type: string
+          description: Marque du véhicule
+          example: Renault
+        model:
+          type: string
+          description: Modèle du véhicule
+          example: Clio
+        year:
+          type: integer
+          description: Année de mise en circulation
+          example: 2021
+        color:
+          type: string
+          description: Couleur principale du véhicule
+          example: Gris
+        engine:
+          type: string
+          description: Type de motorisation
+          example: 1.5 dCi
+        trim:
+          type: string
+          description: Niveau de finition
+          example: Intens
+
+    # --------------------------------------------------------------------------
+    # FavoriteActionResponse
+    # --------------------------------------------------------------------------
+    # Confirmation response returned by POST /favorites/add and
+    # DELETE /favorites/remove after a successful add or remove operation.
+    # --------------------------------------------------------------------------
+    FavoriteActionResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Message de confirmation de l'opération effectuée
+          example: Véhicule ajouté aux favoris avec succès
 
     # --------------------------------------------------------------------------
     # auth_login_body

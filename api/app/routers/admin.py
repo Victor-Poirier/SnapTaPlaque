@@ -15,18 +15,6 @@ Endpoints exposés :
 Ces endpoints sont montés sous le préfixe ``/admin`` par le routeur
 principal de l'application (voir ``app/main.py``).
 
-Dépendances :
-    - ``app.database.get_db`` — Fournit une session SQLAlchemy liée à la
-      base PostgreSQL, automatiquement fermée en fin de requête.
-    - ``app.dependencies.get_current_admin_user`` — Valide le token JWT
-      et vérifie que l'utilisateur possède les privilèges administrateur.
-    - ``app.crud.get_all_users`` — Requête CRUD retournant la liste de
-      tous les comptes utilisateurs.
-    - ``app.crud.get_global_stats`` — Requête CRUD retournant les
-      statistiques agrégées de la plateforme.
-    - ``app.schemas.UserResponse`` — Schéma Pydantic de sérialisation
-      d'un utilisateur (exclut les champs sensibles comme le mot de passe).
-
 Version : 1.0.0
 """
 

@@ -4,15 +4,16 @@ main.py — Point d'entrée de l'application FastAPI SnapTaPlaque.
 Ce module constitue le point d'entrée principal de l'API SnapTaPlaque.
 Il initialise l'application FastAPI, configure le système de
 journalisation, enregistre les routeurs (authentification, prédictions,
-administration, modèle), et définit les événements de cycle de vie
-(démarrage et arrêt) de l'application.
+administration, modèle, véhicules, favoris), et définit les événements
+de cycle de vie (démarrage et arrêt) de l'application.
 
 Composants exposés :
     - ``app``              — Instance principale de l'application
       FastAPI, point d'entrée ASGI pour le serveur Uvicorn.
     - ``startup_event``    — Gestionnaire d'événement exécuté au
-      démarrage de l'application, responsable du chargement du modèle
-      de reconnaissance de plaques.
+      démarrage de l'application, responsable de la création des tables
+      en base de données et du chargement du modèle de reconnaissance
+      de plaques.
     - ``shutdown_event``   — Gestionnaire d'événement exécuté à l'arrêt
       de l'application, responsable de la journalisation de l'arrêt.
     - ``root``             — Endpoint racine (``GET /``) retournant un
@@ -20,31 +21,37 @@ Composants exposés :
 
 Routeurs enregistrés :
     - ``/auth``            — Endpoints d'authentification (inscription,
-      connexion, gestion des tokens JWT).
-    - ``/predictions``     — Endpoints de soumission et de consultation
-      des prédictions de reconnaissance de plaques.
-    - ``/admin``           — Endpoints d'administration (gestion des
-      utilisateurs, statistiques globales).
+      connexion, consultation du profil via token JWT).
+    - ``/predictions``     — Endpoints de soumission d'images et de
+      consultation des prédictions de reconnaissance de plaques
+      (historique, statistiques).
+    - ``/admin``           — Endpoints d'administration (liste des
+      utilisateurs, statistiques globales de la plateforme).
     - ``/model``           — Endpoints d'information sur le modèle de
-      reconnaissance de plaques.
+      reconnaissance de plaques (nom, version, algorithme).
+    - ``/vehicles``        — Endpoints de consultation des informations
+      détaillées d'un véhicule à partir de sa plaque d'immatriculation.
+    - ``/favorites``       — Endpoints de gestion des véhicules favoris
+      de l'utilisateur connecté (ajout, suppression, consultation).
 
 Cycle de vie :
-    - **Démarrage** — Le modèle de reconnaissance de plaques est chargé
-      en mémoire via ``plate_predictor.load_model()``. Un message de
-      succès ou d'erreur est journalisé selon le résultat du chargement.
+    - **Démarrage** — Les tables de la base de données sont créées (si
+      elles n'existent pas) via ``create_tables()``, puis le modèle de
+      reconnaissance de plaques est chargé en mémoire via
+      ``plate_predictor.load_model()``. Un message de succès ou d'erreur
+      est journalisé selon le résultat du chargement.
     - **Arrêt** — Un message de journalisation est émis pour signaler
       l'arrêt propre de l'API.
 
 Version : 1.0.0
 """
 
-# main.py
 from fastapi import FastAPI
 import logging
 
 from app.database import create_tables
 from app.predictor import plate_predictor
-from app.routers import auth, predictions, admin, model
+from app.routers import auth, predictions, admin, model, vehicles, favorites
 
 from app.crud import (
     get_user_by_email, get_user_by_username, create_user, authenticate_user,
@@ -88,14 +95,24 @@ async def startup_event():
     Initialiser les ressources de l'application au démarrage.
 
     Gestionnaire d'événement FastAPI exécuté une seule fois lors du
-    démarrage du serveur ASGI. Il charge le modèle de reconnaissance
-    de plaques en mémoire via ``plate_predictor.load_model()`` et
-    journalise le résultat de l'opération.
+    démarrage du serveur ASGI. Il procède en deux étapes :
+
+        1. **Création des tables** — Appelle ``create_tables()`` pour
+           générer les tables SQL à partir des modèles ORM SQLAlchemy
+           si elles n'existent pas encore en base de données (DDL
+           auto-généré via ``Base.metadata.create_all``).
+        2. **Chargement du modèle** — Charge le modèle de reconnaissance
+           de plaques en mémoire via ``plate_predictor.load_model()`` et
+           journalise le résultat de l'opération.
 
     En cas d'échec du chargement du modèle, l'application démarre
-    malgré tout mais les endpoints de prédiction ne seront pas
-    fonctionnels tant que le modèle n'aura pas été chargé avec succès.
+    malgré tout mais les endpoints de prédiction retourneront une
+    erreur HTTP 503 tant que le modèle n'aura pas été chargé avec
+    succès.
     """
+
+    create_tables()
+
     # Charger le modèle au démarrage
     if plate_predictor.load_model():
         logger.info("✅ Modèle chargé avec succès")
@@ -121,22 +138,30 @@ async def shutdown_event():
 # à un préfixe d'URL et à un tag OpenAPI pour organiser la
 # documentation générée automatiquement.
 
-# Routeur d'authentification : inscription, connexion, gestion des
-# tokens JWT.
+# Routeur d'authentification : inscription, connexion, consultation
+# du profil via token JWT.
 app.include_router(auth.router, prefix="/auth", tags=["Authentication"])
 
-# Routeur de prédictions : soumission d'images et consultation des
-# résultats de reconnaissance de plaques.
+# Routeur de prédictions : soumission d'images, consultation de
+# l'historique et des statistiques de reconnaissance de plaques.
 app.include_router(predictions.router, prefix="/predictions", tags=["Predictions"])
 
-# Routeur d'administration : gestion des utilisateurs et consultation
-# des statistiques globales de la plateforme.
+# Routeur d'administration : liste des utilisateurs et consultation
+# des statistiques globales de la plateforme. Réservé aux
+# administrateurs.
 app.include_router(admin.router, prefix="/admin", tags=["Admin"])
 
 # Routeur du modèle : informations sur le pipeline de reconnaissance
 # de plaques (nom, version, algorithme, fonctionnalités).
 app.include_router(model.router, prefix="/model", tags=["Model"])
 
+# Routeur des véhicules : consultation des informations détaillées
+# d'un véhicule à partir de sa plaque d'immatriculation.
+app.include_router(vehicles.router, prefix="/vehicles", tags=["Vehicles Info"])
+
+# Routeur des favoris : ajout, suppression et consultation des
+# véhicules favoris de l'utilisateur connecté.
+app.include_router(favorites.router, prefix="/favorites", tags=["Favorites"])
 
 @app.get("/", include_in_schema=False)
 async def root():

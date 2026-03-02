@@ -13,11 +13,6 @@ Endpoint exposé :
 Cet endpoint est monté sous le préfixe ``/model`` par le routeur
 principal de l'application (voir ``app/main.py``).
 
-Dépendances :
-    - ``app.predictor.plate_predictor`` — Instance singleton du pipeline
-      de prédiction LPR combinant YOLOv8 (détection de plaques) et
-      EasyOCR (extraction du texte).
-
 Version : 1.0.0
 """
 

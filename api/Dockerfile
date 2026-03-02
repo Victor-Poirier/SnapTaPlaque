@@ -39,6 +39,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # the directory is writable at runtime without extra permissions
 ENV YOLO_CONFIG_DIR=/tmp/Ultralytics
 
+
+RUN python -c "import easyocr; easyocr.Reader(['fr', 'en'], gpu=False)"
+
 # Copy the entire API source code into the container
 COPY . .
 

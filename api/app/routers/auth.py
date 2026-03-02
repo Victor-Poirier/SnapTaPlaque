@@ -16,20 +16,6 @@ Endpoints exposés :
 Ces endpoints sont montés sous le préfixe ``/auth`` par le routeur
 principal de l'application (voir ``app/main.py``).
 
-Dépendances :
-    - ``app.database.get_db`` — Fournit une session SQLAlchemy liée à la
-      base PostgreSQL, automatiquement fermée en fin de requête.
-    - ``app.crud`` — Fonctions CRUD pour la lecture et l'écriture des
-      utilisateurs en base de données (``get_user_by_username``,
-      ``get_user_by_email``, ``create_user``).
-    - ``app.schemas`` — Schémas Pydantic de validation et de sérialisation
-      (``Token``, ``UserCreate``, ``UserResponse``).
-    - ``app.auth.create_access_token`` — Génère un token JWT signé.
-    - ``app.auth.verify_password`` — Compare un mot de passe en clair
-      avec son hash bcrypt.
-    - ``app.auth.get_current_active_user`` — Extrait et valide l'utilisateur
-      courant à partir du token JWT présent dans la requête.
-
 Version : 1.0.0
 """
 

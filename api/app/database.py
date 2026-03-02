@@ -36,7 +36,7 @@ Index :
 Version : 1.0.0
 """
 
-from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, Boolean, ForeignKey, Index, JSON
+from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, Boolean, ForeignKey, Index, JSON, Table
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 from datetime import datetime
@@ -64,6 +64,13 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 # pour mapper les classes Python aux tables de la base de données.
 Base = declarative_base()
 
+# Table d'association many-to-many entre users et vehicles (favoris)
+user_favorites = Table(
+    "user_favorites",
+    Base.metadata,
+    Column("user_id", Integer, ForeignKey("users.id"), primary_key=True),
+    Column("license_plate", String, ForeignKey("vehicles.license_plate"), primary_key=True),
+)
 
 class User(Base):
     """
@@ -90,6 +97,8 @@ class User(Base):
             Définie automatiquement à l'instant de l'insertion.
         predictions (list[Prediction]): Liste des prédictions associées
             à cet utilisateur (relation one-to-many).
+        favorites (list[Vehicle]): Liste des véhicules favoris de
+            cet utilisateur (relation many-to-many).
     """
 
     __tablename__ = "users"
@@ -107,6 +116,10 @@ class User(Base):
     # L'attribut ``back_populates`` assure la synchronisation automatique
     # entre les deux côtés de la relation.
     predictions = relationship("Prediction", back_populates="user")
+
+    # Relation many-to-many vers le modèle Vehicle via une table d'association "favorites". Un utilisateur peut avoir
+    # plusieurs véhicules favoris, et un véhicule peut être favori de plusieurs utilisateurs.
+    favorites = relationship("Vehicle", secondary=user_favorites, back_populates="favorited_by")
 
 
 class Prediction(Base):
@@ -154,6 +167,50 @@ class Prediction(Base):
         Index("idx_user_created", "user_id", "created_at"),
     )
 
+class Vehicle(Base):
+    """
+    Modèle ORM représentant un véhicule enregistré sur la plateforme SnapTaPlaque.
+
+    Chaque véhicule est identifié de manière unique par sa plaque
+    d'immatriculation et contient les informations techniques et
+    descriptives associées (marque, modèle, année, couleur, motorisation
+    et finition).
+
+    Ce modèle est lié au modèle ``User`` via une relation many-to-many
+    à travers la table d'association ``user_favorites``, permettant à
+    plusieurs utilisateurs de marquer un même véhicule comme favori.
+
+    Attributes:
+        license_plate (str): Plaque d'immatriculation du véhicule
+            (clé primaire). Indexée pour accélérer les recherches.
+        brand (str): Marque du véhicule (ex. : Renault, Peugeot, BMW).
+        model (str): Modèle du véhicule (ex. : Clio, 308, Série 3).
+        year (int): Année de mise en circulation du véhicule.
+        color (str): Couleur principale du véhicule.
+        engine (str): Type de motorisation du véhicule (ex. : 1.5 dCi,
+            2.0 TDI, électrique).
+        trim (str): Niveau de finition du véhicule (ex. : Intens,
+            Allure, Sport).
+        favorited_by (list[User]): Liste des utilisateurs ayant ajouté
+            ce véhicule à leurs favoris (relation many-to-many via la
+            table ``user_favorites``).
+    """
+
+    __tablename__ = "vehicles"
+
+    license_plate = Column(String, primary_key=True, index=True, nullable=False)
+    brand = Column(String, nullable=False)
+    model = Column(String, nullable=False)
+    year = Column(Integer, nullable=False)
+    color = Column(String, nullable=False)
+    engine = Column(String, nullable=False)
+    trim = Column(String, nullable=False)
+
+    # Relation bidirectionnelle many-to-many vers le modèle User via la
+    # table d'association ``user_favorites``. L'attribut ``back_populates``
+    # assure la synchronisation automatique avec ``User.favorites``.
+    favorited_by = relationship("User", secondary=user_favorites, back_populates="favorites"
+)
 
 def create_tables():
     """
