@@ -8,8 +8,6 @@ package com.example.snaptaplaque.models;
  * et son statut de favori.
  * </p>
  *
- * @author SnapTaPlaque's Team
- * @version 1.0
  */
 public class Vehicle {
 
@@ -67,5 +65,14 @@ public class Vehicle {
      */
     public boolean isFavorite() {
         return isFavorite;
+    }
+
+    /**
+     * Met à jour l'état favori du véhicule
+     *
+     * @param favorite Le nouvel état favori à attribuer au véhicule ({@code true} pour favori, {@code false} sinon)
+     */
+    public void setFavorite(boolean favorite) {
+        this.isFavorite = favorite;
     }
 }
