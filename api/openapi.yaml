@@ -1,0 +1,811 @@
+# ==============================================================================
+# OpenAPI 3.0 Specification — SnapTaPlaque API
+# ==============================================================================
+# This file describes the complete REST API contract for the SnapTaPlaque
+# license plate recognition service. It follows the OpenAPI 3.0.0 standard
+# and can be used to:
+#
+#   - Generate interactive documentation (Swagger UI / ReDoc)
+#   - Auto-generate client SDKs (openapi-generator, swagger-codegen)
+#   - Validate incoming requests and outgoing responses
+#   - Serve as a single source of truth for front-end / mobile developers
+#
+# The API is built with FastAPI and combines a YOLOv8 object detection model
+# with EasyOCR to locate and read vehicle license plates from uploaded images.
+#
+# Base URL (local dev): http://localhost:8000
+#
+# Authentication:
+#   Most endpoints require a Bearer JWT token obtained via POST /auth/login.
+#   Admin-only endpoints (/admin/*) additionally check the is_admin flag.
+#
+# Project context:
+#   Master 1 Informatique — parcours IA, Université du Mans
+#   License: CeCILL 2.1
+# ==============================================================================
+
+openapi: 3.0.0
+
+# ------------------------------------------------------------------------------
+# API Metadata
+# ------------------------------------------------------------------------------
+# General information about the API: title, description, version, contact
+# details, and license. Rendered at the top of Swagger UI / ReDoc pages.
+# ------------------------------------------------------------------------------
+info:
+  title: API SnapTaPlaque - Reconnaissance de Plaques d'Immatriculation
+  description: |
+    API de reconnaissance de plaques d'immatriculation basée sur un modèle YOLO + EasyOCR.
+    Projet DevOps - Master 1 Informatique parcours IA, Université du Mans.
+  contact:
+    email: vincent.proudy.etu@univ-lemans.fr
+  license:
+    name: CeCILL 2.1
+    url: https://cecill.info/licences/Licence_CeCILL_V2.1-en.html
+  version: 1.0.0
+
+# ------------------------------------------------------------------------------
+# Server Definitions
+# ------------------------------------------------------------------------------
+# Lists the environments where the API can be reached. Additional entries
+# (staging, production) can be added as the project matures.
+# ------------------------------------------------------------------------------
+servers:
+- url: http://localhost:8000
+  description: Local development server
+
+# ==============================================================================
+# API Endpoints (Paths)
+# ==============================================================================
+# Organised into seven functional groups:
+#
+#   1. Health         — /health              (public)
+#   2. Authentication — /auth/*              (public / authenticated)
+#   3. Predictions    — /predict, /predictions/* (authenticated)
+#   4. Administration — /admin/*             (admin only)
+#   5. Model          — /model/info          (public)
+#   6. Vehicles       — /vehicles/*          (authenticated)
+#   7. Favorites      — /favorites/*         (authenticated)
+# ==============================================================================
+paths:
+  # Health Check
+  # ----------------------------------------------------------------------------
+  # Lightweight probe used by Docker HEALTHCHECK, load balancers, and
+  # monitoring systems to verify the API is running, the YOLO model is
+  # loaded, and the database connection is alive.
+  # ----------------------------------------------------------------------------
+  /health:
+    get:
+      summary: Vérifier l'état de l'API
+      tags:
+        - Health
+      responses:
+        "200":
+          description: API opérationnelle
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+
+  # ----------------------------------------------------------------------------
+  # Authentication — Registration
+  # ----------------------------------------------------------------------------
+  # Creates a new user account. The password is hashed server-side with
+  # bcrypt before being stored. Returns 400 if the email or username is
+  # already taken.
+  # ----------------------------------------------------------------------------
+  /auth/register:
+    post:
+      summary: Inscription d'un nouvel utilisateur
+      tags:
+        - Authentication
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserCreate"
+        required: true
+      responses:
+        "201":
+          description: Utilisateur créé
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+        "400":
+          description: Email ou username déjà existant
+
+  # ----------------------------------------------------------------------------
+  # Authentication — Login
+  # ----------------------------------------------------------------------------
+  # Accepts OAuth2-compatible form data (username + password) and returns a
+  # signed JWT access token. The token must be included as a Bearer token
+  # in the Authorization header for all authenticated endpoints.
+  # ----------------------------------------------------------------------------
+  /auth/login:
+    post:
+      summary: Authentification utilisateur
+      tags:
+        - Authentication
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/auth_login_body"
+        required: true
+      responses:
+        "200":
+          description: Token JWT
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Token"
+        "401":
+          description: Credentials invalides
+
+  # ----------------------------------------------------------------------------
+  # Authentication — Current User Profile
+  # ----------------------------------------------------------------------------
+  # Returns the profile of the currently authenticated user, derived from
+  # the JWT token in the Authorization header. Useful for front-end apps
+  # to display the logged-in user's info without an extra user ID parameter.
+  # ----------------------------------------------------------------------------
+  /auth/me:
+    get:
+      summary: Récupérer les informations de l'utilisateur connecté
+      tags:
+        - Authentication
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Informations utilisateur
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+        "401":
+          description: Utilisateur non authentifié
+
+  # ----------------------------------------------------------------------------
+  # Prediction — License Plate Detection & OCR
+  # ----------------------------------------------------------------------------
+  # Core endpoint of the application. Accepts an image file (JPEG, PNG, etc.)
+  # via multipart/form-data, runs YOLOv8 detection to locate the license
+  # plate region, then applies EasyOCR to extract the plate text.
+  #
+  # The result includes the recognised text, a confidence score, bounding box
+  # coordinates, model version, and a unique prediction ID for traceability.
+  # The prediction is also persisted in the database for history/stats.
+  # ----------------------------------------------------------------------------
+  /predict:
+    post:
+      summary: Détecter et lire une plaque d'immatriculation sur une image
+      tags:
+        - Predictions
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/PlateDetectionRequest"
+        required: true
+      responses:
+        "200":
+          description: Résultat de la détection de plaque
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlateDetectionResponse"
+        "400":
+          description: Image invalide ou requête incorrecte
+        "401":
+          description: Utilisateur non authentifié
+        "500":
+          description: Erreur interne du serveur
+
+  # ----------------------------------------------------------------------------
+  # Predictions — History
+  # ----------------------------------------------------------------------------
+  # Returns a chronological list of all plate detections performed by the
+  # authenticated user. Each entry includes the detected text, confidence
+  # score, and timestamp. Requires a valid JWT token.
+  # ----------------------------------------------------------------------------
+  /predictions/history:
+    get:
+      summary: Récupérer l'historique des détections de plaques
+      tags:
+        - Predictions
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Liste des détections
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DetectionHistory"
+        "401":
+          description: Utilisateur non authentifié
+
+  # ----------------------------------------------------------------------------
+  # Predictions — User Statistics
+  # ----------------------------------------------------------------------------
+  # Aggregated statistics for the authenticated user: total detections,
+  # successful vs. failed reads, and average confidence score. Useful for
+  # dashboards and usage analytics.
+  # ----------------------------------------------------------------------------
+  /predictions/stats:
+    get:
+      summary: Statistiques des détections de l'utilisateur
+      tags:
+        - Predictions
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Statistiques utilisateur
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DetectionStats"
+        "401":
+          description: Utilisateur non authentifié
+
+  # ----------------------------------------------------------------------------
+  # Admin — User Management
+  # ----------------------------------------------------------------------------
+  # Lists all registered users. Restricted to users with is_admin=True.
+  # Returns 401 if the caller is not authenticated or lacks admin privileges.
+  # ----------------------------------------------------------------------------
+  /admin/users:
+    get:
+      summary: Liste de tous les utilisateurs (admin only)
+      tags:
+        - Admin
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Liste des utilisateurs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/UserResponse"
+        "401":
+          description: Admin non authentifié
+
+  # ----------------------------------------------------------------------------
+  # Admin — Global Statistics
+  # ----------------------------------------------------------------------------
+  # Platform-wide user statistics: total, active, and admin user counts.
+  # Restricted to admin users. Useful for operational monitoring dashboards.
+  # ----------------------------------------------------------------------------
+  /admin/stats:
+    get:
+      summary: Statistiques globales (admin only)
+      tags:
+        - Admin
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Statistiques globales
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserStats"
+        "401":
+          description: Admin non authentifié
+
+  # ----------------------------------------------------------------------------
+  # Model — Metadata
+  # ----------------------------------------------------------------------------
+  # Returns metadata about the currently loaded detection model (name,
+  # algorithm, version). Useful for debugging, auditing, and front-end
+  # "about" panels.
+  # ----------------------------------------------------------------------------
+  /model/info:
+    get:
+      summary: Informations sur le modèle de détection
+      tags:
+        - Model
+      responses:
+        "200":
+          description: Métadonnées du modèle
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ModelInfo"
+        "500":
+          description: Erreur interne du serveur
+
+  # ----------------------------------------------------------------------------
+  # Vehicles — Vehicle Information Lookup
+  # ----------------------------------------------------------------------------
+  # Retrieves detailed vehicle information (brand, model, year, color,
+  # engine, trim) from the database using the license plate as lookup key.
+  # Typically called after a successful plate detection to enrich the OCR
+  # result with vehicle metadata. Requires a valid JWT token.
+  # ----------------------------------------------------------------------------
+  /vehicles/info:
+    get:
+      summary: Récupérer les informations d'un véhicule par sa plaque d'immatriculation
+      tags:
+        - Vehicles Info
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: license_plate
+          in: query
+          required: true
+          description: Plaque d'immatriculation du véhicule à rechercher
+          schema:
+            type: string
+            example: AB-123-CD
+      responses:
+        "200":
+          description: Informations complètes du véhicule
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VehicleInfoResponse"
+        "401":
+          description: Utilisateur non authentifié
+        "404":
+          description: Véhicule non trouvé pour la plaque d'immatriculation fournie
+
+  # ----------------------------------------------------------------------------
+  # Favorites — Add a Vehicle to Favorites
+  # ----------------------------------------------------------------------------
+  # Adds a vehicle (identified by its license plate) to the authenticated
+  # user's favorites list. Creates an entry in the user_favorites association
+  # table. Returns 400 if the vehicle is already in the user's favorites.
+  # Requires a valid JWT token.
+  # ----------------------------------------------------------------------------
+  /favorites/add:
+    post:
+      summary: Ajouter un véhicule aux favoris de l'utilisateur connecté
+      tags:
+        - Favorites
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: license_plate
+          in: query
+          required: true
+          description: Plaque d'immatriculation du véhicule à ajouter aux favoris
+          schema:
+            type: string
+            example: AB-123-CD
+      responses:
+        "200":
+          description: Véhicule ajouté aux favoris avec succès
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FavoriteActionResponse"
+        "400":
+          description: Véhicule déjà présent dans les favoris
+        "401":
+          description: Utilisateur non authentifié
+
+  # ----------------------------------------------------------------------------
+  # Favorites — Remove a Vehicle from Favorites
+  # ----------------------------------------------------------------------------
+  # Removes a vehicle (identified by its license plate) from the authenticated
+  # user's favorites list. Deletes the corresponding entry in the
+  # user_favorites association table. The operation is idempotent — removing
+  # a vehicle that is not in the favorites list does not produce an error.
+  # Requires a valid JWT token.
+  # ----------------------------------------------------------------------------
+  /favorites/remove:
+    delete:
+      summary: Retirer un véhicule des favoris de l'utilisateur connecté
+      tags:
+        - Favorites
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: license_plate
+          in: query
+          required: true
+          description: Plaque d'immatriculation du véhicule à retirer des favoris
+          schema:
+            type: string
+            example: AB-123-CD
+      responses:
+        "200":
+          description: Véhicule retiré des favoris avec succès
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FavoriteActionResponse"
+        "401":
+          description: Utilisateur non authentifié
+
+  # ----------------------------------------------------------------------------
+  # Favorites — List User's Favorite Vehicles
+  # ----------------------------------------------------------------------------
+  # Returns the list of all vehicles the authenticated user has marked as
+  # favorites. Each entry contains the full vehicle information (license
+  # plate, brand, model, year, color, engine, trim). Requires a valid JWT
+  # token.
+  # ----------------------------------------------------------------------------
+  /favorites/:
+    get:
+      summary: Récupérer la liste des véhicules favoris de l'utilisateur connecté
+      tags:
+        - Favorites
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Liste des véhicules favoris
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/VehicleInfoResponse"
+        "401":
+          description: Utilisateur non authentifié
+
+# ==============================================================================
+# Components — Reusable Schemas & Security
+# ==============================================================================
+# All data transfer objects (DTOs) used across the API are defined here as
+# JSON Schema objects. They are referenced from path definitions via $ref.
+#
+# Schema categories:
+#   - Request bodies  : PlateDetectionRequest, UserCreate, auth_login_body
+#   - Response bodies : PlateDetectionResponse, UserResponse, Token,
+#                       DetectionHistory, DetectionStats, UserStats,
+#                       ModelInfo, HealthResponse, VehicleInfoResponse,
+#                       FavoriteActionResponse
+#
+# Security schemes:
+#   - BearerAuth      : HTTP Bearer token (JWT) for authenticated endpoints
+# ==============================================================================
+components:
+
+  # ----------------------------------------------------------------------------
+  # Security Schemes
+  # ----------------------------------------------------------------------------
+  # Defines the Bearer JWT authentication scheme used by all protected
+  # endpoints. The token is obtained via POST /auth/login and must be
+  # included in the Authorization header as: Bearer <token>
+  # ----------------------------------------------------------------------------
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Token JWT obtenu via POST /auth/login
+
+  schemas:
+
+    # --------------------------------------------------------------------------
+    # PlateDetectionRequest
+    # --------------------------------------------------------------------------
+    # Multipart form payload for the /predict endpoint.
+    # Contains a single required field: the image file to analyse.
+    # Supported formats depend on the server-side implementation (typically
+    # JPEG, PNG, BMP, TIFF).
+    # --------------------------------------------------------------------------
+    PlateDetectionRequest:
+      required:
+      - file
+      type: object
+      properties:
+        file:
+          type: string
+          format: binary
+          description: Image contenant un véhicule avec plaque d'immatriculation
+
+    # --------------------------------------------------------------------------
+    # PlateDetectionResponse
+    # --------------------------------------------------------------------------
+    # Result returned by the /predict endpoint after running YOLO detection
+    # and EasyOCR text recognition on the uploaded image.
+    #
+    # Fields:
+    #   plate_text    — The recognised license plate string (e.g., "AB-123-CD")
+    #   confidence    — Detection confidence score (0.0–1.0)
+    #   bounding_box  — Pixel coordinates of the detected plate region
+    #     x_min / y_min — Top-left corner
+    #     x_max / y_max — Bottom-right corner
+    #   model_version — Identifier of the YOLO model checkpoint used
+    #   prediction_id — Database primary key for this prediction record
+    # --------------------------------------------------------------------------
+    PlateDetectionResponse:
+      type: object
+      properties:
+        plate_text:
+          type: string
+          description: Texte lu sur la plaque d'immatriculation
+          example: AB-123-CD
+        confidence:
+          type: number
+          format: float
+          description: Score de confiance de la détection
+          example: 0.95
+        bounding_box:
+          type: object
+          properties:
+            x_min:
+              type: integer
+              example: 120
+            y_min:
+              type: integer
+              example: 340
+            x_max:
+              type: integer
+              example: 380
+            y_max:
+              type: integer
+              example: 410
+        model_version:
+          type: string
+          example: yolov8_plate_v1
+        prediction_id:
+          type: integer
+          example: 123
+
+    # --------------------------------------------------------------------------
+    # UserCreate
+    # --------------------------------------------------------------------------
+    # Request body for POST /auth/register.
+    # All four fields are required. The password is transmitted in plain text
+    # over HTTPS and hashed server-side with bcrypt before storage.
+    # --------------------------------------------------------------------------
+    UserCreate:
+      required:
+      - email
+      - password
+      - username
+      - full_name
+      type: object
+      properties:
+        username:
+          type: string
+          example: vincent_devops
+        email:
+          type: string
+          example: vincent@example.com
+        password:
+          type: string
+          example: Password123
+        full_name:
+            type: string
+            example: Vincent Devops
+
+    # --------------------------------------------------------------------------
+    # UserResponse
+    # --------------------------------------------------------------------------
+    # Public representation of a user account returned by authentication and
+    # admin endpoints. Sensitive fields (hashed_password) are excluded.
+    # --------------------------------------------------------------------------
+    UserResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        username:
+          type: string
+          example: vincent_devops
+        email:
+          type: string
+          example: vincent@example.com
+        is_active:
+          type: boolean
+          example: true
+        is_admin:
+          type: boolean
+          example: false
+
+    # --------------------------------------------------------------------------
+    # Token
+    # --------------------------------------------------------------------------
+    # JWT response returned by POST /auth/login on successful authentication.
+    # The access_token should be included in subsequent requests as:
+    #   Authorization: Bearer <access_token>
+    # --------------------------------------------------------------------------
+    Token:
+      type: object
+      properties:
+        access_token:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        token_type:
+          type: string
+          example: bearer
+
+    # --------------------------------------------------------------------------
+    # DetectionHistory
+    # --------------------------------------------------------------------------
+    # Single entry in the user's detection history, returned as an array
+    # element by GET /predictions/history.
+    # --------------------------------------------------------------------------
+    DetectionHistory:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        plate_text:
+          type: string
+          example: AB-123-CD
+        confidence:
+          type: number
+          format: float
+          example: 0.95
+        created_at:
+          type: string
+          format: date-time
+
+    # --------------------------------------------------------------------------
+    # DetectionStats
+    # --------------------------------------------------------------------------
+    # Aggregated detection statistics for a single user, returned by
+    # GET /predictions/stats.
+    #
+    #   total_detections   — Total number of /predict calls made
+    #   successful_reads   — Detections where a plate text was extracted
+    #   failed_reads       — Detections where OCR could not read the plate
+    #   average_confidence — Mean confidence score across all detections
+    # --------------------------------------------------------------------------
+    DetectionStats:
+      type: object
+      properties:
+        total_detections:
+          type: integer
+          example: 120
+        successful_reads:
+          type: integer
+          description: Nombre de plaques lues avec succès
+          example: 105
+        failed_reads:
+          type: integer
+          description: Nombre de détections sans lecture réussie
+          example: 15
+        average_confidence:
+          type: number
+          format: float
+          example: 0.89
+
+    # --------------------------------------------------------------------------
+    # UserStats
+    # --------------------------------------------------------------------------
+    # Platform-wide user statistics returned by GET /admin/stats.
+    # Provides a quick overview of user base health for administrators.
+    # --------------------------------------------------------------------------
+    UserStats:
+      type: object
+      properties:
+        total_users:
+          type: integer
+          example: 50
+        active_users:
+          type: integer
+          example: 45
+        admin_users:
+          type: integer
+          example: 5
+
+    # --------------------------------------------------------------------------
+    # ModelInfo
+    # --------------------------------------------------------------------------
+    # Metadata about the loaded detection model, returned by GET /model/info.
+    # Useful for versioning, auditing, and debugging purposes.
+    # --------------------------------------------------------------------------
+    ModelInfo:
+      type: object
+      properties:
+        model_name:
+          type: string
+          example: SnapTaPlaque - YOLO + EasyOCR
+        algorithm:
+          type: string
+          example: YOLOv8 + EasyOCR
+        version:
+          type: string
+          example: "1.0"
+
+    # --------------------------------------------------------------------------
+    # HealthResponse
+    # --------------------------------------------------------------------------
+    # Response body for GET /health. Indicates the overall API status,
+    # whether the YOLO model is loaded in memory, the database connection
+    # state, and the current API version.
+    # --------------------------------------------------------------------------
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: healthy
+        model_loaded:
+          type: boolean
+          example: true
+        database:
+          type: string
+          example: connected
+        version:
+          type: string
+          example: "1.0"
+
+    # --------------------------------------------------------------------------
+    # VehicleInfoResponse
+    # --------------------------------------------------------------------------
+    # Detailed vehicle information returned by GET /vehicles/info and
+    # GET /favorites/. Contains all technical and descriptive fields
+    # associated with a vehicle identified by its license plate.
+    # --------------------------------------------------------------------------
+    VehicleInfoResponse:
+      type: object
+      properties:
+        license_plate:
+          type: string
+          description: Plaque d'immatriculation du véhicule (identifiant unique)
+          example: AB-123-CD
+        brand:
+          type: string
+          description: Marque du véhicule
+          example: Renault
+        model:
+          type: string
+          description: Modèle du véhicule
+          example: Clio
+        year:
+          type: integer
+          description: Année de mise en circulation
+          example: 2021
+        color:
+          type: string
+          description: Couleur principale du véhicule
+          example: Gris
+        engine:
+          type: string
+          description: Type de motorisation
+          example: 1.5 dCi
+        trim:
+          type: string
+          description: Niveau de finition
+          example: Intens
+
+    # --------------------------------------------------------------------------
+    # FavoriteActionResponse
+    # --------------------------------------------------------------------------
+    # Confirmation response returned by POST /favorites/add and
+    # DELETE /favorites/remove after a successful add or remove operation.
+    # --------------------------------------------------------------------------
+    FavoriteActionResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Message de confirmation de l'opération effectuée
+          example: Véhicule ajouté aux favoris avec succès
+
+    # --------------------------------------------------------------------------
+    # auth_login_body
+    # --------------------------------------------------------------------------
+    # OAuth2-compatible form body for POST /auth/login.
+    # Sent as application/x-www-form-urlencoded (not JSON) to comply with
+    # the OAuth2 "Resource Owner Password Credentials" grant type used by
+    # FastAPI's OAuth2PasswordRequestForm.
+    # --------------------------------------------------------------------------
+    auth_login_body:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
