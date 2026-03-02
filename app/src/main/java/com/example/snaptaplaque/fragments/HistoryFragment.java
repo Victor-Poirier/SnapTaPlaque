@@ -16,23 +16,67 @@ import com.example.snaptaplaque.models.Vehicle;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Fragment responsable de l'affichage de l'historique des plaques d'immatriculation scannées.
+ * <p>
+ * Ce fragment présente une liste scrollable ({@link RecyclerView}) de véhicules
+ * précédemment scannés par l'utilisateur. Chaque élément de la liste contient :
+ * <ul>
+ *     <li>Le numéro d'immatriculation du véhicule</li>
+ *     <li>Les détails descriptifs (marque, modèle, motorisation, etc.)</li>
+ *     <li>Le statut favori du véhicule</li>
+ * </ul>
+ * <p>
+ * <strong>Note :</strong> Actuellement, les données affichées sont fictives et servent
+ * uniquement à des fins de test. Elles devront être remplacées par une source de données
+ * persistante (base de données locale, API distante, etc.).
+ * </p>
+ *
+ * @author SnapTaPlaque's Team
+ * @version 1.0
+ * @see Fragment
+ * @see VehicleAdapter
+ * @see Vehicle
+ */
 public class HistoryFragment extends Fragment {
     /*
-    * Ce fragment affichera l'historique des plaques scannées par l'utilisateur.
-    * Il peut inclure une liste (RecyclerView) des plaques avec des détails comme :
-    * - Date et heure du scan
-    * - Image de la plaque
-    * - Informations associées (marque, modèle, etc.)
-    *
-    * Le fragment peut aussi permettre de filtrer ou trier l'historique.
-    */
+     * Ce fragment affichera l'historique des plaques scannées par l'utilisateur.
+     * Il peut inclure une liste (RecyclerView) des plaques avec des détails comme :
+     * - Date et heure du scan
+     * - Image de la plaque
+     * - Informations associées (marque, modèle, etc.)
+     *
+     * Le fragment peut aussi permettre de filtrer ou trier l'historique.
+     */
 
+    /**
+     * Le {@link RecyclerView} utilisé pour afficher la liste des véhicules scannés.
+     */
     private RecyclerView recyclerView;
-    private VehicleAdapter adapter; // Adapter pour afficher les véhicules dans le RecyclerView
 
+    /**
+     * L'adaptateur gérant l'affichage des objets {@link Vehicle} dans le {@link RecyclerView}.
+     */
+    private VehicleAdapter adapter;
+
+    /**
+     * Initialise et retourne la vue associée à ce fragment.
+     * <p>
+     * Cette méthode gonfle le layout {@code fragment_history}, configure le
+     * {@link RecyclerView} avec un {@link LinearLayoutManager} vertical, puis
+     * peuple la liste avec un jeu de données fictif à des fins de démonstration.
+     * </p>
+     *
+     * @param inflater          le {@link LayoutInflater} utilisé pour gonfler la vue du fragment
+     * @param container         le {@link ViewGroup} parent auquel la vue sera rattachée,
+     *                          ou {@code null} si aucun parent n'est disponible
+     * @param savedIntanceState le {@link Bundle} contenant l'état précédemment sauvegardé
+     *                          du fragment, ou {@code null} s'il s'agit d'une première création
+     * @return la {@link View} racine du fragment contenant la liste des véhicules
+     */
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedIntanceState){
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedIntanceState) {
         View view = inflater.inflate(R.layout.fragment_history, container, false);
 
         recyclerView = view.findViewById(R.id.rvVehicles);
