@@ -138,15 +138,14 @@ correspondant au token JWT fourni.
 
 | Méthode | Endpoint              | Description                                  | Auth |
 |---------|-----------------------|----------------------------------------------|------|
-| POST    | /predict              | Détecter et lire une plaque sur une image    | ✅   |
-| GET     | /predictions/history  | Historique des détections de l'utilisateur    | ✅   |
+| POST    | /predictions/predict  | Détecter et lire une plaque sur une image    | ✅   |
+| GET     | /predictions/history  | Historique des détections de l'utilisateur   | ✅   |
 | GET     | /predictions/stats    | Statistiques des détections de l'utilisateur | ✅   |
 
 **POST /predict** — Envoyer une image en multipart/form-data (champ file). L'API exécute le pipeline 
 YOLOv8 + EasyOCR et retourne :
 - plate\_text : le texte lu sur la plaque (ex. AB-123-CD)
 - confidence : score de confiance (0.0 à 1.0)
-- bounding\_box : coordonnées en pixels de la zone détectée (x\_min, y\_min, x\_max, y\_max)
 - model\_version : identifiant du modèle utilisé
 - prediction\_id : identifiant unique de la prédiction en base de données
 
@@ -219,13 +218,13 @@ Exemple de réponse :
 |---------|--------------------|------------------------------------------------|------|
 | POST    | /favorites/add     | Ajouter un véhicule aux favoris                | ✅   |
 | DELETE  | /favorites/remove  | Retirer un véhicule des favoris                | ✅   |
-| GET     | /favorites/        | Liste des véhicules favoris de l'utilisateur   | ✅   |
+| GET     | /favorites/all     | Liste des véhicules favoris de l'utilisateur   | ✅   |
 
 **POST /favorites/add** — Paramètre query : license\_plate. Ajoute le véhicule correspondant aux favoris de l'utilisateur connecté. Retourne une erreur 400 si le véhicule est déjà dans les favoris.
 
 **DELETE /favorites/remove** — Paramètre query : license\_plate. Retire le véhicule des favoris de l'utilisateur connecté.
 
-**GET /favorites/** — Retourne la liste complète des véhicules favoris de l'utilisateur connecté, chaque entrée contenant toutes les informations du véhicule (license\_plate, brand, model, year, color, engine, trim).
+**GET /favorites/all** — Retourne la liste complète des véhicules favoris de l'utilisateur connecté, chaque entrée contenant toutes les informations du véhicule (license\_plate, brand, model, year, color, engine, trim).
 
 ---
 
