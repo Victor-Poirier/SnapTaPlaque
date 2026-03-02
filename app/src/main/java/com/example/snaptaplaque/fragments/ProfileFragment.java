@@ -5,6 +5,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.Toast;
+import android.net.Uri;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -24,16 +26,43 @@ import java.util.List;
 public class ProfileFragment extends Fragment {
 
     private ImageView ivProfile;
-    private ActivityResultLauncher<String> imagePickerLauncher;
+    private ActivityResultLauncher<String> requestPermissionLauncher;
+    private ActivityResultLauncher<Uri> cameraLauncher;
+    private ActivityResultLauncher<String> galleryLauncher;
+    private Uri tempImageUri;
     private RecyclerView recyclerView;
     private VehicleAdapter adapter;
+
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Outil qui va chercher l'image dans le téléphone
-        imagePickerLauncher = registerForActivityResult(
+        // Outil qui ouvre la permission d'utiliser la caméra
+        requestPermissionLauncher = registerForActivityResult(
+                new ActivityResultContracts.RequestPermission(),
+                isGranted -> {
+                    if(isGranted) {
+                        openCamera();
+                    }
+                    else {
+                        Toast.makeText(getContext(), R.string.necessary_camera, Toast.LENGTH_SHORT).show();
+                    }
+                }
+        );
+
+        // Outil qui ouvre l'appareil photo
+        cameraLauncher = registerForActivityResult(
+                new ActivityResultContracts.TakePicture(),
+                success -> {
+                    if(success && tempImageUri != null) {
+                        ivProfile.setImageURI(tempImageUri);
+                    }
+                }
+        );
+
+        // Outil qui ouvre la galerie du téléphone
+        galleryLauncher = registerForActivityResult(
                 new ActivityResultContracts.GetContent(),
                 uri -> {
                     if(uri != null) {
@@ -51,10 +80,7 @@ public class ProfileFragment extends Fragment {
 
         ivProfile = view.findViewById(R.id.ivProfilePicture);
 
-        // Lance la galerie quand on clique sur la photo
-        ivProfile.setOnClickListener(v -> {
-            imagePickerLauncher.launch("image/*");
-        });
+        ivProfile.setOnClickListener(v -> showChoice());
 
         recyclerView = view.findViewById(R.id.rvVehicles);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -72,5 +98,51 @@ public class ProfileFragment extends Fragment {
         recyclerView.setAdapter(adapter);
 
         return view;
+    }
+
+    private void showChoice() {
+        String[] options = {
+                getString(R.string.camera_choice),
+                getString(R.string.gallery_choice)
+        };
+
+        // Récupère le choix de l'utlisateur
+        new android.app.AlertDialog.Builder(requireContext())
+                .setTitle(R.string.edit_photo)
+                .setItems(options, (dialog, which) -> {
+                    if(which == 0) {
+                        checkCameraPermission();
+                    }
+                    else {
+                        galleryLauncher.launch("image/*");
+                    }
+                }).show();
+    }
+
+    private void checkCameraPermission() {
+        // Vérifie la permission donnée par l'utilisateur pour l'utilisaton de la caméra
+        if(androidx.core.content.ContextCompat.checkSelfPermission(
+                requireContext(), android.Manifest.permission.CAMERA) ==
+                android.content.pm.PackageManager.PERMISSION_GRANTED) {
+
+            openCamera();
+        }
+        else {
+            requestPermissionLauncher.launch(android.Manifest.permission.CAMERA);
+        }
+    }
+
+    private void openCamera() {
+        // Crée un fichier vide pour recevoir la photo
+        java.io.File tempFile = new java.io.File(requireContext().getExternalFilesDir(android.os.Environment.DIRECTORY_PICTURES), "temp_image.jpg");
+
+        // Transforme le fichier en URI (image)
+        tempImageUri = androidx.core.content.FileProvider.getUriForFile(
+                requireContext(),
+                requireContext().getPackageName() + ".provider",
+                tempFile
+        );
+
+        cameraLauncher.launch(tempImageUri);
     }
 }
