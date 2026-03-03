@@ -13,6 +13,7 @@
 .externalNativeBuild
 .cxx
 local.properties
+.idea
 
 .ipynb_checkpoints/
 .__pychache__/

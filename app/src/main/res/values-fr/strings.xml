@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">SnapTaPlaque</string>
+    <string name="title_history">Historique des recherches</string>
+    <string name="title_search">Rechercher</string>
+    <string name="title_profile">Profil</string>
+    <string name="title_favorite">Véhicules Favoris</string>
+    <string name="necessary_camera">La caméra est nécessaire pour prendre une photo</string>
+    <string name="bnt_search_other">Rechercher un autre véhicule</string>
+    <string name="hint_immatriculation">N° Immatriculation</string>
+    <string name="placeholder_make_model">Marque Modèle Finition Motorisation ...</string>
+    <string name="nav_history">Historique</string>
+    <string name="nav_search">Rechercher</string>
+    <string name="nav_profile">Profil</string>
+    <string name="history">Historique</string>
+    <string name="iv_favorite">Favoris</string>
+    <string name="search">Rechercher</string>
+    <string name="profile">Profil</string>
+    <string name="edit_photo">Changer la photo</string>
+    <string name="camera_choice">Prendre une photo</string>
+    <string name="gallery_choice">Sélectionner à partir de la galerie</string>
+    <string name="join_us">Rejoignez-nous !</string>
+    <string name="username">Nom d\'utilisateur</string>
+    <string name="first_name">Prénom</string>
+    <string name="name">Nom</string>
+    <string name="email">Adresse mail</string>
+    <string name="password">Mot de passe</string>
+    <string name="sign_up">S\'inscrire</string>
+    <string name="sign_in">Se connecter</string>
+    <string name="welcome">Content de te revoir !</string>
+</resources>
