@@ -2,6 +2,7 @@ package com.example.snaptaplaque.activities;
 
 import android.os.Bundle;
 
+import android.widget.ImageView;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.viewpager2.widget.ViewPager2;
@@ -61,10 +62,10 @@ public class MainActivity extends AppCompatActivity {
      */
     private ViewPager2 viewPager;
 
-    /**
-     * Barre de navigation inférieure permettant la sélection directe d'un fragment.
-     */
-    private BottomNavigationView bottomNav;
+
+    private ImageView circleHistory;
+    private ImageView circleSearch;
+    private ImageView circleProfile;
 
     /**
      * Initialise l'activité, configure la navigation et charge les données initiales.
@@ -106,37 +107,48 @@ public class MainActivity extends AppCompatActivity {
         sharedViewModel.setVehicles(initialVehicles);
 
         viewPager = findViewById(R.id.viewPager);
-        bottomNav = findViewById(R.id.bottomNavigation);
+        circleHistory = findViewById(R.id.circleHistory);
+        circleSearch = findViewById(R.id.circleSearch);
+        circleProfile = findViewById(R.id.circleProfile);
 
+        if (viewPager == null || circleHistory == null || circleSearch == null || circleProfile == null)
+            return;
+
+        // Configuration de l'adaptateur
         ViewPageAdapter adapter = new ViewPageAdapter(this);
         viewPager.setAdapter(adapter);
 
-        bottomNav.setOnItemSelectedListener(item -> {
-            int id = item.getItemId();
-            if (id == R.id.nav_history) viewPager.setCurrentItem(0);
-            else if (id == R.id.nav_search) viewPager.setCurrentItem(1);
-            else if (id == R.id.nav_profile) viewPager.setCurrentItem(2);
-            return true;
-        });
+        // Clicks sur les cercles
+        circleHistory.setOnClickListener(v -> selectTab(0));
+        circleSearch.setOnClickListener(v -> selectTab(1));
+        circleProfile.setOnClickListener(v -> selectTab(2));
 
-        bottomNav.setSelectedItemId(R.id.nav_search);
-
+        // Synchronisation ViewPager → Gauges
         viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
-            /**
-             * Appelé lorsque la page sélectionnée change (par swipe ou programmatiquement).
-             *
-             * <p>Met à jour l'élément coché dans la {@link BottomNavigationView}
-             * pour refléter la page actuellement visible dans le {@link ViewPager2}.</p>
-             *
-             * @param position l'index de la nouvelle page sélectionnée (0, 1 ou 2)
-             */
             @Override
             public void onPageSelected(int position) {
                 super.onPageSelected(position);
-                bottomNav.getMenu().getItem(position).setChecked(true);
+                updateSelection(position);
             }
         });
 
+        // Positionnement initial sur "Search" (index 1)
         viewPager.setCurrentItem(1, false);
+        updateSelection(1);
+    }
+
+
+    // Change de page
+    private void selectTab(int index) {
+        viewPager.setCurrentItem(index, true);
+        updateSelection(index);
+    }
+
+    // Met à jour visuellement les gauges
+    private void updateSelection(int selectedIndex) {
+
+        circleHistory.setSelected(selectedIndex == 0);
+        circleSearch.setSelected(selectedIndex == 1);
+        circleProfile.setSelected(selectedIndex == 2);
     }
 }

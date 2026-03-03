@@ -11,5 +11,8 @@
     <string name="nav_history">Historique</string>
     <string name="nav_search">Rechercher</string>
     <string name="nav_profile">Profil</string>
+    <string name="history">Historique</string>
     <string name="iv_favorite">Favoris</string>
+    <string name="search">Rechercher</string>
+    <string name="profile">Profil</string>
 </resources>
