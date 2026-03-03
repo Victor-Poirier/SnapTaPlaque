@@ -97,6 +97,7 @@ public class ProfileFragment extends Fragment {
                 new ActivityResultContracts.TakePicture(),
                 success -> {
                     if(success && tempImageUri != null) {
+                        ivProfile.setImageURI(null);
                         ivProfile.setImageURI(tempImageUri);
                     }
                 }
