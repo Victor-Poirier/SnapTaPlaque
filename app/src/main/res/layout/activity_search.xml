@@ -11,10 +11,10 @@
         android:layout_height="match_parent"
         android:layout_above="@id/dashboardContainer" />
 
-    <!-- Dashboard = Navigation -->
+    <!-- Dashboard -->
     <LinearLayout
         android:id="@+id/dashboardContainer"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="80dp"
         android:layout_alignParentBottom="true"
         android:layout_marginStart="6dp"
@@ -26,32 +26,71 @@
         android:paddingStart="6dp"
         android:paddingEnd="6dp">
 
-        <com.example.snaptaplaque.views.DashBoardGauge
-            android:id="@+id/gaugeHistory"
+        <!-- History -->
+        <FrameLayout
             android:layout_width="0dp"
-            android:layout_height="55dp"
+            android:layout_height="match_parent"
             android:layout_weight="1"
             android:layout_margin="8dp"
-            android:clickable="true"
-            android:focusable="true"/>
+            android:layout_gravity="center_vertical">
 
-        <com.example.snaptaplaque.views.DashBoardGauge
-            android:id="@+id/gaugeSearch"
-            android:layout_width="0dp"
-            android:layout_height="55dp"
-            android:layout_weight="1"
-            android:layout_margin="8dp"
-            android:clickable="true"
-            android:focusable="true"/>
+            <ImageView
+                android:id="@+id/circleHistory"
+                android:layout_width="55dp"
+                android:layout_height="55dp"
+                android:layout_gravity="center"
+                android:background="@drawable/bg_circle_selector"
+                android:src="@drawable/ic_history"
+                android:clickable="true"
+                android:focusable="true"
+                android:scaleType="centerInside"
+                android:padding="14dp"
+                android:contentDescription="@string/history"/>
+        </FrameLayout>
 
-        <com.example.snaptaplaque.views.DashBoardGauge
-            android:id="@+id/gaugeProfile"
+        <!-- Search -->
+        <FrameLayout
             android:layout_width="0dp"
-            android:layout_height="55dp"
+            android:layout_height="match_parent"
             android:layout_weight="1"
             android:layout_margin="8dp"
-            android:clickable="true"
-            android:focusable="true"/>
+            android:layout_gravity="center_vertical">
+
+            <ImageView
+                android:id="@+id/circleSearch"
+                android:layout_width="55dp"
+                android:layout_height="55dp"
+                android:layout_gravity="center"
+                android:background="@drawable/bg_circle_selector"
+                android:src="@drawable/ic_search"
+                android:clickable="true"
+                android:focusable="true"
+                android:scaleType="centerInside"
+                android:padding="14dp"
+                android:contentDescription="@string/search"/>
+        </FrameLayout>
+
+        <!-- Profile -->
+        <FrameLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:layout_margin="8dp"
+            android:layout_gravity="center_vertical">
+
+            <ImageView
+                android:id="@+id/circleProfile"
+                android:layout_width="55dp"
+                android:layout_height="55dp"
+                android:layout_gravity="center"
+                android:background="@drawable/bg_circle_selector"
+                android:src="@drawable/ic_profile"
+                android:clickable="true"
+                android:focusable="true"
+                android:scaleType="centerInside"
+                android:padding="14dp"
+                android:contentDescription="@string/profile"/>
+        </FrameLayout>
 
     </LinearLayout>
 
