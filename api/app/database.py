@@ -121,6 +121,11 @@ class User(Base):
     # plusieurs véhicules favoris, et un véhicule peut être favori de plusieurs utilisateurs.
     favorites = relationship("Vehicle", secondary=user_favorites, back_populates="favorited_by")
 
+    # RGPD : Consentement explicite de l'utilisateur lors de l'inscription.
+    # Stocke la date à laquelle l'utilisateur a accepté la politique de
+    # confidentialité. Un utilisateur ne peut pas être créé sans consentement.
+    gdpr_consent_at = Column(DateTime, nullable=True)
+
 
 class Prediction(Base):
     """

@@ -22,7 +22,9 @@
 - [Endpoints de l'API](#-endpoints-de-lapi)
 - [Modèle de reconnaissance](#-modèle-de-reconnaissance)
 - [Base de données](#-base-de-données)
-
+- [RGPD](#-rgpd-et-sécurité)
+- [Versioning](#-versioning)
+- [Rate limiting](#-rate-limiting)
 ---
 
 ## Présentation
@@ -312,4 +314,20 @@ Au démarrage, la fonction create\_tables() est automatiquement appelée pour cr
 ```
 ---
 
-**Contact** : vincent.proudy.etu@univ-lemans.fr
+## RGPD
+
+TODO 
+
+---
+
+## Versioning
+
+TODO
+
+---
+
+## Rate limiting
+
+TODO
+
+
