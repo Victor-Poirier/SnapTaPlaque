@@ -154,7 +154,7 @@ et accessible directement depuis le navigateur :
 **Swagger UI** permet de tester chaque endpoint directement depuis le navigateur : il suffit 
 de cliquer sur un endpoint, de renseigner les paramètres et d'exécuter la requête. Pour les 
 endpoints protégés, cliquer sur le bouton **Authorize** en haut à droite et saisir le token 
-JWT obtenu via POST /auth/login.
+JWT obtenu via POST /account/login.
 
 ---
 
@@ -174,9 +174,9 @@ Retourne le statut de l'API, l'état du modèle chargé en mémoire, la connexio
 
 | Méthode | Endpoint         | Description                            | Auth |
 |---------|-----------------|----------------------------------------|------|
-| POST    | /auth/register  | Inscription d'un nouvel utilisateur    | ❌   |
-| POST    | /auth/login     | Connexion et obtention d'un token JWT  | ❌   |
-| GET     | /auth/me        | Profil de l'utilisateur connecté       | ✅   |
+| POST    | /account/register  | Inscription d'un nouvel utilisateur    | ❌   |
+| POST    | /account/login     | Connexion et obtention d'un token JWT  | ❌   |
+| GET     | /account/me        | Profil de l'utilisateur connecté       | ✅   |
 
 **Inscription** — Envoyer un JSON avec username, email, password et full\_name. Le mot de passe 
 est haché côté serveur avec bcrypt.
@@ -386,8 +386,8 @@ L'API SnapTaPlaque est conçue dans le respect du **Règlement Général sur la 
 | Art. 6.1.a    | Consentement explicite            | Champ gdpr_consent obligatoire à l'inscription    |
 | Art. 7        | Preuve du consentement            | Horodatage dans gdpr_consent_at                   |
 | Art. 13 & 14  | Information de transparence       | GET /privacy-policy                               |
-| Art. 15       | Droit d'accès                     | GET /v1/auth/me/data-export                       |
-| Art. 17       | Droit à l'effacement              | DELETE /v1/auth/me/delete-account                 |
+| Art. 15       | Droit d'accès                     | GET /v1/account/me/data-export                       |
+| Art. 17       | Droit à l'effacement              | DELETE /v1/account/me/delete-account                 |
 | Art. 20       | Droit à la portabilité            | Export JSON structuré via /data-export             |
 | Art. 25       | Protection dès la conception      | Minimisation des données, chiffrement             |
 | Art. 32       | Sécurité du traitement            | bcrypt, JWT, rate limiting                        |
@@ -412,11 +412,11 @@ La politique de confidentialité est accessible publiquement via l'endpoint `GET
 
 ### Suppression de compte
 
-L'endpoint `DELETE /v1/auth/me/delete-account` effectue une **suppression irréversible** de toutes les données de l'utilisateur (profil, prédictions, favoris) dans une **transaction atomique** SQLAlchemy.
+L'endpoint `DELETE /v1/account/me/delete-account` effectue une **suppression irréversible** de toutes les données de l'utilisateur (profil, prédictions, favoris) dans une **transaction atomique** SQLAlchemy.
 
 ### Export des données
 
-L'endpoint `GET /v1/auth/me/data-export` retourne un **JSON structuré** contenant l'intégralité des données personnelles : profil, historique des prédictions et liste des favoris. Ce format satisfait l'exigence de portabilité de l'Art. 20.
+L'endpoint `GET /v1/account/me/data-export` retourne un **JSON structuré** contenant l'intégralité des données personnelles : profil, historique des prédictions et liste des favoris. Ce format satisfait l'exigence de portabilité de l'Art. 20.
 
 ---
 
@@ -445,7 +445,7 @@ la configuration dans main.py serait :
 ```python
     app.include_router(predictions_v2.router, prefix="/v2/predictions", tags=["V2 - Predictions"])
     # Les autres endpoints V2 réutilisent V1 tant qu'ils ne changent pas
-    app.include_router(auth_v1.router, prefix="/v2/auth", tags=["V2 - Auth"])
+    app.include_router(account_v1.router, prefix="/v2/account", tags=["V2 - Account"])
     app.include_router(admin_v1.router, prefix="/v2/admin", tags=["V2 - Admin"])
     app.include_router(model_v1.router, prefix="/v2/model", tags=["V2 - Model"])
     app.include_router(vehicles_v1.router, prefix="/v2/vehicles", tags=["V2 - Vehicles"])
@@ -462,8 +462,8 @@ clé d'identification :
 
 | Endpoint                       | Limite          |
 |--------------------------------|-----------------|
-| POST /v1/auth/register         | 5 req/min       |
-| POST /v1/auth/login            | 10 req/min      |
+| POST /v1/account/register         | 5 req/min       |
+| POST /v1/account/login            | 10 req/min      |
 | POST /v1/predictions/predict   | 5 req/min       |
 
 En cas de dépassement, une réponse HTTP 429 (Too Many Requests) est
