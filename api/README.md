@@ -58,14 +58,14 @@ puis se connecter pour obtenir un token d'accès qui sera requis sur la majorit�
 │   ├── database.py
 │   ├── dependencies.py
 │   ├── limiter.py
+│   ├── models.py
+│   ├── predictor.py
 │   ├── main.py
 │   ├── model
 │   │   ├── __init__.py
 │   │   ├── lpr_engine.py
 │   │   ├── plate_model.pt
 │   │   └── vehicule_model.pt
-│   ├── models.py
-│   ├── predictor.py
 │   ├── routers
 │   │   ├── __init__.py
 │   │   ├── informations.py
