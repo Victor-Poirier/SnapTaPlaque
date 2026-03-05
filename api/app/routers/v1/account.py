@@ -1,5 +1,5 @@
 """
-auth.py — Routeur d'authentification pour l'API SnapTaPlaque.
+account.py — Routeur d'authentification pour l'API SnapTaPlaque.
 
 Ce module regroupe les endpoints liés à la gestion de l'identité des
 utilisateurs : inscription, connexion, consultation du profil courant,
@@ -55,7 +55,7 @@ from app.limiter import limiter
 
 # Instance du routeur FastAPI pour les endpoints d'authentification.
 # Ce routeur est ensuite inclus dans l'application principale avec
-# le préfixe "/auth" et le tag "Auth" pour la documentation OpenAPI.
+# le préfixe "/account" et le tag "Account" pour la documentation OpenAPI.
 router = APIRouter()
 
 # ================== LOGIN ==================

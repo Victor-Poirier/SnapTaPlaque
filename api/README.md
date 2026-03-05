@@ -16,7 +16,7 @@
 
 ## Table des matières
 
-- [Présentation](#-présentation)
+- [Présentation](#-Présentation)
 - [Lancement avec Docker](#-lancement-avec-docker)
 - [Documentation interactive](#-documentation-interactive)
 - [Endpoints de l'API](#-endpoints-de-lapi)
@@ -41,6 +41,58 @@ SnapTaPlaque est une API REST construite avec **FastAPI** qui permet de :
 L'API gère l'authentification via des tokens **JWT** (JSON Web Tokens). Chaque utilisateur doit s'inscrire 
 puis se connecter pour obtenir un token d'accès qui sera requis sur la majorité des endpoints.
 
+### Architecture
+
+```
+.
+├── alembic
+│   ├── README
+│   ├── env.py
+│   ├── script.py.mako
+│   └── versions
+├── app
+│   ├── __init__.py
+│   ├── auth.py
+│   ├── config.py
+│   ├── crud.py
+│   ├── database.py
+│   ├── dependencies.py
+│   ├── limiter.py
+│   ├── main.py
+│   ├── model
+│   │   ├── __init__.py
+│   │   ├── lpr_engine.py
+│   │   ├── plate_model.pt
+│   │   └── vehicule_model.pt
+│   ├── models.py
+│   ├── predictor.py
+│   ├── routers
+│   │   ├── __init__.py
+│   │   ├── informations.py
+│   │   ├── v1
+│   │   │   ├── __init__.py
+│   │   │   ├── account.py
+│   │   │   ├── admin.py
+│   │   │   ├── favorites.py
+│   │   │   ├── model.py
+│   │   │   ├── predictions.py
+│   │   │   └── vehicles.py
+│   │   └── v2
+│   │       └── __init__.py
+│   ├── schemas.py
+│   └── security.py
+├── Dockerfile
+├── README.md
+├── README_modif.md
+├── docker-compose.yml
+├── init-db.sql
+├── init_bd.py
+├── openapi.yaml
+├── requirements.txt
+├── alembic.ini
+└── setup.sh
+```
+
 ---
 
 ## Lancement avec Docker
@@ -57,8 +109,12 @@ cd SnapTaPlaque/api
 ```
 **2. Lancer l'ensemble des services (API + base de données) :**
 ```bash
+# Installer docker-compose-v2 si ce n'est pas déjà fait
+sudo apt-get update && sudo apt-get install docker-compose-v2
+
 # Lancer les services avec Docker Compose
-docker-compose up --build
+docker compose up --build
+
 ```
 **3. Vérifier que l'API est opérationnelle :**
 ```bash
@@ -75,7 +131,7 @@ Réponse attendue :
 ```
 **4. Arrêter les services :**
 ```bash
-docker-compose down
+docker compose down
 ```
 
 Au démarrage, l'application crée automatiquement les tables en base de données via la fonction 
@@ -316,18 +372,99 @@ Au démarrage, la fonction create\_tables() est automatiquement appelée pour cr
 
 ## RGPD
 
-TODO 
+L'API SnapTaPlaque est conçue dans le respect du **Règlement Général sur la Protection des Données (RGPD — UE 2016/679)**. Les mesures suivantes sont implémentées :
+
+### Base légale du traitement
+
+- **Art. 6.1.a** — Consentement explicite requis à l'inscription (`gdpr_consent=true` obligatoire).
+- **Art. 7** — Horodatage automatique du consentement dans le champ `gdpr_consent_at`.
+
+### Droits des utilisateurs
+
+| Article RGPD  | Exigence                          | Implémentation                                    |
+|----------------|----------------------------------|---------------------------------------------------|
+| Art. 6.1.a    | Consentement explicite            | Champ gdpr_consent obligatoire à l'inscription    |
+| Art. 7        | Preuve du consentement            | Horodatage dans gdpr_consent_at                   |
+| Art. 13 & 14  | Information de transparence       | GET /privacy-policy                               |
+| Art. 15       | Droit d'accès                     | GET /v1/auth/me/data-export                       |
+| Art. 17       | Droit à l'effacement              | DELETE /v1/auth/me/delete-account                 |
+| Art. 20       | Droit à la portabilité            | Export JSON structuré via /data-export             |
+| Art. 25       | Protection dès la conception      | Minimisation des données, chiffrement             |
+| Art. 32       | Sécurité du traitement            | bcrypt, JWT, rate limiting                        |
+
+### Transparence (Art. 13 & 14)
+
+La politique de confidentialité est accessible publiquement via l'endpoint `GET /privacy-policy` sans authentification. Elle détaille :
+
+- Le responsable de traitement et ses coordonnées
+- La finalité et la base légale du traitement
+- Les catégories de données collectées
+- La durée de conservation des données
+- Les droits des utilisateurs et comment les exercer
+- Les mesures de sécurité mises en place
+
+### Sécurité du traitement (Art. 32)
+
+- Mots de passe hachés avec **bcrypt** (jamais stockés en clair)
+- Authentification par **token JWT** signé
+- **Rate limiting** sur les endpoints sensibles
+- Les images soumises pour détection ne sont **pas conservées** après traitement
+
+### Suppression de compte
+
+L'endpoint `DELETE /v1/auth/me/delete-account` effectue une **suppression irréversible** de toutes les données de l'utilisateur (profil, prédictions, favoris) dans une **transaction atomique** SQLAlchemy.
+
+### Export des données
+
+L'endpoint `GET /v1/auth/me/data-export` retourne un **JSON structuré** contenant l'intégralité des données personnelles : profil, historique des prédictions et liste des favoris. Ce format satisfait l'exigence de portabilité de l'Art. 20.
 
 ---
 
-## Versioning
+## Versioning de l'API
 
-TODO
+L'API adopte un schéma de versioning par préfixe d'URL (/v1/, /v2/, etc.).
+Chaque version majeure est isolée dans un sous-package Python dédié
+(app.routers.v1, app.routers.v2, etc.), ce qui permet une évolution
+indépendante des contrats d'API sans casser la rétrocompatibilité pour
+les consommateurs existants.
 
----
+### Stratégie de versioning
 
-## Rate limiting
+- Chaque version majeure correspond à un sous-dossier dans app/routers/
+  (par exemple app/routers/v1/, app/routers/v2/).
+- Les endpoints transversaux (/, /versions, /privacy-policy) ne sont pas
+  versionnés car ils sont indépendants du contrat d'API.
+- Lors de l'introduction d'une nouvelle version (ex. V2), seuls les
+  routeurs modifiés sont redéfinis ; les autres réutilisent les modules
+  de la version précédente.
 
-TODO
+### Exemple d'évolution vers une V2
 
+Si le routeur de prédictions évolue en V2 avec des changements majeurs,
+la configuration dans main.py serait :
+```python
+    app.include_router(predictions_v2.router, prefix="/v2/predictions", tags=["V2 - Predictions"])
+    # Les autres endpoints V2 réutilisent V1 tant qu'ils ne changent pas
+    app.include_router(auth_v1.router, prefix="/v2/auth", tags=["V2 - Auth"])
+    app.include_router(admin_v1.router, prefix="/v2/admin", tags=["V2 - Admin"])
+    app.include_router(model_v1.router, prefix="/v2/model", tags=["V2 - Model"])
+    app.include_router(vehicles_v1.router, prefix="/v2/vehicles", tags=["V2 - Vehicles"])
+    app.include_router(favorites_v1.router, prefix="/v2/favorites", tags=["V2 - Favorites"])
+```
+Cette approche garantit que les clients utilisant /v1/ ne sont pas
+impactés par les évolutions de /v2/.
 
+## Rate Limiting
+
+Les endpoints sensibles sont protégés par un mécanisme de rate limiting
+(via la bibliothèque slowapi) utilisant l'adresse IP du client comme
+clé d'identification :
+
+| Endpoint                       | Limite          |
+|--------------------------------|-----------------|
+| POST /v1/auth/register         | 5 req/min       |
+| POST /v1/auth/login            | 10 req/min      |
+| POST /v1/predictions/predict   | 5 req/min       |
+
+En cas de dépassement, une réponse HTTP 429 (Too Many Requests) est
+retournée.
