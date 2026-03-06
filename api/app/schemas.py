@@ -68,6 +68,72 @@ class Token(BaseModel):
     token_type: str = "bearer"
 
 
+class TokenWithRefresh(Token):
+    """
+    Schéma de réponse pour un token JWT avec refresh token.
+
+    Étend le schéma ``Token`` en ajoutant un refresh token permettant
+    à l'utilisateur de renouveler son token d'accès sans se
+    ré-authentifier. Le refresh token possède une durée de validité
+    plus longue que le token d'accès.
+
+    Attributes:
+        access_token (str): Token JWT d'accès (hérité de ``Token``).
+        token_type (str): Type du token, ``"bearer"`` (hérité de
+            ``Token``).
+        refresh_token (str): Token JWT de rafraîchissement, utilisé
+            pour obtenir un nouveau token d'accès lorsque celui-ci
+            expire.
+
+    Configuration:
+        ``json_schema_extra`` — Exemple de réponse intégré à la
+        documentation OpenAPI illustrant la structure complète du
+        token avec refresh.
+    """
+
+    refresh_token: str
+
+    class Config:
+        """
+        Configuration interne du schéma Pydantic.
+
+        Attributes:
+            json_schema_extra (dict): Exemple de réponse intégré à la
+                documentation OpenAPI pour faciliter la compréhension
+                du format de retour.
+        """
+
+        json_schema_extra = {
+            "example": {
+                "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                "token_type": "bearer",
+                "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+            }
+        }
+
+
+class TokenData(BaseModel):
+    """
+    Schéma de transport des données extraites d'un token JWT.
+
+    Représente les informations (claims) décodées à partir d'un token
+    JWT après vérification de sa signature et de sa validité. Ce schéma
+    est utilisé en interne par les dépendances d'authentification pour
+    transmettre l'identité de l'utilisateur aux endpoints protégés.
+
+    Attributes:
+        username (str | None): Nom d'utilisateur extrait du claim
+            ``sub`` (subject) du token JWT. ``None`` si le claim est
+            absent ou invalide.
+        token_type (str | None): Type du token extrait des claims
+            personnalisés, permettant de distinguer les tokens d'accès
+            (``"access"``) des tokens de rafraîchissement
+            (``"refresh"``). ``None`` si le type n'est pas spécifié.
+    """
+
+    username: Optional[str] = None
+    token_type: Optional[str] = None  # "access" ou "refresh"
+
 # ================= PREDICTIONS =================
 
 class DetectionResult(BaseModel):
