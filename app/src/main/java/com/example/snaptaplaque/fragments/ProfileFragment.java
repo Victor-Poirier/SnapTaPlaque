@@ -50,6 +50,7 @@ public class ProfileFragment extends Fragment {
      * ImageView affichant la photo de profil de l'utilisateur.
      */
     private ImageView ivProfile;
+    private ImageView ivLogout;
     private ActivityResultLauncher<String> requestPermissionLauncher;
     private ActivityResultLauncher<Uri> cameraLauncher;
     private ActivityResultLauncher<String> galleryLauncher;
@@ -140,8 +141,10 @@ public class ProfileFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_profile, container, false);
 
         ivProfile = view.findViewById(R.id.ivProfilePicture);
-
         ivProfile.setOnClickListener(v -> showChoice());
+
+        ivLogout = view.findViewById(R.id.ivLogout);
+        ivLogout.setOnClickListener(null);
 
         recyclerView = view.findViewById(R.id.rvVehicles);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
