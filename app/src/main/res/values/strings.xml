@@ -27,4 +27,5 @@
     <string name="sign_up">Sign up</string>
     <string name="sign_in">Sign in</string>
     <string name="welcome">Welcome back !</string>
+    <string name="accept_privacy_policy">Accept privacy policy</string>
 </resources>
