@@ -60,13 +60,13 @@ ALGORITHM = "HS256"
 # Durée de validité par défaut des tokens d'accès, en minutes.
 # Passé ce délai, le token est considéré comme expiré et l'utilisateur
 # doit se ré-authentifier.
-ACCESS_TOKEN_EXPIRE_MINUTES = 60
+ACCESS_TOKEN_EXPIRE_MINUTES = settings.ACCESS_TOKEN_EXPIRE_MINUTES
 
 # Schéma OAuth2 « Bearer token » utilisé par FastAPI pour extraire
 # automatiquement le token JWT depuis l'en-tête ``Authorization``.
 # Le paramètre ``tokenUrl`` indique l'endpoint de connexion pour la
 # documentation interactive Swagger UI.
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/v1/auth/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/v1/account/login")
 
 # Contexte de hachage Passlib configuré avec l'algorithme bcrypt.
 # L'option ``deprecated="auto"`` permet de migrer automatiquement les

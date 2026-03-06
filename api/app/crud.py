@@ -34,7 +34,7 @@ Version : 1.0.0
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from app.database import User, Prediction, Vehicle, user_favorites
-from app.models import UserCreate
+from app.schemas import UserCreate
 from sqlalchemy.orm import Session
 
 

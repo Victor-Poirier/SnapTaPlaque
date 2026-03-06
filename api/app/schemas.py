@@ -19,7 +19,7 @@ Catégories de schémas :
 
 Version : 1.0.0
 """
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, field_validator
 from typing import Optional, Dict, Any, List
 from datetime import datetime
 
@@ -217,14 +217,38 @@ class UserCreate(BaseModel):
     """
 
     email: EmailStr
-    username: str
-    password: str
+    username: str = Field(..., min_length=3, max_length=50)
+    password: str = Field(..., min_length=5, max_length=128)
     full_name: str
     is_admin: bool = False
 
     # RGPD : L'utilisateur doit explicitement accepter la politique de
     # confidentialité lors de l'inscription.
     gdpr_consent: bool
+
+    @field_validator("username")
+    @classmethod
+    def validate_username(cls, v):
+        """
+        Valider le format du nom d'utilisateur.
+
+        Vérifie que la valeur fournie ne contient que des caractères
+        alphanumériques (lettres ASCII et chiffres). Les caractères
+        spéciaux, espaces et signes de ponctuation sont interdits.
+
+        Args:
+            v (str): Valeur du champ ``username`` à valider.
+
+        Returns:
+            str: Nom d'utilisateur validé, inchangé.
+
+        Raises:
+            ValueError: Si le nom d'utilisateur contient des caractères
+                non alphanumériques.
+        """
+        if not v.isalnum():
+            raise ValueError("Username must be alphanumeric")
+        return v
 
 class UserResponse(BaseModel):
     """
