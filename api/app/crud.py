@@ -41,6 +41,7 @@ from sqlalchemy.orm import Session
 from app import models
 from app.security import get_password_hash
 
+from datetime import datetime
 from typing import Optional
 
 
@@ -82,42 +83,89 @@ def get_user_by_username(db: Session, username: str) -> User:
     return db.query(User).filter(User.username == username).first()
 
 
-def create_user(
-        db: Session,
-        user: UserCreate,
-):
+def create_user(db: Session, user: UserCreate) -> User:
     """
-    Créer un nouvel utilisateur en base de données.
+    Créer un nouvel utilisateur en base de données avec traçabilité du consentement RGPD.
 
-    Hache le mot de passe en clair fourni dans le schéma ``UserCreate``
-    via bcrypt, puis crée et persiste un nouvel enregistrement dans la
-    table ``users``. L'instance ORM est rafraîchie après le commit pour
-    inclure les champs générés par la base (``id``, ``created_at``, etc.).
+    Hache le mot de passe en clair fourni par l'utilisateur via bcrypt,
+    instancie un objet ORM ``User`` avec les informations du schéma
+    ``UserCreate``, puis persiste l'enregistrement en base de données.
+
+    Conformité RGPD (Art. 6.1.a & Art. 7) :
+        Si l'utilisateur a coché la case de consentement lors de
+        l'inscription (``user.gdpr_consent == True``), la date et
+        l'heure UTC du consentement sont enregistrées dans le champ
+        ``gdpr_consent_at``. Ce champ constitue la preuve horodatée
+        du consentement explicite exigée par le RGPD. Si le
+        consentement n'est pas donné, ``gdpr_consent_at`` est défini
+        à ``None`` (bien que l'endpoint ``/register`` rejette la
+        requête en amont dans ce cas).
 
     Args:
-        db (Session): Session SQLAlchemy active.
-        user (UserCreate): Schéma Pydantic contenant les champs
-            ``email``, ``username``, ``password``, ``full_name`` et
-            ``is_admin``.
+        db (Session): Session SQLAlchemy active, injectée par la
+            dépendance ``get_db``.
+        user (UserCreate): Schéma Pydantic contenant les données
+            d'inscription validées :
+            - ``email`` (str) : Adresse email unique.
+            - ``username`` (str) : Nom d'utilisateur unique.
+            - ``password`` (str) : Mot de passe en clair (haché avant
+              stockage, jamais persisté en clair).
+            - ``full_name`` (str) : Nom complet de l'utilisateur.
+            - ``is_admin`` (bool) : Statut administrateur.
+            - ``gdpr_consent`` (bool) : Consentement RGPD explicite.
 
     Returns:
-        User: Instance ORM de l'utilisateur nouvellement créé, incluant
-            son identifiant généré par la base de données.
+        User: Instance ORM de l'utilisateur nouvellement créé, avec
+            tous les champs rafraîchis depuis la base de données
+            (y compris ``id`` auto-incrémenté et ``created_at``).
     """
+    # Hachage du mot de passe en clair via bcrypt avant stockage.
+    # Le mot de passe en clair n'est jamais persisté en base de données
+    # (conformité RGPD Art. 32 — sécurité du traitement).
     hashed_password = get_password_hash(user.password)
 
+    # Construction de l'instance ORM User. Le champ gdpr_consent_at
+    # horodate le consentement RGPD à l'instant UTC de l'inscription.
     db_user = User(
         email=user.email,
         username=user.username,
         hashed_password=hashed_password,
         full_name=user.full_name,
-        is_admin=user.is_admin
+        is_admin=user.is_admin,
+        gdpr_consent_at=datetime.utcnow() if user.gdpr_consent else None,
     )
 
+    # Persistance en base : ajout, validation de la transaction et
+    # rafraîchissement de l'instance pour récupérer les valeurs
+    # générées côté serveur (id, created_at).
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
     return db_user
+
+
+def anonymize_user(db: Session, user_id: int):
+    """
+    Anonymiser un utilisateur au lieu de le supprimer physiquement.
+
+    Alternative à la suppression totale : remplace les données
+    personnelles par des valeurs anonymisées tout en conservant
+    les données statistiques agrégées (prédictions anonymisées).
+    Utile si vous avez besoin de garder des métriques globales.
+
+    Args:
+        db (Session): Session SQLAlchemy active.
+        user_id (int): Identifiant de l'utilisateur à anonymiser.
+    """
+    user = db.query(User).filter(User.id == user_id).first()
+    if user:
+        user.email = f"deleted_{user_id}@anonymous.local"
+        user.username = f"deleted_user_{user_id}"
+        user.full_name = "Utilisateur supprimé"
+        user.hashed_password = "DELETED"
+        user.is_active = False
+        user.gdpr_consent_at = None
+        db.commit()
 
 
 def authenticate_user(db: Session, username: str, password: str):

@@ -16,13 +16,15 @@
 
 ## Table des matières
 
-- [Présentation](#-présentation)
+- [Présentation](#-Présentation)
 - [Lancement avec Docker](#-lancement-avec-docker)
 - [Documentation interactive](#-documentation-interactive)
 - [Endpoints de l'API](#-endpoints-de-lapi)
 - [Modèle de reconnaissance](#-modèle-de-reconnaissance)
 - [Base de données](#-base-de-données)
-
+- [RGPD](#-rgpd-et-sécurité)
+- [Versioning](#-versioning)
+- [Rate limiting](#-rate-limiting)
 ---
 
 ## Présentation
@@ -38,6 +40,70 @@ SnapTaPlaque est une API REST construite avec **FastAPI** qui permet de :
 
 L'API gère l'authentification via des tokens **JWT** (JSON Web Tokens). Chaque utilisateur doit s'inscrire 
 puis se connecter pour obtenir un token d'accès qui sera requis sur la majorité des endpoints.
+
+### Architecture
+
+```
+./
+├── alembic/                            # DOSSIER DE MIGRATIONS DE LA BASE DE DONNÉES (PostgreSQL)
+│   │
+│   ├── README                          # Documentation sur l'utilisation d'Alembic
+│   ├── env.py                          # Configuration d'Alembic pour la connexion à la base de données
+│   ├── script.py.mako                  # Template pour les scripts de migration
+│   └── versions                        # Dossier contenant les scripts de migration générés
+│   
+├── app/                                # DOSSIER PRINCIPAL DE L'APPLICATION
+│   │
+│   ├── __init__.py                     # Initialisation du package app
+│   ├── auth.py                         # Gestion de l'authentification (inscription, connexion, profil)
+│   ├── config.py                       # Configuration de l'application
+│   ├── crud.py                         # Fonctions de gestion de la base de données
+│   ├── database.py                     # Configuration des tables de la base de données et session
+│   ├── dependencies.py                 # Dépendances FastAPI (ex. get_db, get_current_user)
+│   ├── limiter.py                      # Configuration du rate limiting avec slowapi
+│   ├── schemas.py                      # Schémas Pydantic pour les requêtes et réponses de l'API
+│   ├── security.py                     # Fonctions de sécurité (hachage de mot de passe, création de JWT)
+│   ├── models.py                       # Définition des modèles de données (SQLAlchemy) et des schémas Pydantic
+│   ├── predictor.py                    # Wrapper de chargement et d'inférence du modèle
+│   ├── main.py                         # Point d'entrée de l'application, configuration des routeurs
+│   │  
+│   ├── model/                          # DOSSIER DU MODELE DE RECONNAISSANCE
+│   │   │
+│   │   ├── __init__.py                 # Initialisation du package model
+│   │   ├── lpr_engine.py               # Implémentation du pipeline de reconnaissance (YOLOv8 + EasyOCR)
+│   │   ├── plate_model.pt              # Fichier du modèle YOLOv8 entraîné pour la détection de plaques
+│   │   └── vehicule_model.pt           # Fichier du modèle de classification de véhicules
+│   │   
+│   ├── routers/                        # DOSSIER DES ROUTEURS (ENDPOINTS)
+│   │   │
+│   │   ├── __init__.py                 # Initialisation du package routers
+│   │   ├── informations.py             # Routeur pour les endpoints d'informations non versionnés
+│   │   │
+│   │   ├── v1/                         # DOSSIER DE LA VERSION 1 DES ENDPOINTS
+│   │   │   │
+│   │   │   ├── __init__.py             # Initialisation du package v1
+│   │   │   ├── account.py              # Endpoints de la gestion de compte utilisateur
+│   │   │   ├── admin.py                # Endpoints d'administration
+│   │   │   ├── favorites.py            # Endpoints de gestion des favoris
+│   │   │   ├── model.py                # Endpoints d'information sur le modèle de reconnaissance
+│   │   │   ├── predictions.py          # Endpoints de prédiction et d'historique
+│   │   │   └── vehicles.py             # Endpoints d'information sur les véhicules
+│   │   │
+│   │   └── v2/                         # DOSSIER DE LA VERSION 2 DES ENDPOINTS
+│   │       │ 
+│   │       └── __init__.py             # Initialisation du package v2 (pour les futures évolutions)
+│   │   
+├── Dockerfile                          # Configuration pour construire l'image Docker de l'API
+├── README.md                           # Documentation principale de l'API
+├── README_modif.md                     # Documentation des modifications apportées à l'API (crédit scoring)
+├── docker-compose.yml                  # Configuration de Docker Compose pour lancer l'API et la BDD
+├── init-db.sql                         # Script SQL pour initialiser la base de données PostgreSQL
+├── init_bd.py                          # Script Python pour initialiser la base de données SQLite
+├── openapi.yaml                        # Contrat d'API au format OpenAPI
+├── requirements.txt                    # Liste des dépendances Python de l'API
+├── alembic.ini                         # Configuration d'Alembic pour les migrations de la base de données
+└── setup.sh                            # Script d'installation et de lancement de l'API en local (sans Docker)
+```
 
 ---
 
@@ -55,8 +121,12 @@ cd SnapTaPlaque/api
 ```
 **2. Lancer l'ensemble des services (API + base de données) :**
 ```bash
+# Installer docker-compose-v2 si ce n'est pas déjà fait
+sudo apt-get update && sudo apt-get install docker-compose-v2
+
 # Lancer les services avec Docker Compose
-docker-compose up --build
+docker compose up --build
+
 ```
 **3. Vérifier que l'API est opérationnelle :**
 ```bash
@@ -73,7 +143,7 @@ Réponse attendue :
 ```
 **4. Arrêter les services :**
 ```bash
-docker-compose down
+docker compose down
 ```
 
 Au démarrage, l'application crée automatiquement les tables en base de données via la fonction 
@@ -96,7 +166,7 @@ et accessible directement depuis le navigateur :
 **Swagger UI** permet de tester chaque endpoint directement depuis le navigateur : il suffit 
 de cliquer sur un endpoint, de renseigner les paramètres et d'exécuter la requête. Pour les 
 endpoints protégés, cliquer sur le bouton **Authorize** en haut à droite et saisir le token 
-JWT obtenu via POST /auth/login.
+JWT obtenu via POST /account/login.
 
 ---
 
@@ -116,9 +186,9 @@ Retourne le statut de l'API, l'état du modèle chargé en mémoire, la connexio
 
 | Méthode | Endpoint         | Description                            | Auth |
 |---------|-----------------|----------------------------------------|------|
-| POST    | /auth/register  | Inscription d'un nouvel utilisateur    | ❌   |
-| POST    | /auth/login     | Connexion et obtention d'un token JWT  | ❌   |
-| GET     | /auth/me        | Profil de l'utilisateur connecté       | ✅   |
+| POST    | /account/register  | Inscription d'un nouvel utilisateur    | ❌   |
+| POST    | /account/login     | Connexion et obtention d'un token JWT  | ❌   |
+| GET     | /account/me        | Profil de l'utilisateur connecté       | ✅   |
 
 **Inscription** — Envoyer un JSON avec username, email, password et full\_name. Le mot de passe 
 est haché côté serveur avec bcrypt.
@@ -312,4 +382,101 @@ Au démarrage, la fonction create\_tables() est automatiquement appelée pour cr
 ```
 ---
 
-**Contact** : vincent.proudy.etu@univ-lemans.fr
+## RGPD
+
+L'API SnapTaPlaque est conçue dans le respect du **Règlement Général sur la Protection des Données (RGPD — UE 2016/679)**. Les mesures suivantes sont implémentées :
+
+### Base légale du traitement
+
+- **Art. 6.1.a** — Consentement explicite requis à l'inscription (`gdpr_consent=true` obligatoire).
+- **Art. 7** — Horodatage automatique du consentement dans le champ `gdpr_consent_at`.
+
+### Droits des utilisateurs
+
+| Article RGPD  | Exigence                          | Implémentation                                    |
+|----------------|----------------------------------|---------------------------------------------------|
+| Art. 6.1.a    | Consentement explicite            | Champ gdpr_consent obligatoire à l'inscription    |
+| Art. 7        | Preuve du consentement            | Horodatage dans gdpr_consent_at                   |
+| Art. 13 & 14  | Information de transparence       | GET /privacy-policy                               |
+| Art. 15       | Droit d'accès                     | GET /v1/account/me/data-export                       |
+| Art. 17       | Droit à l'effacement              | DELETE /v1/account/me/delete-account                 |
+| Art. 20       | Droit à la portabilité            | Export JSON structuré via /data-export             |
+| Art. 25       | Protection dès la conception      | Minimisation des données, chiffrement             |
+| Art. 32       | Sécurité du traitement            | bcrypt, JWT, rate limiting                        |
+
+### Transparence (Art. 13 & 14)
+
+La politique de confidentialité est accessible publiquement via l'endpoint `GET /privacy-policy` sans authentification. Elle détaille :
+
+- Le responsable de traitement et ses coordonnées
+- La finalité et la base légale du traitement
+- Les catégories de données collectées
+- La durée de conservation des données
+- Les droits des utilisateurs et comment les exercer
+- Les mesures de sécurité mises en place
+
+### Sécurité du traitement (Art. 32)
+
+- Mots de passe hachés avec **bcrypt** (jamais stockés en clair)
+- Authentification par **token JWT** signé
+- **Rate limiting** sur les endpoints sensibles
+- Les images soumises pour détection ne sont **pas conservées** après traitement
+
+### Suppression de compte
+
+L'endpoint `DELETE /v1/account/me/delete-account` effectue une **suppression irréversible** de toutes les données de l'utilisateur (profil, prédictions, favoris) dans une **transaction atomique** SQLAlchemy.
+
+### Export des données
+
+L'endpoint `GET /v1/account/me/data-export` retourne un **JSON structuré** contenant l'intégralité des données personnelles : profil, historique des prédictions et liste des favoris. Ce format satisfait l'exigence de portabilité de l'Art. 20.
+
+---
+
+## Versioning de l'API
+
+L'API adopte un schéma de versioning par préfixe d'URL (/v1/, /v2/, etc.).
+Chaque version majeure est isolée dans un sous-package Python dédié
+(app.routers.v1, app.routers.v2, etc.), ce qui permet une évolution
+indépendante des contrats d'API sans casser la rétrocompatibilité pour
+les consommateurs existants.
+
+### Stratégie de versioning
+
+- Chaque version majeure correspond à un sous-dossier dans app/routers/
+  (par exemple app/routers/v1/, app/routers/v2/).
+- Les endpoints transversaux (/, /versions, /privacy-policy) ne sont pas
+  versionnés car ils sont indépendants du contrat d'API.
+- Lors de l'introduction d'une nouvelle version (ex. V2), seuls les
+  routeurs modifiés sont redéfinis ; les autres réutilisent les modules
+  de la version précédente.
+
+### Exemple d'évolution vers une V2
+
+Si le routeur de prédictions évolue en V2 avec des changements majeurs,
+la configuration dans main.py serait :
+```python
+    app.include_router(predictions_v2.router, prefix="/v2/predictions", tags=["V2 - Predictions"])
+    # Les autres endpoints V2 réutilisent V1 tant qu'ils ne changent pas
+    app.include_router(account_v1.router, prefix="/v2/account", tags=["V2 - Account"])
+    app.include_router(admin_v1.router, prefix="/v2/admin", tags=["V2 - Admin"])
+    app.include_router(model_v1.router, prefix="/v2/model", tags=["V2 - Model"])
+    app.include_router(vehicles_v1.router, prefix="/v2/vehicles", tags=["V2 - Vehicles"])
+    app.include_router(favorites_v1.router, prefix="/v2/favorites", tags=["V2 - Favorites"])
+```
+Cette approche garantit que les clients utilisant /v1/ ne sont pas
+impactés par les évolutions de /v2/.
+
+## Rate Limiting
+
+Les endpoints sensibles sont protégés par un mécanisme de rate limiting
+(via la bibliothèque slowapi) utilisant l'adresse IP du client comme
+clé d'identification :
+
+| Endpoint                       | Limite          |
+|--------------------------------|-----------------|
+| POST /v1/account/register         | 5 req/min       |
+| POST /v1/account/login            | 10 req/min      |
+| POST /v1/predictions/predict   | 5 req/min       |
+
+En cas de dépassement, une réponse HTTP 429 (Too Many Requests) est
+retournée.

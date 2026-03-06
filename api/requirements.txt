@@ -32,11 +32,13 @@
 # Uvicorn   — ASGI server; [standard] extras add uvloop & httptools for speed
 # Pydantic  — Data validation and serialisation for request/response schemas
 # Pydantic-settings — Typed application settings loaded from env vars / .env
+# slowapi — Rate limiting for FastAPI/Starlette based on limits library
 # ------------------------------------------------------------------------------
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
 pydantic==2.5.0
 pydantic-settings==2.1.0
+slowapi==0.1.9
 
 # ------------------------------------------------------------------------------
 # 2. Database

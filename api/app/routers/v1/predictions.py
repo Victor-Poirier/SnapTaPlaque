@@ -24,7 +24,7 @@ routeur principal de l'application (voir ``app/main.py``).
 Version : 1.0.0
 """
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Request
 from sqlalchemy.orm import Session
 from typing import List
 
@@ -33,6 +33,7 @@ from app.auth import get_current_active_user
 from app.crud import create_prediction, get_user_predictions, get_user_prediction_stats
 from app.predictor import plate_predictor
 from app.schemas import PlateHistory, PlateStats
+from app.limiter import limiter
 
 # Instance du routeur FastAPI pour les endpoints de prédiction.
 # Ce routeur est ensuite inclus dans l'application principale avec
@@ -44,7 +45,9 @@ router = APIRouter()
 
 
 @router.post("/predict")
+@limiter.limit("5/minute")
 async def predict_plate(
+    request: Request,
     file: UploadFile = File(...),
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
@@ -67,6 +70,8 @@ async def predict_plate(
     enregistrée en base avec une liste de résultats vide.
 
     Args:
+        request (Request): Objet de requête FastAPI, pour extraire l'adresse IP du client pour
+            le système de rate limiting.
         file (UploadFile): Fichier image uploadé par le client, injecté
             automatiquement par FastAPI via ``File(...)``.
         current_user (User): Utilisateur authentifié, injecté par

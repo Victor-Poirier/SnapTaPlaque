@@ -98,6 +98,8 @@ class Settings(BaseSettings):
     # Titre de l'API affiché dans la documentation OpenAPI.
     API_TITLE: str = "snapTaPlaque API"
 
+    API_DESCRIPTION: str = "API Licence Plate Recognition (LRS)."
+
     # Version sémantique de l'API.
     API_VERSION: str = "1.0.0"
 
@@ -116,7 +118,6 @@ class Settings(BaseSettings):
         "name": "snapTaPlaque LPR Model",
         "algorithm": "YOLO + OCR",
         "version": "1.0",
-        "features": [],
     }
 
     class Config:

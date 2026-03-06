@@ -210,6 +210,10 @@ class UserCreate(BaseModel):
         full_name (str): Nom complet de l'utilisateur (prénom et nom).
         is_admin (bool): Indique si l'utilisateur doit être créé avec
             les privilèges d'administration. Par défaut ``False``.
+        gdpr_consent (bool): Indique si l'utilisateur a explicitement
+            accepté la politique de confidentialité (RGPD). Doit être
+            ``True`` pour permettre la création du compte, conformément
+            aux exigences légales.
     """
 
     email: EmailStr
@@ -218,6 +222,9 @@ class UserCreate(BaseModel):
     full_name: str
     is_admin: bool = False
 
+    # RGPD : L'utilisateur doit explicitement accepter la politique de
+    # confidentialité lors de l'inscription.
+    gdpr_consent: bool
 
 class UserResponse(BaseModel):
     """

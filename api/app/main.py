@@ -18,21 +18,66 @@ Composants exposés :
       de l'application, responsable de la journalisation de l'arrêt.
     - ``root``             — Endpoint racine (``GET /``) retournant un
       message d'accueil avec les informations de base de l'API.
+    - ``list_versions``    — Endpoint de découverte des versions
+      (``GET /versions``) retournant la liste des versions disponibles
+      de l'API avec leur statut et le pipeline IA associé.
+    - ``privacy_policy``   — Endpoint RGPD (``GET /privacy-policy``)
+      exposant la politique de confidentialité conforme aux articles
+      13 et 14 du RGPD (responsable de traitement, finalité, base
+      légale, droits des utilisateurs, mesures de sécurité).
 
 Routeurs enregistrés :
-    - ``/auth``            — Endpoints d'authentification (inscription,
-      connexion, consultation du profil via token JWT).
-    - ``/predictions``     — Endpoints de soumission d'images et de
+    - ``/v1/account``         — Endpoints d'authentification (inscription,
+      connexion, consultation du profil via token JWT, export des
+      données personnelles RGPD, suppression de compte RGPD).
+    - ``/v1/predictions``  — Endpoints de soumission d'images et de
       consultation des prédictions de reconnaissance de plaques
       (historique, statistiques).
-    - ``/admin``           — Endpoints d'administration (liste des
+    - ``/v1/admin``        — Endpoints d'administration (liste des
       utilisateurs, statistiques globales de la plateforme).
-    - ``/model``           — Endpoints d'information sur le modèle de
+    - ``/v1/model``        — Endpoints d'information sur le pipeline de
       reconnaissance de plaques (nom, version, algorithme).
-    - ``/vehicles``        — Endpoints de consultation des informations
+    - ``/v1/vehicles``     — Endpoints de consultation des informations
       détaillées d'un véhicule à partir de sa plaque d'immatriculation.
-    - ``/favorites``       — Endpoints de gestion des véhicules favoris
+    - ``/v1/favorites``    — Endpoints de gestion des véhicules favoris
       de l'utilisateur connecté (ajout, suppression, consultation).
+
+Versioning :
+    L'API adopte un schéma de versioning par préfixe d'URL (``/v1/``,
+    ``/v2/``, etc.). Chaque version majeure est isolée dans un sous-
+    package ``app.routers.v1``, ``app.routers.v2``, etc., permettant
+    une évolution indépendante des contrats d'API sans casser la
+    rétrocompatibilité pour les consommateurs existants.
+
+    - **v1** (stable) — Version initiale de l'API, utilisant le pipeline
+      YOLOv8 + EasyOCR pour la reconnaissance de plaques.
+    - **v2** (prévu) — Version future pouvant introduire de nouveaux
+      modèles ou des changements de schéma de réponse.
+
+    L'endpoint ``GET /versions`` permet aux clients de découvrir
+    dynamiquement les versions disponibles et leur statut.
+
+Conformité RGPD :
+    L'API intègre les mécanismes requis par le Règlement Général sur
+    la Protection des Données (RGPD — Règlement UE 2016/679) :
+
+    - **Consentement explicite (Art. 6.1.a)** — L'inscription requiert
+      l'acceptation explicite de la politique de confidentialité via
+      le champ ``gdpr_consent`` du schéma ``UserCreate``. La date du
+      consentement est horodatée en base (``gdpr_consent_at``).
+    - **Droit d'accès et portabilité (Art. 15 & 20)** — L'endpoint
+      ``GET /v1/account/me/data-export`` permet à l'utilisateur
+      d'exporter l'intégralité de ses données personnelles au format
+      JSON structuré (profil, prédictions, favoris).
+    - **Droit à l'effacement (Art. 17)** — L'endpoint
+      ``DELETE /v1/account/me/delete-account`` supprime de manière
+      irréversible toutes les données de l'utilisateur (favoris,
+      prédictions, profil).
+    - **Information transparente (Art. 13 & 14)** — L'endpoint
+      ``GET /privacy-policy`` expose publiquement la politique de
+      confidentialité détaillant le responsable de traitement, la
+      finalité, la base légale, les données collectées, la durée de
+      conservation, les droits et les mesures de sécurité.
 
 Cycle de vie :
     - **Démarrage** — Les tables de la base de données sont créées (si
@@ -46,17 +91,27 @@ Cycle de vie :
 Version : 1.0.0
 """
 
-from fastapi import FastAPI
-import logging
+# ==================== Dependencies ====================
 
+from fastapi import FastAPI
+import warnings
+import logging
 from app.database import create_tables
 from app.predictor import plate_predictor
-from app.routers import auth, predictions, admin, model, vehicles, favorites
-
+from app.routers.v1 import account, predictions, admin, model, vehicles, favorites
 from app.crud import (
     get_user_by_email, get_user_by_username, create_user, authenticate_user,
     create_prediction, get_user_predictions
 )
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from app.limiter import limiter
+from app.routers import informations
+from app.config import settings
+
+
+warnings.filterwarnings("ignore", category=FutureWarning, module="easyocr")
+warnings.filterwarnings("ignore", category=FutureWarning, module="torch")
 
 # ==================== Logging ====================
 
@@ -81,10 +136,18 @@ logger = logging.getLogger(__name__)
 # générer automatiquement la documentation OpenAPI (Swagger UI /
 # ReDoc) accessible aux endpoints ``/docs`` et ``/redoc``.
 app = FastAPI(
-    title="LRS API",
-    version="1.0.0",
-    description="API Licence Plate Recognition (LRS).",
+    title=settings.API_TITLE,
+    version=settings.API_VERSION,
+    description=settings.API_DESCRIPTION,
 )
+
+# Le limitateur utilise l'adresse IP du client comme
+# clé d'identification pour appliquer les limites de requêtes. En cas de
+# dépassement, une exception ``RateLimitExceeded`` est levée, qui est gérée
+# par le handler personnalisé ``_rate_limit_exceeded_handler`` pour retourner
+# une réponse HTTP 429 avec un message d'erreur clair.
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 
 # ==================== Startup & Shutdown ====================
@@ -135,59 +198,56 @@ async def shutdown_event():
 # ==================== Include Routers ====================
 
 # Enregistrement des routeurs FastAPI. Chaque routeur est associé
-# à un préfixe d'URL et à un tag OpenAPI pour organiser la
-# documentation générée automatiquement.
+# à un préfixe d'URL versionné (``/v1/...``) et à un tag OpenAPI
+# pour organiser la documentation générée automatiquement.
+# Le versioning par préfixe d'URL permet de faire coexister
+# plusieurs versions de l'API sur la même instance applicative.
 
 # Routeur d'authentification : inscription, connexion, consultation
-# du profil via token JWT.
-app.include_router(auth.router, prefix="/auth", tags=["Authentication"])
+# du profil via token JWT, export des données personnelles (RGPD
+# Art. 15 & 20) et suppression de compte (RGPD Art. 17).
+app.include_router(account.router, prefix="/v1/account", tags=["Account"])
 
 # Routeur de prédictions : soumission d'images, consultation de
 # l'historique et des statistiques de reconnaissance de plaques.
-app.include_router(predictions.router, prefix="/predictions", tags=["Predictions"])
+app.include_router(predictions.router, prefix="/v1/predictions", tags=["Predictions"])
 
 # Routeur d'administration : liste des utilisateurs et consultation
 # des statistiques globales de la plateforme. Réservé aux
 # administrateurs.
-app.include_router(admin.router, prefix="/admin", tags=["Admin"])
+app.include_router(admin.router, prefix="/v1/admin", tags=["Admin"])
 
 # Routeur du modèle : informations sur le pipeline de reconnaissance
 # de plaques (nom, version, algorithme, fonctionnalités).
-app.include_router(model.router, prefix="/model", tags=["Model"])
+app.include_router(model.router, prefix="/v1/model", tags=["Model"])
 
 # Routeur des véhicules : consultation des informations détaillées
 # d'un véhicule à partir de sa plaque d'immatriculation.
-app.include_router(vehicles.router, prefix="/vehicles", tags=["Vehicles Info"])
+app.include_router(vehicles.router, prefix="/v1/vehicles", tags=["Vehicles Info"])
 
 # Routeur des favoris : ajout, suppression et consultation des
 # véhicules favoris de l'utilisateur connecté.
-app.include_router(favorites.router, prefix="/favorites", tags=["Favorites"])
+app.include_router(favorites.router, prefix="/v1/favorites", tags=["Favorites"])
 
-@app.get("/", include_in_schema=False)
-async def root():
-    """
-    Endpoint racine de l'API.
+# Routers d'informations générales : endpoint racine (``/``) et endpoint de
+# découverte des versions (``/versions``) de l'API. Ces endpoints sont exposés sans
+# préfixe de version car ils sont transversaux à l'ensemble de l'API et ne dépendent
+# pas d'une version spécifique du contrat d'API. Ils servent de point d'entrée informatif
+# et de mécanisme de découverte pour les utilisateurs de l'API.
+app.include_router(informations.router, prefix="", tags=["Global Informations"])
 
-    Retourne un message d'accueil avec les informations de base de
-    l'API (message d'authentification requise, lien vers la
-    documentation OpenAPI, version). Cet endpoint est exclu de la
-    documentation OpenAPI générée (``include_in_schema=False``) car
-    il sert uniquement de point d'entrée informatif.
+# Note sur le versioning :
+# Exemple avec une V2 du routeur de prédictions, qui pourrait introduire des changements.
+#
+# app.include_router(predictions_v2.router, prefix="/v2/predictions", tags=["V2 - Predictions"])
+# Les autres endpoints V2 réutilisent V1 tant qu'ils ne changent pas
+# app.include_router(auth_v1.router, prefix="/v2/account", tags=["V2 - Account"])
+# app.include_router(admin_v1.router, prefix="/v2/admin", tags=["V2 - Admin"])
+# app.include_router(model_v1.router, prefix="/v2/model", tags=["V2 - Model"])
+# app.include_router(vehicles_v1.router, prefix="/v2/vehicles", tags=["V2 - Vehicles"])
+# app.include_router(favorites_v1.router, prefix="/v2/favorites", tags=["V2 - Favorites"])
 
-    Returns:
-        dict: Dictionnaire contenant les clés suivantes :
-            - ``message`` (str) : Message indiquant que
-              l'authentification est requise pour accéder à l'API.
-            - ``documentation`` (str) : Chemin vers la documentation
-              interactive Swagger UI (``/docs``).
-            - ``version`` (str) : Version sémantique de l'API.
-    """
-    return {
-        "message": "API LRS - Authentification requise",
-        "documentation": "/docs",
-        "version": "1.0.0"
-    }
-
+# ==================== Main Entry ====================
 
 # Point d'entrée pour l'exécution autonome de l'application via
 # ``python -m app.main``. Lance le serveur Uvicorn sur le port 8000

@@ -66,7 +66,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 60
 # automatiquement le token JWT depuis l'en-tête ``Authorization``.
 # Le paramètre ``tokenUrl`` indique l'endpoint de connexion pour la
 # documentation interactive Swagger UI.
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/v1/auth/login")
 
 # Contexte de hachage Passlib configuré avec l'algorithme bcrypt.
 # L'option ``deprecated="auto"`` permet de migrer automatiquement les
