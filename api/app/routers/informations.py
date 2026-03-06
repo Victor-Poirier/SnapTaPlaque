@@ -205,3 +205,32 @@ async def privacy_policy():
         ],
 
     }
+
+@router.get("/health")
+async def health_check():
+    """
+    Vérification de l'état de santé de l'API SnapTaPlaque.
+
+    Endpoint public (aucune authentification requise) permettant de
+    vérifier que l'API est opérationnelle et répond correctement.
+    Utilisé typiquement par les outils de monitoring, les load balancers
+    ou les orchestrateurs de conteneurs (Docker, Kubernetes) pour
+    déterminer si l'instance est prête à recevoir du trafic.
+
+    Cet endpoint est volontairement léger et ne vérifie pas les
+    dépendances externes (base de données, services tiers) afin
+    de garantir un temps de réponse minimal. Pour un diagnostic
+    plus complet incluant l'état des dépendances, un endpoint
+    /health/ready pourrait être ajouté ultérieurement.
+
+    Returns:
+        dict: Dictionnaire contenant les clés suivantes :
+            - ``status`` (str) : État de l'API, valeur "healthy"
+              si l'instance répond correctement.
+            - ``version`` (str) : Version sémantique de l'API, lue
+              depuis la configuration centralisée (settings.API_VERSION).
+    """
+    return {
+        "status": "healthy",
+        "version": settings.API_VERSION,
+    }

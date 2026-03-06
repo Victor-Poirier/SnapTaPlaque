@@ -7,6 +7,13 @@ import android.widget.Button;
 import android.widget.EditText;
 
 import com.example.snaptaplaque.R;
+import com.example.snaptaplaque.models.api.RegisterRequest;
+import com.example.snaptaplaque.models.api.RegisterResponse;
+import com.example.snaptaplaque.network.ApiService;
+import com.example.snaptaplaque.utils.FeedbackManager;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class SignUpActivity extends Activity {
 
@@ -43,13 +50,14 @@ public class SignUpActivity extends Activity {
         String _motDePasse = password.getText().toString().trim();
         String _identifiant = username.getText().toString().trim();
         Boolean admin = Boolean.FALSE;
+        Boolean _consent = rgpd.isActivated();
 
         if (_identifiant.isEmpty() || _email.isEmpty() || _motDePasse.isEmpty() || _identifiant.isEmpty()) {
             FeedbackManager.showError(this, "All fields are required", null);
             return;
         }
 
-        RegisterRequest registerRequest = new RegisterRequest(_identifiant, _email, _motDePasse, _fullName, admin);
+        RegisterRequest registerRequest = new RegisterRequest(_identifiant, _email, _motDePasse, _fullName, admin, _consent);
 
         apiService.register(registerRequest)
                 .enqueue(new Callback<RegisterResponse>() {
