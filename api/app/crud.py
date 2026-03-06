@@ -38,7 +38,7 @@ from app.schemas import UserCreate
 from sqlalchemy.orm import Session
 
 
-from app import models
+from app import schemas
 from app.security import get_password_hash
 
 from datetime import datetime
