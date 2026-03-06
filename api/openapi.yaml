@@ -1,276 +1,705 @@
 # ==============================================================================
 # OpenAPI 3.0 Specification — SnapTaPlaque API
 # ==============================================================================
-# This file describes the complete REST API contract for the SnapTaPlaque
-# license plate recognition service. It follows the OpenAPI 3.0.0 standard
-# and can be used to:
 #
-#   - Generate interactive documentation (Swagger UI / ReDoc)
-#   - Auto-generate client SDKs (openapi-generator, swagger-codegen)
-#   - Validate incoming requests and outgoing responses
-#   - Serve as a single source of truth for front-end / mobile developers
+# Ce fichier décrit le contrat d'interface (API contract) de l'API
+# SnapTaPlaque au format OpenAPI 3.0. Il sert de référence unique pour :
+#   - La génération automatique de la documentation interactive
+#     (Swagger UI / ReDoc)
+#   - La validation des requêtes et réponses côté client et serveur
+#   - La génération de clients SDK dans différents langages
+#   - La communication entre les équipes front-end et back-end
 #
-# The API is built with FastAPI and combines a YOLOv8 object detection model
-# with EasyOCR to locate and read vehicle license plates from uploaded images.
+# Architecture technique :
+#   - Framework : FastAPI (Python 3.11+)
+#   - ORM : SQLAlchemy 2.x avec migrations Alembic
+#   - Base de données : SQLite (développement) / PostgreSQL (production)
+#   - Authentification : JWT (JSON Web Token) via python-jose + bcrypt
+#   - Pipeline IA : YOLOv8 (détection de plaques) + EasyOCR (OCR)
+#   - Rate limiting : slowapi (basé sur limits)
 #
-# Base URL (local dev): http://localhost:8000
+# Stratégie de versioning :
+#   L'API adopte un schéma de versioning par préfixe d'URL (/v1/, /v2/,
+#   etc.). Chaque version majeure est isolée dans un sous-package Python
+#   (app.routers.v1, app.routers.v2, etc.), permettant une évolution
+#   indépendante des contrats d'API sans casser la rétrocompatibilité
+#   pour les consommateurs existants.
 #
-# Authentication:
-#   Most endpoints require a Bearer JWT token obtained via POST /auth/login.
-#   Admin-only endpoints (/admin/*) additionally check the is_admin flag.
+# Niveaux d'authentification :
+#   - Public (aucun token requis) : /, /versions, /privacy-policy
+#   - Utilisateur authentifié (Bearer JWT) : /v1/account/me, /v1/predictions/*,
+#     /v1/vehicles/info, /v1/favorites/*
+#   - Administrateur (Bearer JWT + is_admin=True) : /v1/admin/*
 #
-# Project context:
-#   Master 1 Informatique — parcours IA, Université du Mans
-#   License: CeCILL 2.1
+# Conformité RGPD :
+#   - Art. 6.1.a — Consentement explicite requis à l'inscription
+#   - Art. 7 — Horodatage du consentement (gdpr_consent_at)
+#   - Art. 13 & 14 — Politique de confidentialité publique (/privacy-policy)
+#   - Art. 15 — Droit d'accès (/v1/account/me/data-export)
+#   - Art. 17 — Droit à l'effacement (/v1/account/me/delete-account)
+#   - Art. 20 — Droit à la portabilité (export JSON structuré)
+#   - Art. 25 — Protection des données dès la conception
+#   - Art. 32 — Sécurité du traitement (bcrypt, JWT, rate limiting)
+#
+# Rate Limiting :
+#   Les endpoints sensibles sont protégés par un mécanisme de rate limiting
+#   (via la bibliothèque slowapi) utilisant l'adresse IP du client comme
+#   clé d'identification :
+#
+#   - POST /v1/account/register : 5 requêtes/minute
+#   - POST /v1/account/login : 10 requêtes/minute
+#   - POST /v1/predictions/predict : 5 requêtes/minute
+#
+# Organisation fonctionnelle des endpoints :
+#   1. Global Informations — Endpoints transversaux non versionnés
+#   2. Account — Gestion de l'identité utilisateur
+#   3. Predictions — Soumission d'images et historique
+#   4. Admin — Endpoints réservés aux administrateurs
+#   5. Model — Informations sur le pipeline de reconnaissance
+#   6. Vehicles Info — Consultation des informations véhicule
+#   7. Favorites — Gestion de la liste personnelle de favoris
+#
+# Projet : SnapTaPlaque
+# Formation : Master 1 Informatique — parcours IA, Université du Mans
+# Licence : CeCILL 2.1
+# Contact : vincent.proudy.etu@univ-lemans.fr
+#
 # ==============================================================================
 
 openapi: 3.0.0
 
 # ------------------------------------------------------------------------------
-# API Metadata
-# ------------------------------------------------------------------------------
-# General information about the API: title, description, version, contact
-# details, and license. Rendered at the top of Swagger UI / ReDoc pages.
+# Métadonnées de l'API
 # ------------------------------------------------------------------------------
 info:
   title: API SnapTaPlaque - Reconnaissance de Plaques d'Immatriculation
   description: |
-    API de reconnaissance de plaques d'immatriculation basée sur un modèle YOLO + EasyOCR.
-    Projet DevOps - Master 1 Informatique parcours IA, Université du Mans.
+    API de reconnaissance de plaques d'immatriculation basée sur un pipeline
+    YOLOv8 (détection) + EasyOCR (reconnaissance de caractères).
+
+    ## Fonctionnalités principales
+    - Détection et reconnaissance de plaques d'immatriculation par IA
+    - Gestion des utilisateurs avec authentification JWT
+    - Historique des prédictions avec pagination
+    - Consultation des informations véhicule
+    - Gestion des véhicules favoris
+    - Conformité RGPD (export, suppression, politique de confidentialité)
+    - Administration (liste utilisateurs, statistiques globales)
+
+    ## Authentification
+    L'API utilise des tokens JWT (Bearer). Après connexion via `/v1/account/login`,
+    incluez le token dans l'en-tête `Authorization: Bearer <token>`.
+
+    ## Rate Limiting
+    Certains endpoints sont protégés par un système de rate limiting :
+    - `POST /v1/account/register` : 5 req/min
+    - `POST /v1/account/login` : 10 req/min
+    - `POST /v1/predictions/predict` : 5 req/min
   contact:
+    name: Vincent Proudy
     email: vincent.proudy.etu@univ-lemans.fr
   license:
     name: CeCILL 2.1
     url: https://cecill.info/licences/Licence_CeCILL_V2.1-en.html
-  version: 1.0.0
+  version: "1.0.0"
 
 # ------------------------------------------------------------------------------
-# Server Definitions
-# ------------------------------------------------------------------------------
-# Lists the environments where the API can be reached. Additional entries
-# (staging, production) can be added as the project matures.
+# Définition des serveurs
 # ------------------------------------------------------------------------------
 servers:
-- url: http://localhost:8000
-  description: Local development server
+  - url: http://localhost:8000
+    description: Serveur de développement local
 
 # ==============================================================================
-# API Endpoints (Paths)
+# Tags — Groupes fonctionnels
 # ==============================================================================
-# Organised into seven functional groups:
-#
-#   1. Health         — /health              (public)
-#   2. Authentication — /auth/*              (public / authenticated)
-#   3. Predictions    — /predict, /predictions/* (authenticated)
-#   4. Administration — /admin/*             (admin only)
-#   5. Model          — /model/info          (public)
-#   6. Vehicles       — /vehicles/*          (authenticated)
-#   7. Favorites      — /favorites/*         (authenticated)
+tags:
+  # Tag pour les endpoints transversaux non versionnés (racine, versions,
+  # politique de confidentialité RGPD). Ces endpoints ne dépendent pas
+  # d'une version spécifique du contrat d'API.
+  - name: Global Informations
+    description: Endpoints transversaux non versionnés (racine, versions, RGPD)
+
+  # Tag pour les endpoints d'authentification et de gestion de l'identité
+  # utilisateur. Inclut l'inscription avec consentement RGPD, la connexion
+  # JWT, la consultation du profil, l'export des données et la suppression
+  # de compte.
+  - name: Account
+    description: Gestion de l'identité utilisateur (inscription, connexion, profil, RGPD)
+
+  # Tag pour les endpoints de soumission d'images et de consultation
+  # des résultats de détection de plaques d'immatriculation.
+  - name: Predictions
+    description: Détection de plaques via YOLO + EasyOCR, historique et statistiques
+
+  # Tag pour les endpoints réservés aux administrateurs. Protégés par
+  # la dépendance get_current_admin_user (JWT + is_admin=True).
+  - name: Admin
+    description: Endpoints réservés aux administrateurs (liste utilisateurs, stats globales)
+
+  # Tag pour les endpoints d'information sur le pipeline de reconnaissance.
+  # Utile pour les health checks et le monitoring.
+  - name: Model
+    description: Informations sur le pipeline de reconnaissance (statut, type, nom)
+
+  # Tag pour les endpoints de consultation des informations détaillées
+  # d'un véhicule à partir de sa plaque d'immatriculation.
+  - name: Vehicles Info
+    description: Consultation des informations véhicule par plaque d'immatriculation
+
+  # Tag pour les endpoints de gestion de la liste personnelle de
+  # véhicules favoris de l'utilisateur connecté.
+  - name: Favorites
+    description: Gestion de la liste personnelle de véhicules favoris
+
+# ==============================================================================
+# Endpoints (Paths)
 # ==============================================================================
 paths:
-  # Health Check
-  # ----------------------------------------------------------------------------
-  # Lightweight probe used by Docker HEALTHCHECK, load balancers, and
-  # monitoring systems to verify the API is running, the YOLO model is
-  # loaded, and the database connection is alive.
-  # ----------------------------------------------------------------------------
-  /health:
+
+  # ============================================================================
+  # GLOBAL INFORMATIONS — Endpoints non versionnés
+  # ============================================================================
+  # Ces endpoints sont définis dans api/app/routers/informations.py et montés
+  # sans préfixe de version dans main.py car ils sont transversaux.
+  # ============================================================================
+
+  # --------------------------------------------------------------------------
+  # GET / — Point d'entrée racine de l'API
+  # --------------------------------------------------------------------------
+  # Endpoint informatif exclu de la documentation OpenAPI générée
+  # (include_in_schema=False dans le code FastAPI). Défini ici pour
+  # référence uniquement.
+  # --------------------------------------------------------------------------
+  /:
     get:
-      summary: Vérifier l'état de l'API
       tags:
-        - Health
+        - Global Informations
+      summary: Point d'entrée racine de l'API
+      description: |
+        Retourne un message d'accueil avec les informations de base de l'API.
+        Cet endpoint est exclu de la documentation OpenAPI générée
+        (include_in_schema=False) car il sert uniquement de point d'entrée
+        informatif pour les utilisateurs qui accèdent à l'URL racine.
+      operationId: root
       responses:
         "200":
-          description: API opérationnelle
+          description: Message d'accueil avec informations de base
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/HealthResponse"
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Message indiquant que l'authentification est requise
+                    example: "API LRS - Authentification requise"
+                  documentation:
+                    type: string
+                    description: Chemin vers la documentation interactive Swagger UI
+                    example: "/docs"
+                  version:
+                    type: string
+                    description: Version sémantique de l'API
+                    example: "v1"
 
-  # ----------------------------------------------------------------------------
-  # Authentication — Registration
-  # ----------------------------------------------------------------------------
-  # Creates a new user account. The password is hashed server-side with
-  # bcrypt before being stored. Returns 400 if the email or username is
-  # already taken.
-  # ----------------------------------------------------------------------------
-  /auth/register:
-    post:
-      summary: Inscription d'un nouvel utilisateur
+  # --------------------------------------------------------------------------
+  # GET /versions — Découverte des versions disponibles de l'API
+  # --------------------------------------------------------------------------
+  # Permet aux clients de découvrir dynamiquement les versions disponibles
+  # et de choisir celle qui correspond à leurs besoins. Utile pour les
+  # applications front-end, les outils de monitoring et la communication
+  # lors des phases de dépréciation.
+  # --------------------------------------------------------------------------
+  /versions:
+    get:
       tags:
-        - Authentication
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/UserCreate"
-        required: true
+        - Global Informations
+      summary: Lister les versions disponibles de l'API
+      description: |
+        Retourne la liste des versions de l'API actuellement servies par cette
+        instance, avec leur statut (stable, beta, deprecated) et le pipeline
+        de reconnaissance associé. Le schéma de versioning adopté est le
+        versioning par préfixe d'URL (/v1/, /v2/, etc.).
+      operationId: listVersions
       responses:
-        "201":
-          description: Utilisateur créé
+        "200":
+          description: Liste des versions disponibles
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/UserResponse"
-        "400":
-          description: Email ou username déjà existant
+                type: object
+                properties:
+                  versions:
+                    type: array
+                    description: Liste des versions disponibles de l'API
+                    items:
+                      type: object
+                      properties:
+                        version:
+                          type: string
+                          description: Identifiant de la version (ex. v1)
+                          example: "v1"
+                        status:
+                          type: string
+                          description: "Statut courant : stable, beta ou deprecated"
+                          example: "stable"
+                        model:
+                          type: string
+                          description: Description du pipeline IA utilisé
+                          example: "YOLOv8 + EasyOCR"
+                        deprecated:
+                          type: boolean
+                          description: True si la version est marquée pour retrait futur
+                          example:
+                        falselatest:
+                          type: string
+                          description: Identifiant de la version recommandée (la plus récente stable)
+                          example: "v1"
 
-  # ----------------------------------------------------------------------------
-  # Authentication — Login
-  # ----------------------------------------------------------------------------
-  # Accepts OAuth2-compatible form data (username + password) and returns a
-  # signed JWT access token. The token must be included as a Bearer token
-  # in the Authorization header for all authenticated endpoints.
-  # ----------------------------------------------------------------------------
-  /auth/login:
-    post:
-      summary: Authentification utilisateur
+  # --------------------------------------------------------------------------
+  # GET /privacy-policy — Politique de confidentialité RGPD
+  # --------------------------------------------------------------------------
+  # Endpoint public exposant les informations de transparence exigées par
+  # les articles 13 et 14 du RGPD. Aucune authentification requise.
+  # --------------------------------------------------------------------------
+  /privacy-policy:
+    get:
       tags:
-        - Authentication
+        - Global Informations
+      summary: Politique de confidentialité RGPD
+      description: |
+        Endpoint public (aucune authentification requise) exposant les
+        informations de transparence exigées par les articles 13 et 14
+        du RGPD (Règlement UE 2016/679). Centralise les informations sur
+        le responsable de traitement, la finalité, la base légale, les
+        données collectées, la durée de conservation, les droits des
+        utilisateurs, le partage des données et les mesures de sécurité.
+      operationId: privacyPolicy
+      responses:
+        "200":
+          description: Politique de confidentialité complète
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PrivacyPolicy"
+
+  # ============================================================================
+  # ACCOUNT — Authentification et gestion de l'identité utilisateur
+  # ============================================================================
+  # Ces endpoints sont définis dans api/app/routers/v1/account.py et montés
+  # sous le préfixe /v1/account dans main.py.
+  # ============================================================================
+
+  # --------------------------------------------------------------------------
+  # POST /v1/account/login — Authentification par identifiant et mot de passe
+  # --------------------------------------------------------------------------
+  # Accepte des données de formulaire OAuth2 (application/x-www-form-urlencoded).
+  # Rate limiting : 10 requêtes/minute par IP.
+  # --------------------------------------------------------------------------
+  /v1/account/login:
+    post:
+      tags:
+        - Account
+      summary: Authentifier un utilisateur et obtenir un token JWT
+      description: |
+        Authentifie un utilisateur via ses identifiants (username + password)
+        transmis au format OAuth2 (application/x-www-form-urlencoded).
+        Retourne un token JWT (Bearer) à inclure dans l'en-tête
+        Authorization des requêtes ultérieures.
+
+        Rate limiting : 10 requêtes/minute par adresse IP pour prévenir
+        les attaques par force brute.
+      operationId: login
       requestBody:
+        required: true
         content:
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/auth_login_body"
-        required: true
+              $ref: "#/components/schemas/LoginRequest"
       responses:
         "200":
-          description: Token JWT
+          description: Authentification réussie — token JWT retourné
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Token"
         "401":
-          description: Credentials invalides
+          description: Identifiants incorrects (username inconnu ou mot de passe erroné)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          description: Trop de tentatives — rate limiting déclenché (10 req/min)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
-  # ----------------------------------------------------------------------------
-  # Authentication — Current User Profile
-  # ----------------------------------------------------------------------------
-  # Returns the profile of the currently authenticated user, derived from
-  # the JWT token in the Authorization header. Useful for front-end apps
-  # to display the logged-in user's info without an extra user ID parameter.
-  # ----------------------------------------------------------------------------
-  /auth/me:
-    get:
-      summary: Récupérer les informations de l'utilisateur connecté
+  # --------------------------------------------------------------------------
+  # POST /v1/account/register — Inscription d'un nouvel utilisateur
+  # --------------------------------------------------------------------------
+  # Le consentement RGPD (Art. 6.1.a) est vérifié avant toute collecte.
+  # Rate limiting : 5 requêtes/minute par IP.
+  # --------------------------------------------------------------------------
+  /v1/account/register:
+    post:
       tags:
-        - Authentication
+        - Account
+      summary: Inscrire un nouvel utilisateur
+      description: |
+        Crée un compte utilisateur après validation du consentement RGPD
+        (Art. 6.1.a) et vérification de l'unicité de l'adresse email.
+        Le mot de passe est haché via bcrypt avant persistance en base.
+        La date du consentement RGPD est horodatée automatiquement
+        (Art. 7 — preuve du consentement).
+
+        Rate limiting : 5 requêtes/minute par adresse IP pour prévenir
+        les inscriptions automatisées par bots.
+
+        Conformité RGPD :
+        - Art. 6.1.a — Consentement explicite obligatoire (gdpr_consent=true)
+        - Art. 7 — Horodatage du consentement dans gdpr_consent_at
+        - Art. 5.1.c — Minimisation des données (seules les données nécessaires)
+      operationId: register
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserCreate"
+      responses:
+        "200":
+          description: Utilisateur créé avec succès
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+        "400":
+          description: |
+            Erreur de validation. Causes possibles :
+            - Consentement RGPD non donné (gdpr_consent=false)
+            - Email déjà enregistré
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          description: Trop de tentatives — rate limiting déclenché (5 req/min)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # --------------------------------------------------------------------------
+  # GET /v1/account/me — Profil de l'utilisateur connecté
+  # --------------------------------------------------------------------------
+  # Protégé par get_current_active_user (Bearer JWT requis).
+  # --------------------------------------------------------------------------
+  /v1/account/me:
+    get:
+      tags:
+        - Account
+      summary: Récupérer le profil de l'utilisateur connecté
+      description: |
+        Extrait l'identité de l'utilisateur à partir du token JWT
+        présent dans l'en-tête Authorization. Retourne les informations
+        publiques du compte (mot de passe haché exclu).
+      operationId: readMe
       security:
         - BearerAuth: []
       responses:
         "200":
-          description: Informations utilisateur
+          description: Informations du profil utilisateur
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/UserResponse"
         "401":
-          description: Utilisateur non authentifié
-
-  # ----------------------------------------------------------------------------
-  # Prediction — License Plate Detection & OCR
-  # ----------------------------------------------------------------------------
-  # Core endpoint of the application. Accepts an image file (JPEG, PNG, etc.)
-  # via multipart/form-data, runs YOLOv8 detection to locate the license
-  # plate region, then applies EasyOCR to extract the plate text.
-  #
-  # The result includes the recognised text, a confidence score, bounding box
-  # coordinates, model version, and a unique prediction ID for traceability.
-  # The prediction is also persisted in the database for history/stats.
-  # ----------------------------------------------------------------------------
-  /predict:
-    post:
-      summary: Détecter et lire une plaque d'immatriculation sur une image
-      tags:
-        - Predictions
-      security:
-        - BearerAuth: []
-      requestBody:
-        content:
-          multipart/form-data:
-            schema:
-              $ref: "#/components/schemas/PlateDetectionRequest"
-        required: true
-      responses:
-        "200":
-          description: Résultat de la détection de plaque
+          description: Token JWT absent, expiré ou invalide
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/PlateDetectionResponse"
-        "400":
-          description: Image invalide ou requête incorrecte
-        "401":
-          description: Utilisateur non authentifié
-        "500":
-          description: Erreur interne du serveur
+                $ref: "#/components/schemas/ErrorResponse"
 
-  # ----------------------------------------------------------------------------
-  # Predictions — History
-  # ----------------------------------------------------------------------------
-  # Returns a chronological list of all plate detections performed by the
-  # authenticated user. Each entry includes the detected text, confidence
-  # score, and timestamp. Requires a valid JWT token.
-  # ----------------------------------------------------------------------------
-  /predictions/history:
+  # --------------------------------------------------------------------------
+  # GET /v1/account/me/data-export — Export des données personnelles (RGPD)
+  # --------------------------------------------------------------------------
+  # RGPD Art. 15 (droit d'accès) & Art. 20 (droit à la portabilité).
+  # Retourne un JSON structuré contenant profil, prédictions et favoris.
+  # --------------------------------------------------------------------------
+  /v1/account/me/data-export:
     get:
-      summary: Récupérer l'historique des détections de plaques
       tags:
-        - Predictions
+        - Account
+      summary: Exporter ses données personnelles (RGPD Art. 15 & 20)
+      description: |
+        Endpoint RGPD — Droit d'accès (Art. 15) et droit à la portabilité
+        (Art. 20). Retourne un JSON structuré contenant toutes les données
+        personnelles détenues par la plateforme : profil utilisateur,
+        historique des prédictions et liste des véhicules favoris.
+
+        Le format JSON structuré satisfait l'exigence de l'Art. 20 qui
+        impose un format « structuré, couramment utilisé et lisible par
+        machine ».
+      operationId: exportMyData
       security:
         - BearerAuth: []
       responses:
         "200":
-          description: Liste des détections
+          description: Export complet des données personnelles
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DataExport"
+        "401":
+          description: Token JWT absent, expiré ou invalide
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # --------------------------------------------------------------------------
+  # DELETE /v1/account/me/delete-account — Suppression de compte (RGPD)
+  # --------------------------------------------------------------------------
+  # RGPD Art. 17 (droit à l'effacement / droit à l'oubli).
+  # Suppression irréversible de toutes les données : favoris, prédictions,
+  # profil utilisateur. Transaction atomique SQLAlchemy.
+  # --------------------------------------------------------------------------
+  /v1/account/me/delete-account:
+    delete:
+      tags:
+        - Account
+      summary: Supprimer son compte et toutes ses données (RGPD Art. 17)
+      description: |
+        Endpoint RGPD — Droit à l'effacement (Art. 17 du RGPD, « droit
+        à l'oubli »). Supprime de manière irréversible l'ensemble des
+        données associées à l'utilisateur authentifié : favoris,
+        prédictions et profil utilisateur.
+
+        L'opération est effectuée dans une transaction atomique SQLAlchemy :
+        soit toutes les données sont supprimées, soit aucune ne l'est.
+
+        **ATTENTION : Cette opération est irréversible.**
+      operationId: deleteMyAccount
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Compte et données personnelles supprimés définitivement
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Compte et données personnelles supprimés définitivement."
+        "401":
+          description: Token JWT absent, expiré ou invalide
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # ============================================================================
+  # PREDICTIONS — Détection de plaques et historique
+  # ============================================================================
+  # Ces endpoints sont définis dans api/app/routers/v1/predictions.py et
+  # montés sous le préfixe /v1/predictions dans main.py.
+  # ============================================================================
+
+  # --------------------------------------------------------------------------
+  # POST /v1/predictions/predict — Soumission d'image pour détection
+  # --------------------------------------------------------------------------
+  # Pipeline : YOLO (détection zone plaque) + EasyOCR (extraction texte).
+  # Rate limiting : 5 requêtes/minute par IP.
+  # --------------------------------------------------------------------------
+  /v1/predictions/predict:
+    post:
+      tags:
+        - Predictions
+      summary: Soumettre une image pour détection de plaque d'immatriculation
+      description: |
+        Reçoit un fichier image (JPEG, PNG) via multipart/form-data et le
+        transmet au pipeline de détection YOLO + EasyOCR. Le pipeline
+        procède en deux étapes :
+        1. **Détection** — YOLOv8 localise la zone de la plaque dans l'image
+        2. **Reconnaissance** — EasyOCR extrait le texte alphanumérique
+
+        Le résultat est persisté en base au nom de l'utilisateur authentifié.
+        Si aucune plaque n'est détectée, la prédiction est enregistrée avec
+        une liste de résultats vide.
+
+        Rate limiting : 5 requêtes/minute par adresse IP pour prévenir la
+        surcharge du pipeline IA (coûteux en ressources GPU/CPU).
+      operationId: predictPlate
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Fichier image contenant la plaque à détecter (JPEG, PNG)
+      responses:
+        "200":
+          description: Prédiction effectuée avec succès
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PredictionResponse"
+        "400":
+          description: Image invalide ou format non supporté
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Token JWT absent, expiré ou invalide
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          description: Trop de requêtes — rate limiting déclenché (5 req/min)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "503":
+          description: Modèle de prédiction non chargé en mémoire
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # --------------------------------------------------------------------------
+  # GET /v1/predictions/history — Historique des prédictions
+  # --------------------------------------------------------------------------
+  # Pagination via skip et limit. Les prédictions avec plusieurs résultats
+  # sont éclatées en entrées individuelles dans la réponse.
+  # --------------------------------------------------------------------------
+  /v1/predictions/history:
+    get:
+      tags:
+        - Predictions
+      summary: Consulter l'historique des prédictions
+      description: |
+        Retourne la liste des prédictions effectuées par l'utilisateur
+        authentifié, ordonnées chronologiquement. La pagination est gérée
+        via les paramètres skip et limit.
+
+        Chaque prédiction contenant un ou plusieurs résultats de détection
+        est éclatée en autant d'entrées individuelles. Les prédictions
+        sans détection sont incluses avec des valeurs null pour plate_text
+        et confidence.
+      operationId: getPredictionHistory
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: skip
+          in: query
+          required: false
+          description: Nombre de prédictions à ignorer depuis le début (offset). Par défaut 0.
+          schema:
+            type: integer
+            default: 0
+            minimum: 0
+        - name: limit
+          in: query
+          required: false
+          description: Nombre maximum de prédictions à récupérer. Par défaut 100, maximum 10000.
+          schema:
+            type: integer
+            default: 100
+            minimum: 1
+            maximum: 10000
+      responses:
+        "200":
+          description: Liste des prédictions de l'utilisateur
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/DetectionHistory"
+                  $ref: "#/components/schemas/PlateHistory"
         "401":
-          description: Utilisateur non authentifié
-
-  # ----------------------------------------------------------------------------
-  # Predictions — User Statistics
-  # ----------------------------------------------------------------------------
-  # Aggregated statistics for the authenticated user: total detections,
-  # successful vs. failed reads, and average confidence score. Useful for
-  # dashboards and usage analytics.
-  # ----------------------------------------------------------------------------
-  /predictions/stats:
-    get:
-      summary: Statistiques des détections de l'utilisateur
-      tags:
-        - Predictions
-      security:
-        - BearerAuth: []
-      responses:
-        "200":
-          description: Statistiques utilisateur
+          description: Token JWT absent, expiré ou invalide
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/DetectionStats"
-        "401":
-          description: Utilisateur non authentifié
+                $ref: "#/components/schemas/ErrorResponse"
 
-  # ----------------------------------------------------------------------------
-  # Admin — User Management
-  # ----------------------------------------------------------------------------
-  # Lists all registered users. Restricted to users with is_admin=True.
-  # Returns 401 if the caller is not authenticated or lacks admin privileges.
-  # ----------------------------------------------------------------------------
-  /admin/users:
+  # --------------------------------------------------------------------------
+  # GET /v1/predictions/stats — Statistiques de prédiction
+  # --------------------------------------------------------------------------
+  # Métriques agrégées : nombre total, détections réussies, taux de détection.
+  # --------------------------------------------------------------------------
+  /v1/predictions/stats:
     get:
-      summary: Liste de tous les utilisateurs (admin only)
       tags:
-        - Admin
+        - Predictions
+      summary: Récupérer les statistiques de prédiction
+      description: |
+        Retourne des métriques agrégées sur l'ensemble des prédictions
+        effectuées par l'utilisateur authentifié : nombre total de
+        prédictions, nombre de détections réussies, taux de détection, etc.
+
+        Utile pour les tableaux de bord côté front-end permettant à
+        l'utilisateur de suivre son activité sur la plateforme.
+      operationId: getPredictionStats
       security:
         - BearerAuth: []
       responses:
         "200":
-          description: Liste des utilisateurs
+          description: Statistiques agrégées des prédictions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlateStats"
+        "401":
+          description: Token JWT absent, expiré ou invalide
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # ============================================================================
+  # ADMIN — Endpoints réservés aux administrateurs
+  # ============================================================================
+  # Ces endpoints sont définis dans api/app/routers/v1/admin.py et montés
+  # sous le préfixe /v1/admin dans main.py. Protégés par la dépendance
+  # get_current_admin_user (JWT + is_admin=True).
+  # ============================================================================
+
+  # --------------------------------------------------------------------------
+  # GET /v1/admin/users — Liste de tous les utilisateurs inscrits
+  # --------------------------------------------------------------------------
+  /v1/admin/users:
+    get:
+      tags:
+        - Admin
+      summary: Lister tous les utilisateurs inscrits
+      description: |
+        Endpoint réservé aux administrateurs. Retourne l'ensemble des
+        comptes utilisateurs enregistrés en base, sérialisés selon le
+        schéma UserResponse (les champs sensibles comme hashed_password
+        sont exclus de la réponse).
+      operationId: listUsers
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Liste complète des utilisateurs
           content:
             application/json:
               schema:
@@ -278,66 +707,124 @@ paths:
                 items:
                   $ref: "#/components/schemas/UserResponse"
         "401":
-          description: Admin non authentifié
+          description: Token JWT absent, expiré ou invalide
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Accès refusé — droits administrateur requis
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
-  # ----------------------------------------------------------------------------
-  # Admin — Global Statistics
-  # ----------------------------------------------------------------------------
-  # Platform-wide user statistics: total, active, and admin user counts.
-  # Restricted to admin users. Useful for operational monitoring dashboards.
-  # ----------------------------------------------------------------------------
-  /admin/stats:
+  # --------------------------------------------------------------------------
+  # GET /v1/admin/stats — Statistiques globales de la plateforme
+  # --------------------------------------------------------------------------
+  /v1/admin/stats:
     get:
-      summary: Statistiques globales (admin only)
       tags:
         - Admin
+      summary: Récupérer les statistiques globales de la plateforme
+      description: |
+        Endpoint réservé aux administrateurs. Retourne des métriques
+        agrégées sur l'ensemble de la base utilisateurs : nombre total
+        d'utilisateurs, nombre d'utilisateurs actifs et nombre
+        d'administrateurs.
+
+        Utile pour les tableaux de bord de supervision et le suivi
+        opérationnel de la plateforme.
+      operationId: globalStats
       security:
         - BearerAuth: []
       responses:
         "200":
-          description: Statistiques globales
+          description: Statistiques globales de la plateforme
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/UserStats"
+                $ref: "#/components/schemas/AdminStats"
         "401":
-          description: Admin non authentifié
+          description: Token JWT absent, expiré ou invalide
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Accès refusé — droits administrateur requis
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
-  # ----------------------------------------------------------------------------
-  # Model — Metadata
-  # ----------------------------------------------------------------------------
-  # Returns metadata about the currently loaded detection model (name,
-  # algorithm, version). Useful for debugging, auditing, and front-end
-  # "about" panels.
-  # ----------------------------------------------------------------------------
-  /model/info:
+  # ============================================================================
+  # MODEL — Informations sur le pipeline de reconnaissance
+  # ============================================================================
+  # Ces endpoints sont définis dans api/app/routers/v1/model.py et montés
+  # sous le préfixe /v1/model dans main.py.
+  # ============================================================================
+
+  # --------------------------------------------------------------------------
+  # GET /v1/model/info — État et caractéristiques du modèle
+  # --------------------------------------------------------------------------
+  # Utile pour les health checks et le monitoring.
+  # --------------------------------------------------------------------------
+  /v1/model/info:
     get:
-      summary: Informations sur le modèle de détection
       tags:
         - Model
+      summary: Récupérer les informations du modèle de reconnaissance
+      description: |
+        Interroge l'instance singleton plate_predictor pour déterminer si
+        le pipeline LPR est correctement chargé en mémoire. Retourne le
+        type de modèle, le nom du pipeline et son statut de chargement.
+
+        Utile pour les health checks et les tableaux de bord de supervision
+        afin de s'assurer que le modèle est opérationnel avant de soumettre
+        des requêtes de prédiction.
+      operationId: getModelInfo
       responses:
         "200":
-          description: Métadonnées du modèle
+          description: Informations du modèle de reconnaissance
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ModelInfo"
         "500":
-          description: Erreur interne du serveur
+          description: Erreur interne lors de l'interrogation du modèle
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
-  # ----------------------------------------------------------------------------
-  # Vehicles — Vehicle Information Lookup
-  # ----------------------------------------------------------------------------
-  # Retrieves detailed vehicle information (brand, model, year, color,
-  # engine, trim) from the database using the license plate as lookup key.
-  # Typically called after a successful plate detection to enrich the OCR
-  # result with vehicle metadata. Requires a valid JWT token.
-  # ----------------------------------------------------------------------------
-  /vehicles/info:
+  # ============================================================================
+  # VEHICLES INFO — Consultation des informations véhicule
+  # ============================================================================
+  # Ces endpoints sont définis dans api/app/routers/v1/vehicles.py et montés
+  # sous le préfixe /v1/vehicles dans main.py.
+  # ============================================================================
+
+  # --------------------------------------------------------------------------
+  # GET /v1/vehicles/info — Informations détaillées d'un véhicule
+  # --------------------------------------------------------------------------
+  # Typiquement appelé après une détection réussie via /predictions/predict
+  # pour enrichir le résultat OCR avec les informations du véhicule.
+  # --------------------------------------------------------------------------
+  /v1/vehicles/info:
     get:
-      summary: Récupérer les informations d'un véhicule par sa plaque d'immatriculation
       tags:
         - Vehicles Info
+      summary: Récupérer les informations d'un véhicule par sa plaque
+      description: |
+        Recherche en base de données le véhicule correspondant à la plaque
+        d'immatriculation fournie en paramètre. La plaque est nettoyée
+        (suppression des espaces et guillemets) avant la recherche.
+
+        Typiquement appelé après une détection réussie via
+        POST /v1/predictions/predict pour enrichir le résultat OCR
+        avec les informations complètes du véhicule.
+      operationId: getVehicleInfo
       security:
         - BearerAuth: []
       parameters:
@@ -347,7 +834,7 @@ paths:
           description: Plaque d'immatriculation du véhicule à rechercher
           schema:
             type: string
-            example: AB-123-CD
+            example: "AB-123-CD"
       responses:
         "200":
           description: Informations complètes du véhicule
@@ -356,23 +843,39 @@ paths:
               schema:
                 $ref: "#/components/schemas/VehicleInfoResponse"
         "401":
-          description: Utilisateur non authentifié
+          description: Token JWT absent, expiré ou invalide
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "404":
-          description: Véhicule non trouvé pour la plaque d'immatriculation fournie
+          description: Aucun véhicule trouvé pour la plaque fournie
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
-  # ----------------------------------------------------------------------------
-  # Favorites — Add a Vehicle to Favorites
-  # ----------------------------------------------------------------------------
-  # Adds a vehicle (identified by its license plate) to the authenticated
-  # user's favorites list. Creates an entry in the user_favorites association
-  # table. Returns 400 if the vehicle is already in the user's favorites.
-  # Requires a valid JWT token.
-  # ----------------------------------------------------------------------------
-  /favorites/add:
+  # ============================================================================
+  # FAVORITES — Gestion des véhicules favoris
+  # ============================================================================
+  # Ces endpoints sont définis dans api/app/routers/v1/favorites.py et montés
+  # sous le préfixe /v1/favorites dans main.py.
+  # ============================================================================
+
+  # --------------------------------------------------------------------------
+  # POST /v1/favorites/add — Ajouter un véhicule aux favoris
+  # --------------------------------------------------------------------------
+  /v1/favorites/add:
     post:
-      summary: Ajouter un véhicule aux favoris de l'utilisateur connecté
       tags:
         - Favorites
+      summary: Ajouter un véhicule aux favoris
+      description: |
+        Recherche le véhicule correspondant à la plaque d'immatriculation
+        fournie en paramètre. Si le véhicule existe en base, il est ajouté
+        à la liste des favoris de l'utilisateur authentifié. Si le véhicule
+        est déjà dans les favoris, une erreur HTTP 400 est retournée.
+      operationId: addFavorite
       security:
         - BearerAuth: []
       parameters:
@@ -382,33 +885,50 @@ paths:
           description: Plaque d'immatriculation du véhicule à ajouter aux favoris
           schema:
             type: string
-            example: AB-123-CD
+            example: "AB-123-CD"
       responses:
         "200":
           description: Véhicule ajouté aux favoris avec succès
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/FavoriteActionResponse"
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Véhicule ajouté aux favoris."
         "400":
-          description: Véhicule déjà présent dans les favoris
+          description: Le véhicule est déjà dans les favoris
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "401":
-          description: Utilisateur non authentifié
+          description: Token JWT absent, expiré ou invalide
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Aucun véhicule trouvé pour la plaque fournie
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
-  # ----------------------------------------------------------------------------
-  # Favorites — Remove a Vehicle from Favorites
-  # ----------------------------------------------------------------------------
-  # Removes a vehicle (identified by its license plate) from the authenticated
-  # user's favorites list. Deletes the corresponding entry in the
-  # user_favorites association table. The operation is idempotent — removing
-  # a vehicle that is not in the favorites list does not produce an error.
-  # Requires a valid JWT token.
-  # ----------------------------------------------------------------------------
-  /favorites/remove:
+  # --------------------------------------------------------------------------
+  # DELETE /v1/favorites/remove — Retirer un véhicule des favoris
+  # --------------------------------------------------------------------------
+  /v1/favorites/remove:
     delete:
-      summary: Retirer un véhicule des favoris de l'utilisateur connecté
       tags:
         - Favorites
+      summary: Retirer un véhicule des favoris
+      description: |
+        Supprime l'association entre l'utilisateur authentifié et le véhicule
+        identifié par la plaque d'immatriculation fournie. Si le véhicule
+        n'était pas dans les favoris, l'opération est silencieusement ignorée.
+      operationId: removeFavorite
       security:
         - BearerAuth: []
       parameters:
@@ -418,30 +938,38 @@ paths:
           description: Plaque d'immatriculation du véhicule à retirer des favoris
           schema:
             type: string
-            example: AB-123-CD
+            example: "AB-123-CD"
       responses:
         "200":
-          description: Véhicule retiré des favoris avec succès
+          description: Véhicule retiré des favoris
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/FavoriteActionResponse"
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Véhicule retiré des favoris."
         "401":
-          description: Utilisateur non authentifié
+          description: Token JWT absent, expiré ou invalide
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
-  # ----------------------------------------------------------------------------
-  # Favorites — List User's Favorite Vehicles
-  # ----------------------------------------------------------------------------
-  # Returns the list of all vehicles the authenticated user has marked as
-  # favorites. Each entry contains the full vehicle information (license
-  # plate, brand, model, year, color, engine, trim). Requires a valid JWT
-  # token.
-  # ----------------------------------------------------------------------------
-  /favorites/:
+  # --------------------------------------------------------------------------
+  # GET /v1/favorites/all — Liste des véhicules favoris
+  # --------------------------------------------------------------------------
+  /v1/favorites/all:
     get:
-      summary: Récupérer la liste des véhicules favoris de l'utilisateur connecté
       tags:
         - Favorites
+      summary: Récupérer la liste des véhicules favoris
+      description: |
+        Retourne l'ensemble des véhicules que l'utilisateur authentifié a
+        ajoutés à ses favoris, sérialisés selon le schéma VehicleInfoResponse.
+        Si l'utilisateur n'a aucun favori, une liste vide est retournée.
+      operationId: getFavorites
       security:
         - BearerAuth: []
       responses:
@@ -454,358 +982,518 @@ paths:
                 items:
                   $ref: "#/components/schemas/VehicleInfoResponse"
         "401":
-          description: Utilisateur non authentifié
+          description: Token JWT absent, expiré ou invalide
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
 # ==============================================================================
-# Components — Reusable Schemas & Security
+# Components — Schémas réutilisables et sécurité
 # ==============================================================================
-# All data transfer objects (DTOs) used across the API are defined here as
-# JSON Schema objects. They are referenced from path definitions via $ref.
-#
-# Schema categories:
-#   - Request bodies  : PlateDetectionRequest, UserCreate, auth_login_body
-#   - Response bodies : PlateDetectionResponse, UserResponse, Token,
-#                       DetectionHistory, DetectionStats, UserStats,
-#                       ModelInfo, HealthResponse, VehicleInfoResponse,
-#                       FavoriteActionResponse
-#
-# Security schemes:
-#   - BearerAuth      : HTTP Bearer token (JWT) for authenticated endpoints
+# Cette section définit les composants réutilisables référencés par les
+# endpoints ci-dessus via la syntaxe $ref. L'utilisation de $ref permet
+# d'éviter la duplication et garantit la cohérence du contrat d'API.
 # ==============================================================================
 components:
 
   # ----------------------------------------------------------------------------
-  # Security Schemes
+  # Schéma de sécurité — Authentification Bearer JWT
   # ----------------------------------------------------------------------------
-  # Defines the Bearer JWT authentication scheme used by all protected
-  # endpoints. The token is obtained via POST /auth/login and must be
-  # included in the Authorization header as: Bearer <token>
+  # Définit le mécanisme d'authentification utilisé par les endpoints
+  # protégés. Les clients doivent inclure le token JWT dans l'en-tête
+  # HTTP Authorization au format : Bearer <access_token>
   # ----------------------------------------------------------------------------
   securitySchemes:
     BearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
-      description: Token JWT obtenu via POST /auth/login
+      description: |
+        Token JWT obtenu via POST /v1/account/login. À inclure dans
+        l'en-tête Authorization au format : Bearer <access_token>
 
+  # ----------------------------------------------------------------------------
+  # Schémas de données (requêtes et réponses)
+  # ----------------------------------------------------------------------------
   schemas:
 
     # --------------------------------------------------------------------------
-    # PlateDetectionRequest
+    # ErrorResponse — Réponse d'erreur standardisée
     # --------------------------------------------------------------------------
-    # Multipart form payload for the /predict endpoint.
-    # Contains a single required field: the image file to analyse.
-    # Supported formats depend on the server-side implementation (typically
-    # JPEG, PNG, BMP, TIFF).
+    # Schéma générique utilisé par tous les endpoints pour les réponses
+    # d'erreur (4xx, 5xx). Correspond au format par défaut de FastAPI
+    # pour les HTTPException.
     # --------------------------------------------------------------------------
-    PlateDetectionRequest:
-      required:
-      - file
+    ErrorResponse:
       type: object
+      description: Réponse d'erreur standardisée retournée par l'API en cas d'échec
       properties:
-        file:
+        detail:
           type: string
-          format: binary
-          description: Image contenant un véhicule avec plaque d'immatriculation
+          description: Message d'erreur descriptif expliquant la cause de l'échec
+          example: "Identifiants incorrects"
 
     # --------------------------------------------------------------------------
-    # PlateDetectionResponse
+    # LoginRequest — Données de connexion OAuth2
     # --------------------------------------------------------------------------
-    # Result returned by the /predict endpoint after running YOLO detection
-    # and EasyOCR text recognition on the uploaded image.
-    #
-    # Fields:
-    #   plate_text    — The recognised license plate string (e.g., "AB-123-CD")
-    #   confidence    — Detection confidence score (0.0–1.0)
-    #   bounding_box  — Pixel coordinates of the detected plate region
-    #     x_min / y_min — Top-left corner
-    #     x_max / y_max — Bottom-right corner
-    #   model_version — Identifier of the YOLO model checkpoint used
-    #   prediction_id — Database primary key for this prediction record
+    # Correspond au formulaire OAuth2PasswordRequestForm de FastAPI.
+    # Transmis au format application/x-www-form-urlencoded.
     # --------------------------------------------------------------------------
-    PlateDetectionResponse:
+    LoginRequest:
       type: object
-      properties:
-        plate_text:
-          type: string
-          description: Texte lu sur la plaque d'immatriculation
-          example: AB-123-CD
-        confidence:
-          type: number
-          format: float
-          description: Score de confiance de la détection
-          example: 0.95
-        bounding_box:
-          type: object
-          properties:
-            x_min:
-              type: integer
-              example: 120
-            y_min:
-              type: integer
-              example: 340
-            x_max:
-              type: integer
-              example: 380
-            y_max:
-              type: integer
-              example: 410
-        model_version:
-          type: string
-          example: yolov8_plate_v1
-        prediction_id:
-          type: integer
-          example: 123
-
-    # --------------------------------------------------------------------------
-    # UserCreate
-    # --------------------------------------------------------------------------
-    # Request body for POST /auth/register.
-    # All four fields are required. The password is transmitted in plain text
-    # over HTTPS and hashed server-side with bcrypt before storage.
-    # --------------------------------------------------------------------------
-    UserCreate:
+      description: Données de connexion au format OAuth2 (username + password)
       required:
-      - email
-      - password
-      - username
-      - full_name
-      type: object
+        - username
+        - password
       properties:
         username:
           type: string
-          example: vincent_devops
-        email:
-          type: string
-          example: vincent@example.com
+          description: Nom d'utilisateur unique du compte
+          example: "john_doe"
         password:
           type: string
-          example: Password123
-        full_name:
-            type: string
-            example: Vincent Devops
+          format: password
+          description: Mot de passe en clair (transmis via HTTPS en production)
+          example: "SecurePass123!"
 
     # --------------------------------------------------------------------------
-    # UserResponse
+    # Token — Réponse d'authentification JWT
     # --------------------------------------------------------------------------
-    # Public representation of a user account returned by authentication and
-    # admin endpoints. Sensitive fields (hashed_password) are excluded.
-    # --------------------------------------------------------------------------
-    UserResponse:
-      type: object
-      properties:
-        id:
-          type: integer
-          example: 1
-        username:
-          type: string
-          example: vincent_devops
-        email:
-          type: string
-          example: vincent@example.com
-        is_active:
-          type: boolean
-          example: true
-        is_admin:
-          type: boolean
-          example: false
-
-    # --------------------------------------------------------------------------
-    # Token
-    # --------------------------------------------------------------------------
-    # JWT response returned by POST /auth/login on successful authentication.
-    # The access_token should be included in subsequent requests as:
-    #   Authorization: Bearer <access_token>
+    # Miroir du schéma Pydantic schemas.Token défini dans app/schemas.py.
+    # Retourné par POST /v1/account/login en cas de succès.
     # --------------------------------------------------------------------------
     Token:
       type: object
+      description: Token JWT retourné après authentification réussie
       properties:
         access_token:
           type: string
-          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+          description: Token JWT signé à inclure dans les requêtes ultérieures
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
         token_type:
           type: string
-          example: bearer
+          description: "Type de token — toujours \"bearer\" pour cette API"
+          example: "bearer"
 
     # --------------------------------------------------------------------------
-    # DetectionHistory
+    # UserCreate — Données d'inscription utilisateur
     # --------------------------------------------------------------------------
-    # Single entry in the user's detection history, returned as an array
-    # element by GET /predictions/history.
+    # Miroir du schéma Pydantic schemas.UserCreate défini dans app/schemas.py.
+    # Le champ gdpr_consent est obligatoire et doit être true pour que
+    # l'inscription soit acceptée (Art. 6.1.a RGPD).
     # --------------------------------------------------------------------------
-    DetectionHistory:
+    UserCreate:
       type: object
+      description: |
+        Données d'inscription d'un nouvel utilisateur. Le consentement RGPD
+        (gdpr_consent=true) est obligatoire pour que l'inscription soit acceptée.
+      required:
+        - email
+        - username
+        - password
+        - full_name
+        - gdpr_consent
+      properties:
+        email:
+          type: string
+          format: email
+          description: Adresse email unique de l'utilisateur
+          example: "john@example.com"
+        username:
+          type: string
+          description: Nom d'utilisateur unique (utilisé pour l'authentification)
+          example: "john_doe"
+        password:
+          type: string
+          format: password
+          description: Mot de passe en clair (sera haché via bcrypt avant stockage)
+          example: "SecurePass123!"
+        full_name:
+          type: string
+          description: Nom complet de l'utilisateur
+          example: "John Doe"
+        is_admin:
+          type: boolean
+          description: >
+            Statut administrateur. Par défaut false. En production, ce champ
+            devrait etre ignore ou restreint aux super-administrateurs.
+          default: false
+          example: false
+        gdpr_consent:
+          type: boolean
+          description: |
+            Consentement explicite à la politique de confidentialité RGPD
+            (Art. 6.1.a). Doit être true pour que l'inscription soit acceptée.
+            La date du consentement est horodatée automatiquement (Art. 7).
+          example: true
+
+    # --------------------------------------------------------------------------
+    # UserResponse — Informations publiques d'un utilisateur
+    # --------------------------------------------------------------------------
+    # Miroir du schéma Pydantic schemas.UserResponse défini dans app/schemas.py.
+    # Les champs sensibles (hashed_password) sont exclus de la réponse.
+    # --------------------------------------------------------------------------
+    UserResponse:
+      type: object
+      description: |
+        Informations publiques d'un utilisateur. Le mot de passe haché
+        est systématiquement exclu de la réponse (Art. 32 RGPD — sécurité).
       properties:
         id:
           type: integer
+          description: Identifiant unique auto-incrémenté de l'utilisateur
           example: 1
+        email:
+          type: string
+          format: email
+          description: Adresse email de l'utilisateur
+          example: "john@example.com"
+        username:
+          type: string
+          description: Nom d'utilisateur unique
+          example: "john_doe"
+        full_name:
+          type: string
+          description: Nom complet de l'utilisateur
+          example: "John Doe"
+        is_active:
+          type: boolean
+          description: Indique si le compte est actif (true) ou désactivé (false)
+          example: true
+        is_admin:
+          type: boolean
+          description: Indique si l'utilisateur dispose des droits administrateur
+          example: false
+        created_at:
+          type: string
+          format: date-time
+          description: Date et heure de création du compte (format ISO 8601 UTC)
+          example: "2025-01-15T10:30:00Z"
+
+    # --------------------------------------------------------------------------
+    # PredictionResponse — Résultat d'une détection de plaque
+    # --------------------------------------------------------------------------
+    # Retourné par POST /v1/predictions/predict.
+    # --------------------------------------------------------------------------
+    PredictionResponse:
+      type: object
+      description: Résultat d'une soumission d'image pour détection de plaque
+      properties:
+        filename:
+          type: string
+          description: Nom du fichier image soumis par le client
+          example: "photo_voiture.jpg"
+        results:
+          type: array
+          description: |
+            Liste des plaques détectées dans l'image. Vide si aucune plaque
+            n'a été détectée par le pipeline YOLO + EasyOCR.
+          items:
+            type: object
+            properties:
+              plate_text:
+                type: string
+                description: Texte alphanumérique de la plaque détectée
+                example: "AB-123-CD"
+              confidence:
+                type: number
+                format: float
+                description: Score de confiance de la détection (entre 0 et 1)
+                example: 0.95
+                prediction_id:
+                  type: integer
+                  description: Identifiant unique de la prédiction en base de données
+                  example: 42
+
+    # --------------------------------------------------------------------------
+    # PlateHistory — Entrée d'historique de prédiction
+    # --------------------------------------------------------------------------
+    # Miroir du schéma Pydantic schemas.PlateHistory défini dans app/schemas.py.
+    # Retourné par GET /v1/predictions/history.
+    # --------------------------------------------------------------------------
+    PlateHistory:
+      type: object
+      description: |
+        Entrée individuelle de l'historique de prédiction. Si la prédiction
+        originale contenait plusieurs résultats, chaque résultat génère
+        une entrée séparée dans l'historique.
+      properties:
+        id:
+          type: integer
+          description: Identifiant unique de la prédiction en base
+          example: 42
         plate_text:
           type: string
-          example: AB-123-CD
+          nullable: true
+          description: Texte de la plaque détectée (null si aucune détection)
+          example: "AB-123-CD"
         confidence:
           type: number
           format: float
+          nullable: true
+          description: Score de confiance de la détection (null si aucune détection)
           example: 0.95
         created_at:
           type: string
           format: date-time
+          description: Date et heure de la prédiction (format ISO 8601 UTC)
+          example: "2025-01-15T14:30:00Z"
 
     # --------------------------------------------------------------------------
-    # DetectionStats
+    # PlateStats — Statistiques agrégées des prédictions
     # --------------------------------------------------------------------------
-    # Aggregated detection statistics for a single user, returned by
-    # GET /predictions/stats.
-    #
-    #   total_detections   — Total number of /predict calls made
-    #   successful_reads   — Detections where a plate text was extracted
-    #   failed_reads       — Detections where OCR could not read the plate
-    #   average_confidence — Mean confidence score across all detections
+    # Miroir du schéma Pydantic schemas.PlateStats défini dans app/schemas.py.
+    # Retourné par GET /v1/predictions/stats.
     # --------------------------------------------------------------------------
-    DetectionStats:
+    PlateStats:
       type: object
+      description: Statistiques agrégées des prédictions de l'utilisateur connecté
       properties:
-        total_detections:
+        total_predictions:
           type: integer
+          description: Nombre total de prédictions effectuées
+          example: 150
+        successful_detections:
+          type: integer
+          description: Nombre de prédictions ayant détecté au moins une plaque
           example: 120
-        successful_reads:
-          type: integer
-          description: Nombre de plaques lues avec succès
-          example: 105
-        failed_reads:
-          type: integer
-          description: Nombre de détections sans lecture réussie
-          example: 15
-        average_confidence:
+        detection_rate:
           type: number
           format: float
-          example: 0.89
+          description: Taux de détection (successful_detections / total_predictions)
+          example: 0.80
 
     # --------------------------------------------------------------------------
-    # UserStats
+    # AdminStats — Statistiques globales de la plateforme
     # --------------------------------------------------------------------------
-    # Platform-wide user statistics returned by GET /admin/stats.
-    # Provides a quick overview of user base health for administrators.
+    # Retourné par GET /v1/admin/stats. Réservé aux administrateurs.
     # --------------------------------------------------------------------------
-    UserStats:
+    AdminStats:
       type: object
+      description: Statistiques globales de la plateforme (réservé aux administrateurs)
       properties:
         total_users:
           type: integer
-          example: 50
+          description: Nombre total d'utilisateurs inscrits sur la plateforme
+          example: 500
         active_users:
           type: integer
-          example: 45
+          description: Nombre d'utilisateurs dont le compte est actif (is_active=true)
+          example: 450
         admin_users:
           type: integer
-          example: 5
+          description: Nombre d'utilisateurs disposant des droits administrateur
+          example: 3
 
     # --------------------------------------------------------------------------
-    # ModelInfo
+    # ModelInfo — Informations sur le pipeline de reconnaissance
     # --------------------------------------------------------------------------
-    # Metadata about the loaded detection model, returned by GET /model/info.
-    # Useful for versioning, auditing, and debugging purposes.
+    # Retourné par GET /v1/model/info.
     # --------------------------------------------------------------------------
     ModelInfo:
       type: object
+      description: |
+        Informations sur l'état et les caractéristiques du pipeline de
+        reconnaissance de plaques d'immatriculation (LPR).
       properties:
-        model_name:
-          type: string
-          example: SnapTaPlaque - YOLO + EasyOCR
-        algorithm:
-          type: string
-          example: YOLOv8 + EasyOCR
-        version:
-          type: string
-          example: "1.0"
-
-    # --------------------------------------------------------------------------
-    # HealthResponse
-    # --------------------------------------------------------------------------
-    # Response body for GET /health. Indicates the overall API status,
-    # whether the YOLO model is loaded in memory, the database connection
-    # state, and the current API version.
-    # --------------------------------------------------------------------------
-    HealthResponse:
-      type: object
-      properties:
-        status:
-          type: string
-          example: healthy
-        model_loaded:
+        loaded:
           type: boolean
+          description: True si le modèle est chargé en mémoire et opérationnel
           example: true
-        database:
+        model_type:
           type: string
-          example: connected
-        version:
+          description: Description du pipeline de détection et reconnaissance utilisé
+          example: "YOLOv8 + EasyOCR"
+        pipeline:
           type: string
-          example: "1.0"
+          description: Nom interne du pipeline
+          example: "LPRPipeline"
 
     # --------------------------------------------------------------------------
-    # VehicleInfoResponse
+    # VehicleInfoResponse — Informations complètes d'un véhicule
     # --------------------------------------------------------------------------
-    # Detailed vehicle information returned by GET /vehicles/info and
-    # GET /favorites/. Contains all technical and descriptive fields
-    # associated with a vehicle identified by its license plate.
+    # Miroir du schéma Pydantic schemas.VehicleInfoResponse défini dans
+    # app/schemas.py. Retourné par GET /v1/vehicles/info et
+    # GET /v1/favorites/all.
     # --------------------------------------------------------------------------
     VehicleInfoResponse:
       type: object
+      description: Informations complètes d'un véhicule identifié par sa plaque
       properties:
         license_plate:
           type: string
-          description: Plaque d'immatriculation du véhicule (identifiant unique)
-          example: AB-123-CD
+          description: Plaque d'immatriculation du véhicule
+          example: "AB-123-CD"
         brand:
           type: string
-          description: Marque du véhicule
-          example: Renault
+          description: Marque du véhicule (constructeur)
+          example: "Renault"
         model:
           type: string
           description: Modèle du véhicule
-          example: Clio
+          example: "Clio"
         year:
           type: integer
-          description: Année de mise en circulation
-          example: 2021
+          description: "Année de première mise en circulation"
+          example: 2020
         color:
           type: string
-          description: Couleur principale du véhicule
-          example: Gris
-        engine:
-          type: string
-          description: Type de motorisation
-          example: 1.5 dCi
-        trim:
-          type: string
-          description: Niveau de finition
-          example: Intens
+          description: Couleur du véhicule
+          example: "Bleu"
 
     # --------------------------------------------------------------------------
-    # FavoriteActionResponse
+    # DataExport — Export des données personnelles (RGPD Art. 15 & 20)
     # --------------------------------------------------------------------------
-    # Confirmation response returned by POST /favorites/add and
-    # DELETE /favorites/remove after a successful add or remove operation.
+    # Retourné par GET /v1/account/me/data-export. Format JSON structuré
+    # conforme à l'exigence de portabilité de l'Art. 20 RGPD.
     # --------------------------------------------------------------------------
-    FavoriteActionResponse:
+    DataExport:
       type: object
+      description: |
+        Export complet des données personnelles de l'utilisateur au format
+        JSON structuré (RGPD Art. 15 — droit d'accès & Art. 20 — droit à
+        la portabilité).
       properties:
-        message:
-          type: string
-          description: Message de confirmation de l'opération effectuée
-          example: Véhicule ajouté aux favoris avec succès
+        profile:
+          type: object
+          description: Informations de profil de l'utilisateur
+          properties:
+            id:
+              type: integer
+              example: 1
+            username:
+              type: string
+              example: "john_doe"
+            email:
+              type: string
+              example: "john@example.com"
+            full_name:
+              type: string
+              example: "John Doe"
+            is_active:
+              type: boolean
+              example: true
+            created_at:
+              type: string
+              format: date-time
+              nullable: true
+              example: "2025-01-15T10:30:00Z"
+            gdpr_consent_at:
+              type: string
+              format: date-time
+              nullable: true
+              description: Date et heure UTC du consentement RGPD (Art. 7)
+              example: "2025-01-15T10:30:00Z"
+        predictions:
+          type: array
+          description: Historique complet des prédictions de l'utilisateur
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+                example: 42
+              filename:
+                type: string
+                example: "photo_voiture.jpg"
+              results:
+                type: array
+                items:
+                  type: object
+              created_at:
+                type: string
+                format: date-time
+                nullable: true
+                example: "2025-01-15T14:30:00Z"
+        favorites:
+          type: array
+          description: Liste des véhicules favoris de l'utilisateur
+          items:
+            type: object
+            properties:
+              license_plate:
+                type: string
+                example: "AB-123-CD"
+              brand:
+                type: string
+                example: "Renault"
+              model:
+                type: string
+                example: "Clio"
+              year:
+                type: integer
+                example: 2020
 
     # --------------------------------------------------------------------------
-    # auth_login_body
+    # PrivacyPolicy — Politique de confidentialité RGPD
     # --------------------------------------------------------------------------
-    # OAuth2-compatible form body for POST /auth/login.
-    # Sent as application/x-www-form-urlencoded (not JSON) to comply with
-    # the OAuth2 "Resource Owner Password Credentials" grant type used by
-    # FastAPI's OAuth2PasswordRequestForm.
+    # Retourné par GET /privacy-policy. Expose les informations de
+    # transparence exigées par les articles 13 et 14 du RGPD.
     # --------------------------------------------------------------------------
-    auth_login_body:
+    PrivacyPolicy:
       type: object
+      description: |
+        Politique de confidentialité conforme aux articles 13 et 14 du RGPD.
+        Expose les informations de transparence sur le traitement des
+        données personnelles par la plateforme SnapTaPlaque.
       properties:
-        username:
+        controller:
           type: string
-        password:
+          description: Nom du responsable du traitement des données personnelles
+          example: "Projet universitaire SnapTaPlaque"
+        contact:
           type: string
+          description: Adresse email de contact pour les questions de confidentialité
+          example: "vincent.proudy.etu@univ-lemans.fr"
+        purpose:
+          type: string
+          description: Finalité du traitement des données personnelles
+          example: "Reconnaissance de plaques d'immatriculation à des fins pédagogiques"
+        legal_basis:
+          type: string
+          description: Base légale du traitement (Art. 6 RGPD)
+          example: "Consentement explicite de l'utilisateur (Art. 6.1.a RGPD)"
+        data_collected:
+          type: array
+          description: Liste des catégories de données personnelles collectées
+          items:
+            type: string
+          example:
+            - "Email, nom d'utilisateur, nom complet (inscription)"
+            - "Images soumises pour détection (non conservées après traitement)"
+            - "Résultats de détection (plaques reconnues, scores de confiance)"
+            - "Adresse IP (rate limiting uniquement, non stockée en base)"
+        retention_period:
+          type: string
+          description: Politique de durée de conservation des données
+          example: "Données conservées jusqu'à suppression du compte par l'utilisateur"
+        user_rights:
+          type: object
+          description: Droits des utilisateurs et endpoints permettant de les exercer
+          properties:
+            access:
+              type: string
+              description: "Endpoint pour exercer le droit d'accès (Art. 15) et de portabilité (Art. 20)"
+              example: "GET /v1/account/me/data-export"
+            erasure:
+              type: string
+              description: "Endpoint pour exercer le droit à l'effacement (Art. 17)"
+              example: "DELETE /v1/account/me/delete-account"
+            rectification:
+              type: string
+              description: "Procédure pour exercer le droit de rectification (Art. 16)"
+              example: "Contacter le responsable de traitement"
+        data_sharing:
+          type: string
+          description: Information sur le partage des données avec des tiers
+          example: "Aucun transfert à des tiers"
+        security_measures:
+          type: array
+          description: Mesures de sécurité techniques mises en place (Art. 32 RGPD)
+          items:
+            type: string
+          example:
+            - "Mots de passe hachés avec bcrypt"
+            - "Authentification par token JWT"
+            - "Rate limiting sur les endpoints sensibles"
