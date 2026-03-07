@@ -34,7 +34,7 @@ import java.util.List;
  * <p>Cet adaptateur supporte deux modes de fonctionnement pour la gestion des favoris :
  * <ol>
  *     <li><strong>Avec listener :</strong> lorsqu'un {@link OnFavoriteClickListener} est fourni
- *         via le constructeur {@link #VehicleAdapter(List, OnFavoriteClickListener)}, le clic
+ *         via le constructeur {@link #VehicleAdapter(List, OnVehicleClickListener, OnFavoriteClickListener)}, le clic
  *         sur l'icône étoile est délégué au listener (typiquement le
  *         {@link com.example.snaptaplaque.viewmodels.SharedViewModel#toggleFavorite(Vehicle)}).
  *         Ce mode garantit la synchronisation des données entre tous les fragments.</li>
@@ -76,6 +76,12 @@ public class VehicleAdapter extends RecyclerView.Adapter<VehicleAdapter.VehicleV
      * Elle ne doit jamais être {@code null}.</p>
      */
     private List<Vehicle> vehicleList;
+
+    private OnVehicleClickListener vehicleClickListener;
+
+    public interface OnVehicleClickListener {
+        void onVehicleClick(Vehicle vehicle);
+    }
 
     /**
      * Listener optionnel notifié lorsque l'utilisateur clique sur l'icône favori
@@ -139,13 +145,17 @@ public class VehicleAdapter extends RecyclerView.Adapter<VehicleAdapter.VehicleV
      *
      * @param vehicleList la liste de {@link Vehicle} à afficher ;
      *                    ne doit pas être {@code null}
-     * @param listener    le {@link OnFavoriteClickListener} à notifier lors du clic
+     * @param vehicleListener    le {@link OnVehicleClickListener} à notifier lors du clic
+     *      *                    sur le bloc du véhicule ; peut être {@code null} (comportement
+     *      *                    identique au constructeur {@link #VehicleAdapter(List)})
+     * @param favoriteListener    le {@link OnFavoriteClickListener} à notifier lors du clic
      *                    sur l'icône favori ; peut être {@code null} (comportement
      *                    identique au constructeur {@link #VehicleAdapter(List)})
      */
-    public VehicleAdapter(List<Vehicle> vehicleList, OnFavoriteClickListener listener) {
+    public VehicleAdapter(List<Vehicle> vehicleList, OnVehicleClickListener vehicleListener, OnFavoriteClickListener favoriteListener) {
         this.vehicleList = vehicleList;
-        this.favoriteClickListener = listener;
+        this.vehicleClickListener = vehicleListener;
+        this.favoriteClickListener = favoriteListener;
     }
 
     /**
@@ -232,6 +242,12 @@ public class VehicleAdapter extends RecyclerView.Adapter<VehicleAdapter.VehicleV
         holder.ivFavorite.setImageResource(
                 vehicle.isFavorite() ? R.drawable.ic_star : R.drawable.ic_star_outline
         );
+
+        holder.itemView.setOnClickListener(v -> {
+            if(vehicleClickListener != null) {
+                vehicleClickListener.onVehicleClick(vehicle);
+            }
+        });
 
         holder.ivFavorite.setOnClickListener(v -> {
             if (favoriteClickListener != null) {

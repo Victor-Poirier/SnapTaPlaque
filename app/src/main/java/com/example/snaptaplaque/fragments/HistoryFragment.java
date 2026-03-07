@@ -95,6 +95,11 @@ public class HistoryFragment extends Fragment {
 
         adapter = new VehicleAdapter(
                 new ArrayList<>(),
+                vehicle -> {
+                    VehicleDetailDialogFragment dialog = VehicleDetailDialogFragment.newInstance(vehicle.getDetails());
+                    dialog.show(getChildFragmentManager(), "detail");
+                },
+
                 vehicle -> sharedViewModel.toggleFavorite(vehicle)
         );
         recyclerView.setAdapter(adapter);

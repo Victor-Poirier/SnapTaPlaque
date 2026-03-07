@@ -154,6 +154,11 @@ public class ProfileFragment extends Fragment {
         // Affiche uniquement les favoris
         adapter = new VehicleAdapter(
                 new ArrayList<>(),
+                vehicle -> {
+                    VehicleDetailDialogFragment dialog = VehicleDetailDialogFragment.newInstance(vehicle.getDetails());
+                    dialog.show(getChildFragmentManager(), "detail");
+                },
+
                 vehicle -> sharedViewModel.toggleFavorite(vehicle)
         );
         recyclerView.setAdapter(adapter);
