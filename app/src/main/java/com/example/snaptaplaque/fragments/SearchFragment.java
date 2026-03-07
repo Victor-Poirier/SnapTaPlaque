@@ -45,6 +45,11 @@ public class SearchFragment extends Fragment {
 
     private ViewPager2 viewPagerSearch;
 
+    // Les indicateurs
+    private ImageView indicatorScan;
+    private ImageView indicatorWheel;
+    private ImageView indicatorVocal;
+
     /**
      * Initialise la vue du fragment et configure le {@link SharedViewModel}.
      *
@@ -64,16 +69,79 @@ public class SearchFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_search, container, false);
 
         viewPagerSearch = view.findViewById(R.id.viewPagerSearch);
+        indicatorScan = view.findViewById(R.id.indicatorScan);
+        indicatorWheel = view.findViewById(R.id.indicatorWheel);
+        indicatorVocal = view.findViewById(R.id.indicatorVocal);
+
+
 
         // Configuration du ViewPager
         if (viewPagerSearch != null) {
             // Définit le swipe en mode vertical
             viewPagerSearch.setOrientation(ViewPager2.ORIENTATION_VERTICAL);
-
             InputSectionAdapter adapter = new InputSectionAdapter(this);
             viewPagerSearch.setAdapter(adapter);
+
+            // Synchronisation : Swipe -> Mise à jour visuelle des cercles
+            viewPagerSearch.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+                @Override
+                public void onPageSelected(int position) {
+                    super.onPageSelected(position);
+                    updateIndicators(view, position);
+                }
+            });
+        }
+
+        // Synchronisation : Clic sur cercle -> Changement de page
+        if (indicatorScan != null) {
+            indicatorScan.setOnClickListener(v -> selectPage(0));
+        }
+        if (indicatorWheel != null) {
+            indicatorWheel.setOnClickListener(v -> selectPage(1));
+        }
+        if (indicatorVocal != null) {
+            indicatorVocal.setOnClickListener(v -> selectPage(2));
         }
 
         return view;
+    }
+
+    /**
+     * Change la page du ViewPager
+     */
+    private void selectPage(int index) {
+        if (viewPagerSearch != null) {
+            viewPagerSearch.setCurrentItem(index, true);
+        }
+    }
+
+    /**
+     * Met à jour l'état visuel (Selected) des indicateurs
+     */
+    private void updateIndicators(View view, int position) {
+        if (indicatorScan != null && indicatorWheel != null && indicatorVocal != null) {
+            indicatorScan.setSelected(position == 0);
+            indicatorWheel.setSelected(position == 1);
+            indicatorVocal.setSelected(position == 2);
+
+            View movingBar = getView().findViewById(R.id.movingBar);
+            ImageView targetIcon;
+
+            if (position == 0) targetIcon = indicatorScan;
+            else if (position == 1) targetIcon = indicatorWheel;
+            else targetIcon = indicatorVocal;
+
+            if (movingBar != null) {
+                targetIcon.post(() -> {
+                    // On calcule le centre vertical de l'icône pour y aligner le centre de la barre
+                    float targetY = targetIcon.getY() + (targetIcon.getHeight() / 2f) - (movingBar.getHeight() / 2f);
+
+                    movingBar.animate()
+                            .translationY(targetY)
+                            .setDuration(200)
+                            .start();
+                });
+            }
+        }
     }
 }

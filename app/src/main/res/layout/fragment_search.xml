@@ -41,4 +41,53 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/ivTraceTitle" />
 
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guidelineNav"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.97" />
+
+        <LinearLayout
+            android:id="@+id/indicatorContainer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center"
+            app:layout_constraintBottom_toBottomOf="@id/viewPagerSearch"
+            app:layout_constraintEnd_toStartOf="@id/guidelineNav"
+            app:layout_constraintTop_toTopOf="@id/viewPagerSearch">
+
+            <ImageView
+                android:id="@+id/indicatorScan"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_marginBottom="25dp"
+                android:src="@drawable/baseline_camera" />
+
+            <ImageView
+                android:id="@+id/indicatorWheel"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_marginBottom="25dp"
+                android:src="@drawable/baseline_hand_gesture" />
+
+            <ImageView
+                android:id="@+id/indicatorVocal"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:src="@drawable/baseline_mic" />
+
+        </LinearLayout>
+
+        <View
+            android:id="@+id/movingBar"
+            android:layout_width="4dp"
+            android:layout_height="25dp"
+            android:background="@drawable/moving_bar_shape"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@id/indicatorContainer"
+            app:layout_constraintBottom_toBottomOf="@id/indicatorContainer"
+            app:layout_constraintVertical_bias="0.0" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
