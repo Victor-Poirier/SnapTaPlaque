@@ -3,6 +3,9 @@
     <string name="app_name">SnapTaPlaque</string>
     <string name="title_history">Historique des recherches</string>
     <string name="title_search">Rechercher</string>
+    <string name="number_plate">Plaque d\'immatriculation</string>
+    <string name="spell_plate">Épelez la plaque d\'immatriculation...</string>
+    <string name="micro_not_available">Microphone non disponible</string>
     <string name="title_profile">Profil</string>
     <string name="title_favorite">Véhicules Favoris</string>
     <string name="necessary_camera">La caméra est nécessaire pour prendre une photo</string>
@@ -29,4 +32,5 @@
     <string name="sign_in">Se connecter</string>
     <string name="welcome">Content de te revoir !</string>
     <string name="picture_btn">Photo</string>
+    <string name="close">Fermer</string>
 </resources>
