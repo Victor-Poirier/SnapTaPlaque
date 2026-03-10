@@ -366,16 +366,13 @@ class VehicleInfoResponse(BaseModel):
     le pipeline de reconnaissance.
 
     Attributes:
-        license_plate (str): Plaque d'immatriculation du véhicule
+        plate (str): Plaque d'immatriculation du véhicule
             (identifiant unique en base de données).
         brand (str): Marque du véhicule (ex. : Renault, Peugeot, BMW).
         model (str): Modèle du véhicule (ex. : Clio, 308, Série 3).
-        year (int): Année de mise en circulation du véhicule.
-        color (str): Couleur principale du véhicule.
-        engine (str): Type de motorisation du véhicule (ex. : 1.5 dCi,
-            2.0 TDI, électrique).
-        trim (str): Niveau de finition du véhicule (ex. : Intens,
-            Allure, Sport).
+        info (str): Informations complémentaires sur le véhicule
+        energy (str): Type d'énergie du véhicule (ex. : Essence, Diesel,
+            Électrique).
 
     Configuration:
         ``from_attributes`` — Active la compatibilité avec les instances
@@ -383,13 +380,12 @@ class VehicleInfoResponse(BaseModel):
         à partir d'un objet ``Vehicle`` (anciennement ``orm_mode``).
     """
 
-    license_plate: str
+    licence_plate: str
+    success: bool
     brand: str
     model: str
-    year: int
-    color: str
-    engine: str
-    trim: str
+    info: str
+    energy: str
 
     class Config:
         from_attributes = True

@@ -206,10 +206,8 @@ class Vehicle(Base):
     license_plate = Column(String, primary_key=True, index=True, nullable=False)
     brand = Column(String, nullable=False)
     model = Column(String, nullable=False)
-    year = Column(Integer, nullable=False)
-    color = Column(String, nullable=False)
-    engine = Column(String, nullable=False)
-    trim = Column(String, nullable=False)
+    info = Column(String, nullable=False)
+    energy = Column(String, nullable=False)
 
     # Relation bidirectionnelle many-to-many vers le modèle User via la
     # table d'association ``user_favorites``. L'attribut ``back_populates``
