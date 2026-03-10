@@ -18,8 +18,8 @@
         app:srcCompat="@drawable/snap_ta_plaque" />
 
     <LinearLayout
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_width="360dp"
+        android:layout_height="520dp"
         android:layout_marginStart="24dp"
         android:layout_marginTop="36dp"
         android:layout_marginEnd="24dp"
@@ -66,25 +66,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="12dp"
-            android:hint="@string/first_name"
-            app:boxBackgroundColor="#F2F2F2"
-            app:boxCornerRadiusBottomEnd="10dp"
-            app:boxCornerRadiusBottomStart="10dp"
-            app:boxCornerRadiusTopEnd="10dp"
-            app:boxCornerRadiusTopStart="10dp">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/inputPrenom"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:inputType="textPersonName" />
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <com.google.android.material.textfield.TextInputLayout
-            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="12dp"
             android:hint="@string/name"
             app:boxBackgroundColor="#F2F2F2"
             app:boxCornerRadiusBottomEnd="10dp"
@@ -93,7 +74,7 @@
             app:boxCornerRadiusTopStart="10dp">
 
             <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/inputNom"
+                android:id="@+id/inputFullName"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="textPersonName" />
@@ -136,7 +117,16 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="textPassword" />
+
         </com.google.android.material.textfield.TextInputLayout>
+
+        <Switch
+            android:id="@+id/buttonRGPD"
+            android:layout_width="322dp"
+            android:layout_height="83dp"
+            android:layout_weight="1"
+            android:text="@string/accept_privacy_policy" />
+
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -147,9 +137,9 @@
                 android:id="@+id/buttonInscription"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
                 android:layout_weight="1"
                 android:text="@string/sign_up"
-                android:layout_marginEnd="8dp"
                 android:textColor="@android:color/white"
                 android:textSize="12sp"
                 app:backgroundTint="#3F51B5"

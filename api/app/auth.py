@@ -42,7 +42,7 @@ from passlib.context import CryptContext
 from app.database import get_db
 
 
-from app import crud, models, schemas, database
+from app import crud, schemas, database
 from app.config import settings
 
 # ================== CONFIG ==================

@@ -38,7 +38,7 @@ from app.schemas import UserCreate
 from sqlalchemy.orm import Session
 
 
-from app import models
+from app import schemas
 from app.security import get_password_hash
 
 from datetime import datetime
@@ -409,3 +409,23 @@ def get_vehicle_by_license_plate(db: Session, license_plate: str) :
         ou ``None`` si aucun véhicule ne correspond.
     """
     return db.query(Vehicle).filter(Vehicle.license_plate == license_plate).first()
+
+def create_vehicle(db: Session, vehicle_data: dict) -> Vehicle:
+    """
+    Créer un nouvel enregistrement de véhicule en base de données.
+
+    Args:
+        db (Session): Session SQLAlchemy active.
+        vehicle_data (dict): Dictionnaire contenant les données du véhicule
+            à créer. Doit inclure au minimum la clé ``license_plate``.
+
+    Returns:
+        Vehicle: Instance ORM du véhicule nouvellement créé, avec tous les
+            champs rafraîchis depuis la base de données (y compris ``id``).
+    """
+    db_vehicle = Vehicle(**vehicle_data)
+    db.add(db_vehicle)
+    db.commit()
+    db.refresh(db_vehicle)
+    print(f"Véhicule créé en base de données : {db_vehicle}")
+    return db_vehicle

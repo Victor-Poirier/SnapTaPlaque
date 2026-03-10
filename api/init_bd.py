@@ -50,19 +50,6 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Sample vehicles for testing purposes
-SAMPLE_VEHICLES = [
-    {
-        "license_plate": "AB-123-CD",
-        "brand": "Peugeot",
-        "model": "308",
-        "year": 2021,
-        "color": "Gris",
-        "engine": "1.5 BlueHDi 130",
-        "trim": "Allure",
-    }
-]
-
 def init_database():
     """Initialise the database schema and seed default user accounts and vehicles.
 
@@ -131,27 +118,6 @@ def init_database():
             db.add(test_user)
             db.commit()
             logger.info("✅ Utilisateur de test créé (username: testuser, password: test123)")
-
-        # ----------------------------------------------------------------------
-        # Seed: Sample vehicles
-        # ----------------------------------------------------------------------
-        vehicles_added = 0
-        for vehicle_data in SAMPLE_VEHICLES:
-            existing = (
-                db.query(Vehicle)
-                .filter(Vehicle.license_plate == vehicle_data["license_plate"])
-                .first()
-            )
-            if not existing:
-                vehicle = Vehicle(**vehicle_data)
-                db.add(vehicle)
-                vehicles_added += 1
-
-        if vehicles_added > 0:
-            db.commit()
-            logger.info(f"✅ {vehicles_added} véhicule(s) de test ajouté(s)")
-        else:
-            logger.info("✅ Tous les véhicules de test existent déjà")
 
         logger.info("✅ Base de données initialisée avec succès")
 

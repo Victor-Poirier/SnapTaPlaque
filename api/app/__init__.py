@@ -16,8 +16,6 @@ Structure du package :
       événements de cycle de vie (démarrage / arrêt).
     - ``database.py``      — Configuration de la connexion à la base
       de données SQLAlchemy et création des tables.
-    - ``models.py``        — Définition des modèles ORM SQLAlchemy
-      (tables ``users``, ``predictions``).
     - ``schemas.py``       — Schémas Pydantic de validation des
       requêtes et de sérialisation des réponses.
     - ``crud.py``          — Fonctions CRUD pour les opérations sur
