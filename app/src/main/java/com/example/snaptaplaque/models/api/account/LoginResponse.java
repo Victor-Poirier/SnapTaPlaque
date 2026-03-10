@@ -1,4 +1,4 @@
-package com.example.snaptaplaque.models.api;
+package com.example.snaptaplaque.models.api.account;
 
 /**
  * Classe représentant la réponse de l'API lors de la connexion d'un utilisateur.

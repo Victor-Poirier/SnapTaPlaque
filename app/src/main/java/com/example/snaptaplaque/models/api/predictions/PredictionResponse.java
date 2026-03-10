@@ -1,4 +1,4 @@
-package com.example.snaptaplaque.models.api;
+package com.example.snaptaplaque.models.api.predictions;
 
 
 
@@ -12,9 +12,9 @@ public class PredictionResponse {
     /**
      * Liste des résultats de détection retournés par l'API.
      */
-    private List<DetectionResult> result;
+    private List<PredictionDetectionResult> result;
 
-    public List<DetectionResult> getResults() {
+    public List<PredictionDetectionResult> getResults() {
         return result;
     }
 }

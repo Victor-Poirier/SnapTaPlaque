@@ -7,8 +7,8 @@ import android.widget.Button;
 import android.widget.EditText;
 
 import com.example.snaptaplaque.R;
-import com.example.snaptaplaque.models.api.RegisterRequest;
-import com.example.snaptaplaque.models.api.RegisterResponse;
+import com.example.snaptaplaque.models.api.account.RegisterRequest;
+import com.example.snaptaplaque.models.api.account.RegisterResponse;
 import com.example.snaptaplaque.network.ApiService;
 import com.example.snaptaplaque.utils.FeedbackManager;
 import retrofit2.Call;

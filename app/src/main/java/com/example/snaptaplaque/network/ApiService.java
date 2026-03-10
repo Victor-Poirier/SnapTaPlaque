@@ -1,6 +1,26 @@
 package com.example.snaptaplaque.network;
 
-import com.example.snaptaplaque.models.api.*;
+import com.example.snaptaplaque.models.api.account.DataExportResponse;
+import com.example.snaptaplaque.models.api.account.DeleteAccountResponse;
+import com.example.snaptaplaque.models.api.account.LoginResponse;
+import com.example.snaptaplaque.models.api.account.MeResponse;
+import com.example.snaptaplaque.models.api.account.RegisterRequest;
+import com.example.snaptaplaque.models.api.account.RegisterResponse;
+import com.example.snaptaplaque.models.api.favorites.FavoriteAllResponse;
+import com.example.snaptaplaque.models.api.favorites.FavoritesAddRequest;
+import com.example.snaptaplaque.models.api.favorites.FavoritesAddResponse;
+import com.example.snaptaplaque.models.api.favorites.FavoritesRemoveRequest;
+import com.example.snaptaplaque.models.api.favorites.FavoritesRemoveResponse;
+import com.example.snaptaplaque.models.api.model.ModelInfoResponse;
+import com.example.snaptaplaque.models.api.predictions.HistoryResponse;
+import com.example.snaptaplaque.models.api.predictions.PredictionRequest;
+import com.example.snaptaplaque.models.api.predictions.PredictionResponse;
+import com.example.snaptaplaque.models.api.predictions.StatsResponse;
+import com.example.snaptaplaque.models.api.root.ApiVersionResponse;
+import com.example.snaptaplaque.models.api.root.RgpdResponse;
+import com.example.snaptaplaque.models.api.root.TestApiResponse;
+import com.example.snaptaplaque.models.api.vehicles.InfoRequest;
+import com.example.snaptaplaque.models.api.vehicles.InfoResponse;
 
 import retrofit2.Call;
 import retrofit2.http.*;
@@ -9,6 +29,10 @@ import retrofit2.http.*;
  * Interface définissant les endpoints de l'API REST utilisée par l'application SnapTaPlaque.
  */
 public interface ApiService {
+
+    /********************/
+    /* ACCOUNT ENDPOINT */
+    /********************/
 
     /**
      * Endpoint pour l'authentification d'un utilisateur.
@@ -35,21 +59,83 @@ public interface ApiService {
             @Body RegisterRequest registerRequest
     );
 
+    @GET("v1/account/me")
+    Call<MeResponse> me();
+
+    @GET("v1/account/data-export")
+    Call<DataExportResponse> data_export();
+
+    @DELETE("v1/account/delete-account")
+    Call<DeleteAccountResponse> delete_account();
+
+
+    /************************/
+    /* PREDICTIONS ENDPOINT */
+    /************************/
+
     /**
      * Endpoint pour la prédiction de la plaque d'immatriculation à partir d'une image.
      *
      */
-    @POST("v1/prediction")
+    @POST("v1/predictions/predict")
     Call<PredictionResponse> predict(
             @Body PredictionRequest predictionRequest
     );
 
+    @GET("v1/predictions/history")
+    Call<HistoryResponse> history();
+
+    @GET("v1/predictions/stats")
+    Call<StatsResponse> stats();
+
+    /*********************/
+    /* VEHICLES ENDPOINT */
+    /*********************/
+    @GET("v1/vehicles/info")
+    Call<InfoResponse> info(
+      @Body InfoRequest infoRequest
+    );
+
+    /*******************************/
+    /* GLOBAL INFORMATION ENDPOINT */
+    /*******************************/
     /**
      * Test si l'API est accessible en effectuant une requête GET sur un endpoint de test.
      */
     @GET("health")
-    Call<TestApiResponse> testApi(
+    Call<TestApiResponse> health();
 
+    /**
+     * Faire appel à l'endpoint privacy-policy qui renvoie comment l'api utilise
+     * les données fournis et quelles sont les droits de l'utilisateur
+     * (suppression, data-export, ...)
+     */
+    @GET("privacy-policy")
+    Call<RgpdResponse> privacy_policy();
+
+    @GET("versions")
+    Call<ApiVersionResponse> versions();
+
+    /******************/
+    /* MODEL ENDPOINT */
+    /******************/
+    @GET("v1/model/info")
+    Call<ModelInfoResponse> info();
+
+    /**********************/
+    /* FAVORITES ENDPOINT */
+    /**********************/
+    @POST("v1/favorites/add")
+    Call<FavoritesAddResponse> add(
+            @Body FavoritesAddRequest favoritesAddRequest
     );
+
+    @DELETE("v1/favorites/remove")
+    Call<FavoritesRemoveResponse> remove(
+        @Body FavoritesRemoveRequest favoritesRemoveRequest
+    );
+
+    @GET("v1/favorites/all")
+    Call<FavoriteAllResponse> all();
 
 }

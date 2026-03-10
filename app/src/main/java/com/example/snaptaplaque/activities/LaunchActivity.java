@@ -9,11 +9,9 @@ import android.util.Log;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.AppLaunchChecker;
 
 import com.example.snaptaplaque.R;
-import com.example.snaptaplaque.models.api.LoginResponse;
-import com.example.snaptaplaque.models.api.TestApiResponse;
+import com.example.snaptaplaque.models.api.root.TestApiResponse;
 import com.example.snaptaplaque.network.ApiClient;
 import com.example.snaptaplaque.network.ApiService;
 import com.example.snaptaplaque.utils.SessionManager;
@@ -21,8 +19,6 @@ import com.example.snaptaplaque.utils.SessionManager;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-
-import java.util.Timer;
 
 /**
  * Activité de lancement qui affiche un écran de chargement et teste la connexion à l'API.
@@ -74,7 +70,7 @@ public class LaunchActivity extends AppCompatActivity {
      * Si la connexion échoue, affiche un message d'erreur et propose à l'utilisateur de réessayer ou de quitter.
      */
     private void testApiConnection() {
-        Call<TestApiResponse> call = apiService.testApi();
+        Call<TestApiResponse> call = apiService.health();
 
         Handler timeoutHandler = new Handler(Looper.getMainLooper());
         Runnable timeoutRunnable = () -> {

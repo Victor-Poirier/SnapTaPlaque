@@ -1,9 +1,9 @@
-package com.example.snaptaplaque.models.api;
+package com.example.snaptaplaque.models.api.predictions;
 
 /**
  * Représente un résultat de détection retourné par l'API de prédiction, contenant le numéro de plaque détecté et la confiance associée.
  */
-public class DetectionResult {
+public class PredictionDetectionResult {
     private String plaque_number;
     private double confidence;
 

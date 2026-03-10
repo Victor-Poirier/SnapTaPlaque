@@ -1,4 +1,4 @@
-package com.example.snaptaplaque.models.api;
+package com.example.snaptaplaque.models.api.root;
 
 /**
  * Schéma de retour de l'API de test de santé du backend.
@@ -6,7 +6,7 @@ package com.example.snaptaplaque.models.api;
     {
         "status": "healthy",
         "version": "1.0"
-        }
+    }
  */
 public class TestApiResponse {
 

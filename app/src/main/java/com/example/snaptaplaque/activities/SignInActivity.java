@@ -9,7 +9,7 @@ import android.widget.Button;
 import android.widget.EditText;
 
 import com.example.snaptaplaque.R;
-import com.example.snaptaplaque.models.api.LoginResponse;
+import com.example.snaptaplaque.models.api.account.LoginResponse;
 import com.example.snaptaplaque.network.ApiClient;
 import com.example.snaptaplaque.network.ApiService;
 import com.example.snaptaplaque.utils.FeedbackManager;
