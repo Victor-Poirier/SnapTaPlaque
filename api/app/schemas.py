@@ -380,8 +380,7 @@ class VehicleInfoResponse(BaseModel):
         à partir d'un objet ``Vehicle`` (anciennement ``orm_mode``).
     """
 
-    licence_plate: str
-    success: bool
+    license_plate: str
     brand: str
     model: str
     info: str
