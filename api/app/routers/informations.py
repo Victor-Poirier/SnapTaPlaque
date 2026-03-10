@@ -97,7 +97,7 @@ async def list_versions():
 
     Returns:
         dict: Dictionnaire contenant les clés suivantes :
-            - ``versions`` (list[dict]) : Liste de dictionnaires, chacun
+            - ``versions`` (dict) : Liste de dictionnaires, chacun
               décrivant une version avec les clés :
                 - ``version`` (str) : Identifiant de la version (ex. "v1").
                 - ``status`` (str) : Statut de la version parmi
@@ -108,13 +108,11 @@ async def list_versions():
               version stable, lue depuis settings.API_VERSION.
     """
     return {
-        "versions": [
-            {
+        "versions": {
                 "version": "v1",
                 "status": "stable",
                 "pipeline": "YOLOv8 + EasyOCR",
-            }
-        ],
+            },
         "latest": settings.API_VERSION,
     }
 

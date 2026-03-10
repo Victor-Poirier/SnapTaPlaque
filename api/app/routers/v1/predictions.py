@@ -32,7 +32,7 @@ from app.database import get_db, User
 from app.auth import get_current_active_user
 from app.crud import create_prediction, get_user_predictions, get_user_prediction_stats
 from app.predictor import plate_predictor
-from app.schemas import PlateHistory, PlateStats
+from app.schemas import PlateHistory, PlateStats, PredictionHistory
 from app.limiter import limiter
 
 # Instance du routeur FastAPI pour les endpoints de prédiction.
@@ -120,7 +120,7 @@ async def predict_plate(
 # ================== HISTORY ==================
 
 
-@router.get("/history", response_model=List[PlateHistory])
+@router.get("/history", response_model=PredictionHistory)
 async def get_prediction_history(
     skip: int = 0,
     limit: int = 100,
@@ -153,7 +153,7 @@ async def get_prediction_history(
             la dépendance ``get_db``.
 
     Returns:
-        list[PlateHistory]: Liste des entrées d'historique contenant
+        dic[list[PlateHistory]]: Liste des entrées d'historique contenant
             chacune ``id``, ``plate_text``, ``confidence`` et
             ``created_at``.
     """
@@ -175,7 +175,8 @@ async def get_prediction_history(
                 confidence=None,
                 created_at=pred.created_at
             ))
-    return history
+
+    return {"history": history}
 
 # ================== STATS ==================
 
