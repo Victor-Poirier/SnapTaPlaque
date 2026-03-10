@@ -255,6 +255,12 @@ class PlateHistory(BaseModel):
         from_attributes = True
 
 
+class PredictionHistory(BaseModel):
+    history: List[PlateHistory] 
+
+    class Config:
+        from_attributes = True
+
 # ---------- USER ----------
 
 class UserCreate(BaseModel):
