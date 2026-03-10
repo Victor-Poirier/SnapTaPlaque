@@ -1,7 +1,6 @@
-package com.example.snaptaplaque.models.api;
+package com.example.snaptaplaque.models.api.predictions;
 
 import android.net.Uri;
-import android.widget.ImageView;
 
 /**
  * Classe représentant une requête de prédiction pour l'API de reconnaissance de plaques d'immatriculation.

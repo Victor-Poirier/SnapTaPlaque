@@ -1,4 +1,4 @@
-package com.example.snaptaplaque.models.api;
+package com.example.snaptaplaque.models.api.account;
 
 /**
  * Représente la réponse d'une requête d'inscription d'utilisateur.
