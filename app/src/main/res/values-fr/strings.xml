@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">SnapTaPlaque</string>
+    <string name="service_unavailable">Service indisponible</string>
+    <string name="connection_message">Impossible de se connecter au serveur. Vérifiez votre connexion et réessayez.</string>
+    <string name="try_again">Réessayer</string>
+    <string name="exit">Quitter</string>
     <string name="title_history">Historique des recherches</string>
     <string name="title_search">Rechercher</string>
     <string name="number_plate">Plaque d\'immatriculation</string>
