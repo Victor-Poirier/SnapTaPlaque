@@ -13,6 +13,7 @@ import com.example.snaptaplaque.models.api.account.RegisterRequest;
 import com.example.snaptaplaque.models.api.account.RegisterResponse;
 import com.example.snaptaplaque.network.ApiClient;
 import com.example.snaptaplaque.network.ApiService;
+import com.example.snaptaplaque.network.apicall.response.ApiResponseAccount;
 import com.example.snaptaplaque.utils.FeedbackManager;
 import com.example.snaptaplaque.utils.SessionManager;
 
@@ -27,7 +28,6 @@ import retrofit2.Response;
  * Elle encapsule les méthodes pour l'authentification, l'inscription, la récupération des informations du compte, la suppression du compte, et l'exportation des données personnelles.
  */
 public class AccountCall {
-
     private static ApiService apiService = ApiClient.getRetrofit().create(ApiService.class);
 
 
@@ -50,7 +50,6 @@ public class AccountCall {
                         } else {
                             FeedbackManager.showError(activity, "Registration failed: " + response.message(), null);
                         }
-                        return 0;
                     }
 
                     @Override
@@ -97,5 +96,9 @@ public class AccountCall {
                     }
                 });
     }
+
+    public static void exportData(ApiCallback apiCallback ,ApiResponseAccount apiResponseAccount){}
+    public static void me (ApiCallback apiCallback ,ApiResponseAccount apiResponseAccount){}
+    public static void deleteAccount(ApiCallback apiCallback, ApiResponseAccount apiResponseAccount){}
 
 }

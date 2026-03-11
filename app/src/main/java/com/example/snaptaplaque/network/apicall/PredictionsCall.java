@@ -4,6 +4,7 @@ import com.example.snaptaplaque.models.api.predictions.HistoryResponse;
 import com.example.snaptaplaque.models.api.predictions.PredictionRequest;
 import com.example.snaptaplaque.models.api.predictions.PredictionResponse;
 import com.example.snaptaplaque.models.api.predictions.StatsResponse;
+import com.example.snaptaplaque.network.ApiClient;
 import com.example.snaptaplaque.network.ApiService;
 import com.example.snaptaplaque.network.apicall.response.ApiPredictionsResponse;
 
@@ -12,9 +13,10 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 public class PredictionsCall {
+    private static ApiService apiService = ApiClient.getRetrofit().create(ApiService.class);
 
     // Endpoint : /v1/predictions/history
-    public static void getHistory(ApiService apiService, ApiCallback apiCallback, ApiPredictionsResponse apiPredictionsResponse){
+    public static void getHistory(ApiCallback apiCallback, ApiPredictionsResponse apiPredictionsResponse){
         apiService.history()
                 .enqueue(new Callback<HistoryResponse>() {
                     @Override
@@ -36,7 +38,7 @@ public class PredictionsCall {
     }
 
     // Endpoint : /v1/predictions/stats
-    public static void userStat(ApiService apiService, ApiCallback apiCallback, ApiPredictionsResponse apiPredictionsResponse){
+    public static void userStat(ApiCallback apiCallback, ApiPredictionsResponse apiPredictionsResponse){
         apiService.stats()
                 .enqueue(new Callback<StatsResponse>() {
                     @Override
@@ -58,7 +60,7 @@ public class PredictionsCall {
     }
 
     // Endpoint : /v1/predictions/predict
-    public void picturePredict(ApiService apiService, PredictionRequest predictionRequest, ApiCallback apiCallback, ApiPredictionsResponse apiPredictionsResponse){
+    public void picturePredict(PredictionRequest predictionRequest, ApiCallback apiCallback, ApiPredictionsResponse apiPredictionsResponse){
         apiService.predict(predictionRequest)
                 .enqueue(new Callback<PredictionResponse>() {
                     @Override

@@ -10,6 +10,8 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 
 import com.example.snaptaplaque.R;
+import com.example.snaptaplaque.models.api.account.DataExportResponse;
+import com.example.snaptaplaque.models.api.account.DeleteAccountResponse;
 import com.example.snaptaplaque.models.api.model.ModelInfoResponse;
 import com.example.snaptaplaque.models.api.root.ApiVersionResponse;
 import com.example.snaptaplaque.models.api.root.RgpdResponse;
@@ -20,6 +22,7 @@ import com.example.snaptaplaque.network.apicall.ApiCallback;
 import com.example.snaptaplaque.network.apicall.ModelCall;
 import com.example.snaptaplaque.network.apicall.RootCall;
 import com.example.snaptaplaque.network.apicall.response.ApiModelResponse;
+import com.example.snaptaplaque.network.apicall.response.ApiResponseAccount;
 import com.example.snaptaplaque.network.apicall.response.ApiRootResponse;
 
 public class ProfileAdditionalInformationFragment extends DialogFragment {
@@ -41,15 +44,55 @@ public class ProfileAdditionalInformationFragment extends DialogFragment {
 
 
     public void exportUserData(){
-        AccountCall.exportData();
+        AccountCall.exportData(new ApiCallback() {
+            @Override
+            public void onResponseSuccess(String message) {
+
+            }
+
+            @Override
+            public void onResponseFailure(String message) {
+
+            }
+
+            @Override
+            public void onCallFailure(Throwable t) {
+
+            }
+        }, new ApiResponseAccount() {
+            @Override
+            public void dataExportResponse(DataExportResponse dataExportResponse) {
+
+            }
+        });
     }
 
     public void deleteAccount(){
-        AccountCall.deleteAccount();
+        AccountCall.deleteAccount(new ApiCallback() {
+            @Override
+            public void onResponseSuccess(String message) {
+
+            }
+
+            @Override
+            public void onResponseFailure(String message) {
+
+            }
+
+            @Override
+            public void onCallFailure(Throwable t) {
+
+            }
+        }, new ApiResponseAccount() {
+            @Override
+            public void deleteAccount(DeleteAccountResponse deleteAccountResponse) {
+
+            }
+        });
     }
 
     public void apiVersion(){
-        RootCall.apiVersion(apiService, new ApiCallback() {
+        RootCall.apiVersion(new ApiCallback() {
             @Override
             public void onResponseSuccess(String message) {
 
@@ -74,7 +117,7 @@ public class ProfileAdditionalInformationFragment extends DialogFragment {
     }
 
     public void privacyPolicy(){
-        RootCall.privacyPolicy(apiService, new ApiCallback() {
+        RootCall.privacyPolicy(new ApiCallback() {
             @Override
             public void onResponseSuccess(String message) {
 
@@ -98,7 +141,7 @@ public class ProfileAdditionalInformationFragment extends DialogFragment {
     }
 
     public void modelInfo(){
-        ModelCall.modelInfo(apiService, new ApiCallback() {
+        ModelCall.modelInfo(new ApiCallback() {
             @Override
             public void onResponseSuccess(String message) {
 

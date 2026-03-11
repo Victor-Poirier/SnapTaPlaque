@@ -2,6 +2,7 @@ package com.example.snaptaplaque.network.apicall;
 
 import com.example.snaptaplaque.models.api.root.ApiVersionResponse;
 import com.example.snaptaplaque.models.api.root.RgpdResponse;
+import com.example.snaptaplaque.network.ApiClient;
 import com.example.snaptaplaque.network.ApiService;
 import com.example.snaptaplaque.network.apicall.response.ApiRootResponse;
 
@@ -10,8 +11,8 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 public class RootCall {
-
-    public static void apiVersion(ApiService apiService, ApiCallback apiCallback, ApiRootResponse apiRootResponse){
+    private static ApiService apiService = ApiClient.getRetrofit().create(ApiService.class);
+    public static void apiVersion(ApiCallback apiCallback, ApiRootResponse apiRootResponse){
         apiService.versions()
                 .enqueue(new Callback<ApiVersionResponse>() {
                     @Override
@@ -32,7 +33,7 @@ public class RootCall {
                 });
     }
 
-    public static void privacyPolicy(ApiService apiService, ApiCallback apiCallback, ApiRootResponse apiRootResponse){
+    public static void privacyPolicy(ApiCallback apiCallback, ApiRootResponse apiRootResponse){
         apiService.privacy_policy()
                 .enqueue(new Callback<RgpdResponse>() {
                     @Override

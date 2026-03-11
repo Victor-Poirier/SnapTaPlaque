@@ -5,6 +5,7 @@ import com.example.snaptaplaque.models.api.favorites.FavoritesAddRequest;
 import com.example.snaptaplaque.models.api.favorites.FavoritesAddResponse;
 import com.example.snaptaplaque.models.api.favorites.FavoritesRemoveRequest;
 import com.example.snaptaplaque.models.api.favorites.FavoritesRemoveResponse;
+import com.example.snaptaplaque.network.ApiClient;
 import com.example.snaptaplaque.network.ApiService;
 import com.example.snaptaplaque.network.apicall.response.ApiResponseFavorites;
 
@@ -13,8 +14,9 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 public class FavoritesCall {
+    private static ApiService apiService = ApiClient.getRetrofit().create(ApiService.class);
     // Endpoint : /v1/favorites/add
-    public static void addFavorite(ApiService apiService, FavoritesAddRequest favoritesAddRequest, ApiCallback apiCallback, ApiResponseFavorites apiResponseFavorites){
+    public static void addFavorite(FavoritesAddRequest favoritesAddRequest, ApiCallback apiCallback, ApiResponseFavorites apiResponseFavorites){
         apiService.add(favoritesAddRequest)
                 .enqueue(new Callback<FavoritesAddResponse>() {
                     @Override
@@ -36,7 +38,7 @@ public class FavoritesCall {
     }
 
     // Endpoint : /v1/favorites/remove
-    public static void removeFavorite(ApiService apiService, FavoritesRemoveRequest favoritesRemoveRequest, ApiCallback apiCallback, ApiResponseFavorites apiResponseFavorites){
+    public static void removeFavorite(FavoritesRemoveRequest favoritesRemoveRequest, ApiCallback apiCallback, ApiResponseFavorites apiResponseFavorites){
 
         apiService.remove(favoritesRemoveRequest)
                 .enqueue(new Callback<FavoritesRemoveResponse>() {
@@ -58,7 +60,7 @@ public class FavoritesCall {
                 });
     }
 
-    public static void allFavorites(ApiService apiService, ApiCallback apiCallback, ApiResponseFavorites apiResponseFavorites){
+    public static void allFavorites(ApiCallback apiCallback, ApiResponseFavorites apiResponseFavorites){
         apiService.all()
                 .enqueue(new Callback<FavoriteAllResponse>() {
                     @Override

@@ -19,6 +19,11 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.example.snaptaplaque.R;
 import com.example.snaptaplaque.models.Photo;
+import com.example.snaptaplaque.models.api.vehicles.InfoRequest;
+import com.example.snaptaplaque.models.api.vehicles.InfoResponse;
+import com.example.snaptaplaque.network.apicall.ApiCallback;
+import com.example.snaptaplaque.network.apicall.VehiclesCall;
+import com.example.snaptaplaque.network.apicall.response.ApiVehiclesResponse;
 import com.example.snaptaplaque.viewmodels.SharedViewModel;
 
 public class PictureFragment extends Fragment {
@@ -107,7 +112,27 @@ public class PictureFragment extends Fragment {
         btnSearch.setOnClickListener(v -> {
             String plate = showPlate.getText().toString().trim();
             if (!plate.isEmpty()) {
-                VehiclesCall.getInfo(requireActivity(), plate, sharedViewModel);
+                VehiclesCall.getVehicleInfo(new InfoRequest(plate), new ApiCallback() {
+                    @Override
+                    public void onResponseSuccess(String message) {
+
+                    }
+
+                    @Override
+                    public void onResponseFailure(String message) {
+
+                    }
+
+                    @Override
+                    public void onCallFailure(Throwable t) {
+
+                    }
+                }, new ApiVehiclesResponse() {
+                    @Override
+                    public void infoResponse(InfoResponse infoResponse) {
+
+                    }
+                });
             } else {
                 Toast.makeText(getContext(), "Aucune plaque détectée", Toast.LENGTH_SHORT).show();
             }

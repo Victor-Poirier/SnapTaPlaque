@@ -16,6 +16,12 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.snaptaplaque.R;
+import com.example.snaptaplaque.models.api.vehicles.InfoRequest;
+import com.example.snaptaplaque.models.api.vehicles.InfoResponse;
+import com.example.snaptaplaque.network.ApiService;
+import com.example.snaptaplaque.network.apicall.ApiCallback;
+import com.example.snaptaplaque.network.apicall.VehiclesCall;
+import com.example.snaptaplaque.network.apicall.response.ApiVehiclesResponse;
 import com.example.snaptaplaque.viewmodels.SharedViewModel;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
@@ -31,9 +37,12 @@ public class VocalFragment extends Fragment {
     private Button btnSearch;
     private SharedViewModel sharedViewModel;
 
+    private ApiService apiService;
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+
         View view = inflater.inflate(R.layout.fragment_vocal, container, false);
 
         sharedViewModel = new ViewModelProvider(requireActivity()).get(SharedViewModel.class);
@@ -108,6 +117,26 @@ public class VocalFragment extends Fragment {
             return;
         }
 
-        VehiclesCall.getInfo(requireActivity(), plate, sharedViewModel);
+        VehiclesCall.getVehicleInfo(new InfoRequest(plate), new ApiCallback() {
+            @Override
+            public void onResponseSuccess(String message) {
+
+            }
+
+            @Override
+            public void onResponseFailure(String message) {
+
+            }
+
+            @Override
+            public void onCallFailure(Throwable t) {
+
+            }
+        }, new ApiVehiclesResponse() {
+            @Override
+            public void infoResponse(InfoResponse infoResponse) {
+
+            }
+        });
     }
 }

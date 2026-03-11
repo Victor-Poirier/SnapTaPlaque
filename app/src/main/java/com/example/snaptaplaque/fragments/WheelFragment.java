@@ -11,6 +11,11 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.example.snaptaplaque.models.api.vehicles.InfoRequest;
+import com.example.snaptaplaque.models.api.vehicles.InfoResponse;
+import com.example.snaptaplaque.network.apicall.ApiCallback;
+import com.example.snaptaplaque.network.apicall.VehiclesCall;
+import com.example.snaptaplaque.network.apicall.response.ApiVehiclesResponse;
 import com.example.snaptaplaque.viewmodels.SharedViewModel;
 
 public class WheelFragment extends Fragment {
@@ -38,6 +43,26 @@ public class WheelFragment extends Fragment {
             return;
         }
 
-        VehiclesCall.getInfo(requireActivity(), plate, sharedViewModel);
+        VehiclesCall.getVehicleInfo(new InfoRequest(plate), new ApiCallback() {
+            @Override
+            public void onResponseSuccess(String message) {
+
+            }
+
+            @Override
+            public void onResponseFailure(String message) {
+
+            }
+
+            @Override
+            public void onCallFailure(Throwable t) {
+
+            }
+        }, new ApiVehiclesResponse() {
+            @Override
+            public void infoResponse(InfoResponse infoResponse) {
+
+            }
+        });
     }
 }

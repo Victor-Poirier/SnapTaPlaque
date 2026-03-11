@@ -192,7 +192,7 @@ public class ProfileFragment extends Fragment {
 
     // Endpoint : /v1/favorites/remove
     public void removeFavorite(){
-        FavoritesCall.removeFavorite(apiService, new FavoritesRemoveRequest(""), new ApiCallback() {
+        FavoritesCall.removeFavorite(new FavoritesRemoveRequest(""), new ApiCallback() {
             @Override
             public void onResponseSuccess(String message) {
                 // Mettre à jour l'UI : afficher succès
