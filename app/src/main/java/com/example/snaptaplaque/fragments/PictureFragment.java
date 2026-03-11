@@ -15,9 +15,11 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.example.snaptaplaque.R;
 import com.example.snaptaplaque.models.Photo;
+import com.example.snaptaplaque.viewmodels.SharedViewModel;
 
 public class PictureFragment extends Fragment {
 
@@ -26,6 +28,7 @@ public class PictureFragment extends Fragment {
     private TextView showPlate;
     private Button btnSearch;
     private Photo photo;
+    private SharedViewModel sharedViewModel;
     private ActivityResultLauncher<String> requestPermissionLauncher;
     private ActivityResultLauncher<Uri> cameraLauncher;
     private ActivityResultLauncher<String> galleryLauncher;
@@ -93,13 +96,22 @@ public class PictureFragment extends Fragment {
         // Assure-toi d'avoir un layout nommé fragment_picture.xml avec les bons IDs
         View view = inflater.inflate(R.layout.fragment_picture, container, false);
 
+        sharedViewModel = new ViewModelProvider(requireActivity()).get(SharedViewModel.class);
+
         ivLicencePlate = view.findViewById(R.id.ivLicencePlate);
         btnPicture = view.findViewById(R.id.btnPicture);
         showPlate = view.findViewById(R.id.showPlate);
         btnSearch = view.findViewById(R.id.btnSearch);
 
-
         btnPicture.setOnClickListener(v -> photo.showChoice());
+        btnSearch.setOnClickListener(v -> {
+            String plate = showPlate.getText().toString().trim();
+            if (!plate.isEmpty()) {
+                VehiclesCall.getInfo(requireActivity(), plate, sharedViewModel);
+            } else {
+                Toast.makeText(getContext(), "Aucune plaque détectée", Toast.LENGTH_SHORT).show();
+            }
+        });
 
         return view;
     }

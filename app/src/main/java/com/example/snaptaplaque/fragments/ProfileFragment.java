@@ -159,7 +159,7 @@ public class ProfileFragment extends Fragment {
         adapter = new VehicleAdapter(
                 new ArrayList<>(),
                 vehicle -> {
-                    VehicleDetailDialogFragment dialog = VehicleDetailDialogFragment.newInstance(vehicle.getDetails());
+                    VehicleDetailDialogFragment dialog = VehicleDetailDialogFragment.createFrag(vehicle.getImmatriculation());
                     dialog.show(getChildFragmentManager(), "detail");
                 },
 

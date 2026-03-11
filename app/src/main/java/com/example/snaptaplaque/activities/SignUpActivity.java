@@ -8,20 +8,14 @@ import android.widget.EditText;
 
 import com.example.snaptaplaque.R;
 import com.example.snaptaplaque.models.api.account.RegisterRequest;
-import com.example.snaptaplaque.models.api.account.RegisterResponse;
-import com.example.snaptaplaque.network.ApiService;
+import com.example.snaptaplaque.network.apicall.AccountCall;
 import com.example.snaptaplaque.utils.FeedbackManager;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 public class SignUpActivity extends Activity {
 
     private EditText username, fullName, mail, password;
 
-    private Button rgpd, signIn, signUp;
-
-    private ApiService apiService;
+    private Button rgpd;
 
     @Override
     protected void onCreate(Bundle savedInstanceState){
@@ -33,11 +27,11 @@ public class SignUpActivity extends Activity {
         mail = findViewById(R.id.inputMail);
         password = findViewById(R.id.inputMotDePasse);
         rgpd = findViewById(R.id.buttonRGPD);
-        signIn = findViewById(R.id.buttonConnexion);
-        signUp = findViewById(R.id.buttonInscription);
+        Button signIn = findViewById(R.id.buttonConnexion);
+        Button signUp = findViewById(R.id.buttonInscription);
 
         signUp.setOnClickListener(v -> register());
-        signIn.setOnClickListener( v -> {
+        signIn.setOnClickListener(v -> {
             Intent intent = new Intent(this, SignInActivity.class);
             startActivity(intent);
         });
@@ -52,32 +46,13 @@ public class SignUpActivity extends Activity {
         Boolean admin = Boolean.FALSE;
         Boolean _consent = rgpd.isActivated();
 
-        if (_identifiant.isEmpty() || _email.isEmpty() || _motDePasse.isEmpty() || _identifiant.isEmpty()) {
+        if (_identifiant.isEmpty() || _email.isEmpty() || _motDePasse.isEmpty() || _fullName.isEmpty()) {
             FeedbackManager.showError(this, "All fields are required", null);
             return;
         }
 
         RegisterRequest registerRequest = new RegisterRequest(_identifiant, _email, _motDePasse, _fullName, admin, _consent);
 
-        apiService.register(registerRequest)
-                .enqueue(new Callback<RegisterResponse>() {
-                    @Override public void onResponse(Call<RegisterResponse> call, Response<RegisterResponse> response) {
-                        if (response.isSuccessful() && response.body() != null) {
-                            FeedbackManager.showSuccess(SignUpActivity.this, "Registration successful");
-                            Intent intent = new Intent(SignUpActivity.this, SignInActivity.class);
-                            startActivity(intent);
-                            finish();
-                        }
-                        else {
-                            FeedbackManager.showError(SignUpActivity.this, "Registration failed: " + response.message(), null);
-                        }
-                    }
-
-                    @Override public void onFailure(Call<RegisterResponse> call, Throwable t) {
-                        FeedbackManager.showError(SignUpActivity.this, "Network error: " + t.getMessage(), null);
-                    }
-                });
-
-
+        AccountCall.register(this, registerRequest);
     }
 }

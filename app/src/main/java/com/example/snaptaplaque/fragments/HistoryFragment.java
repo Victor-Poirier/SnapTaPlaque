@@ -96,8 +96,8 @@ public class HistoryFragment extends Fragment {
         adapter = new VehicleAdapter(
                 new ArrayList<>(),
                 vehicle -> {
-                    VehicleDetailDialogFragment dialog = VehicleDetailDialogFragment.newInstance(vehicle.getDetails());
-                    dialog.show(getChildFragmentManager(), "detail");
+                    VehicleDetailDialogFragment dialog = VehicleDetailDialogFragment.createFrag(vehicle.getImmatriculation());
+                    dialog.show(getChildFragmentManager(), "vehicle_detail");
                 },
 
                 vehicle -> sharedViewModel.toggleFavorite(vehicle)

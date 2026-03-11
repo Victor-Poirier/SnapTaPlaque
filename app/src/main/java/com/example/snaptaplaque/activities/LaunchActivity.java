@@ -14,6 +14,7 @@ import com.example.snaptaplaque.R;
 import com.example.snaptaplaque.models.api.root.TestApiResponse;
 import com.example.snaptaplaque.network.ApiClient;
 import com.example.snaptaplaque.network.ApiService;
+import com.example.snaptaplaque.network.apicall.AccountCall;
 import com.example.snaptaplaque.utils.SessionManager;
 
 import retrofit2.Call;
@@ -49,6 +50,11 @@ public class LaunchActivity extends AppCompatActivity {
 
         // Initialiser ApiService
         apiService = ApiClient.getRetrofit().create(ApiService.class);
+
+        // On essaie de se connecter à l'API en utilisant l'endpoint protégé /v1/account/me
+        // Si l'api renvoie le code 401 - Unauthorized alors, on doit se connecter pour utiliser l'application.
+        // Si l'api renvoie le code 200 - OK alors, on peut accéder à l'application directement.
+
 
         // Initialiser SessionManager
         sessionManager = new SessionManager(getApplicationContext());
@@ -88,6 +94,7 @@ public class LaunchActivity extends AppCompatActivity {
                     Log.e(TAG, "API error code: " + response.code());
                     showApiUnavailableDialog();
                 }
+                return 0;
             }
 
             @Override

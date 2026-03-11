@@ -27,7 +27,7 @@ router = APIRouter()
 
 # ================== ENDPOINTS ==================
 
-@router.get("/info", response_model=schemas.VehicleInfoResponse)
+@router.post("/info", response_model=schemas.VehicleInfoResponse)
 async def get_vehicle_info(
         license_plate: str,
         db: Session = Depends(get_db),

@@ -99,11 +99,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Données fictives initiales pour l'historique
         List<Vehicle> initialVehicles = new ArrayList<>();
-        initialVehicles.add(new Vehicle("DR-593-DE", "Renault Laguna 3 Coupé Intens 2.0 dCi 175", true));
-        initialVehicles.add(new Vehicle("AB-123-CD", "Peugeot 208 1.2 PureTech 110", false));
-        initialVehicles.add(new Vehicle("EF-456-GH", "Citroën C3 Aircross Shine 1.5 BlueHDi 120", false));
-        initialVehicles.add(new Vehicle("IJ-789-KL", "Volkswagen Golf 7 1.4 TSI 150", false));
-        initialVehicles.add(new Vehicle("MN-012-OP", "Ford Fiesta 1.0 EcoBoost 100", false));
+        initialVehicles.add(new Vehicle("DR-593-DE", "Renault", "Laguna 3", "Coupé Intens 2.0 dCi 175", "Diesel",true));
         sharedViewModel.setVehicles(initialVehicles);
 
         viewPager = findViewById(R.id.viewPager);
