@@ -20,6 +20,13 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.snaptaplaque.R;
 import com.example.snaptaplaque.models.Photo;
 import com.example.snaptaplaque.adapters.VehicleAdapter;
+import com.example.snaptaplaque.models.api.favorites.FavoritesRemoveRequest;
+import com.example.snaptaplaque.models.api.favorites.FavoritesRemoveResponse;
+import com.example.snaptaplaque.network.ApiClient;
+import com.example.snaptaplaque.network.ApiService;
+import com.example.snaptaplaque.network.apiCall.ApiCallback;
+import com.example.snaptaplaque.network.apiCall.FavoritesCall;
+import com.example.snaptaplaque.network.apiCall.response.ApiResponseFavorites;
 import com.example.snaptaplaque.viewmodels.SharedViewModel;
 
 import java.util.ArrayList;
@@ -68,6 +75,8 @@ public class ProfileFragment extends Fragment {
      */
     private SharedViewModel sharedViewModel;
 
+    private ApiService apiService;
+
     /**
      * Initialise le fragment et enregistre le lanceur de sélection d'image.
      *
@@ -80,6 +89,9 @@ public class ProfileFragment extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // Même singleton Retrofit que dans LaunchActivity
+        apiService = ApiClient.getRetrofit().create(ApiService.class);
 
         // Outil qui ouvre la permission d'utiliser la caméra
         requestPermissionLauncher = registerForActivityResult(
@@ -174,4 +186,40 @@ public class ProfileFragment extends Fragment {
 
         return view;
     }
+
+    // Endpoint : /v1/favorites/all
+    public void getAllFavorites(){return;}
+
+    // Endpoint : /v1/favorites/remove
+    public void removeFavorite(){
+        FavoritesCall.removeFavorite(apiService, new FavoritesRemoveRequest(""), new ApiCallback() {
+            @Override
+            public void onResponseSuccess(String message) {
+                // Mettre à jour l'UI : afficher succès
+            }
+
+            @Override
+            public void onResponseFailure(String message) {
+                // Mettre à jour l'UI : afficher erreur
+            }
+
+            @Override
+            public void onCallFailure(Throwable t) {
+                // Mettre à jour l'UI : afficher erreur
+            }
+        }, new ApiResponseFavorites() {
+            @Override
+            public void RemoveResponse(FavoritesRemoveResponse favoritesRemoveResponse) {
+
+            }
+        });
+    }
+
+    // Endpoint : /v1/account/me
+    public void getUserInfo(){return;}
+
+    // Endpoint : /v1/predictions/stats
+    public void userStat(){return;}
+
+
 }

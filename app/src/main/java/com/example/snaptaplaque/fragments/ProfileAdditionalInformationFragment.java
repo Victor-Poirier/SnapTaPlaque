@@ -1,0 +1,123 @@
+package com.example.snaptaplaque.fragments;
+
+import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.DialogFragment;
+
+import com.example.snaptaplaque.R;
+import com.example.snaptaplaque.models.api.model.ModelInfoResponse;
+import com.example.snaptaplaque.models.api.root.ApiVersionResponse;
+import com.example.snaptaplaque.models.api.root.RgpdResponse;
+import com.example.snaptaplaque.network.ApiClient;
+import com.example.snaptaplaque.network.ApiService;
+import com.example.snaptaplaque.network.apiCall.AccountCall;
+import com.example.snaptaplaque.network.apiCall.ApiCallback;
+import com.example.snaptaplaque.network.apiCall.ModelCall;
+import com.example.snaptaplaque.network.apiCall.RootCall;
+import com.example.snaptaplaque.network.apiCall.response.ApiModelResponse;
+import com.example.snaptaplaque.network.apiCall.response.ApiRootResponse;
+
+public class ProfileAdditionalInformationFragment extends DialogFragment {
+    private ApiService apiService;
+
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+
+        // Même singleton Retrofit que dans LaunchActivity
+        apiService = ApiClient.getRetrofit().create(ApiService.class);
+
+        // A CHANGER
+        View view = inflater.inflate(R.layout.fragment_profile, container, false);
+
+        return view;
+    }
+
+
+
+    public void exportUserData(){
+        AccountCall.exportData();
+    }
+
+    public void deleteAccount(){
+        AccountCall.deleteAccount();
+    }
+
+    public void apiVersion(){
+        RootCall.apiVersion(apiService, new ApiCallback() {
+            @Override
+            public void onResponseSuccess(String message) {
+
+            }
+
+            @Override
+            public void onResponseFailure(String message) {
+
+            }
+
+            @Override
+            public void onCallFailure(Throwable t) {
+
+            }
+        }, new ApiRootResponse() {
+            @Override
+            public void apiVersionResponse(ApiVersionResponse apiVersionResponse) {
+
+            }
+
+        });
+    }
+
+    public void privacyPolicy(){
+        RootCall.privacyPolicy(apiService, new ApiCallback() {
+            @Override
+            public void onResponseSuccess(String message) {
+
+            }
+
+            @Override
+            public void onResponseFailure(String message) {
+
+            }
+
+            @Override
+            public void onCallFailure(Throwable t) {
+
+            }
+        }, new ApiRootResponse() {
+            @Override
+            public void rgpdResponse(RgpdResponse rgpdResponse) {
+
+            }
+        });
+    }
+
+    public void modelInfo(){
+        ModelCall.modelInfo(apiService, new ApiCallback() {
+            @Override
+            public void onResponseSuccess(String message) {
+
+            }
+
+            @Override
+            public void onResponseFailure(String message) {
+
+            }
+
+            @Override
+            public void onCallFailure(Throwable t) {
+
+            }
+        }, new ApiModelResponse() {
+            @Override
+            public void modelInfoResponse(ModelInfoResponse modelInfoResponse) {
+
+            }
+        });
+    }
+}

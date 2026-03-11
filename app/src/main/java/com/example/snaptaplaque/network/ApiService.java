@@ -2,6 +2,7 @@ package com.example.snaptaplaque.network;
 
 import com.example.snaptaplaque.models.api.account.DataExportResponse;
 import com.example.snaptaplaque.models.api.account.DeleteAccountResponse;
+import com.example.snaptaplaque.models.api.account.LoginRequest;
 import com.example.snaptaplaque.models.api.account.LoginResponse;
 import com.example.snaptaplaque.models.api.account.MeResponse;
 import com.example.snaptaplaque.models.api.account.RegisterRequest;
@@ -44,9 +45,8 @@ public interface ApiService {
     @FormUrlEncoded
     @POST("v1/account/login")
     Call<LoginResponse> login(
-            @Field("username") String username,
-            @Field("password") String password
-    );
+            @Body LoginRequest loginRequest
+            );
 
     /**
      * Endpoint pour l'enregistrement d'un nouvel utilisateur.

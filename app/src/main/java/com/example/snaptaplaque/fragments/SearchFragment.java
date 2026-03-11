@@ -138,4 +138,11 @@ public class SearchFragment extends Fragment {
             }
         }
     }
+
+    // Endpoint : /v1/predictions/predict
+    public void picturePredict(){return;}
+
+    // Endpoint : /v1/vehicles/info
+    public void getVehicleInfo(){return;}
+
 }

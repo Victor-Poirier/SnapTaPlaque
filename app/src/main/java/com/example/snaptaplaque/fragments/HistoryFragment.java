@@ -15,6 +15,19 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.snaptaplaque.R;
 import com.example.snaptaplaque.adapters.VehicleAdapter;
+import com.example.snaptaplaque.models.api.favorites.FavoritesAddRequest;
+import com.example.snaptaplaque.models.api.favorites.FavoritesAddResponse;
+import com.example.snaptaplaque.models.api.favorites.FavoritesRemoveRequest;
+import com.example.snaptaplaque.models.api.favorites.FavoritesRemoveResponse;
+import com.example.snaptaplaque.models.api.predictions.HistoryResponse;
+import com.example.snaptaplaque.network.ApiClient;
+import com.example.snaptaplaque.network.ApiService;
+import com.example.snaptaplaque.network.apiCall.ApiCallback;
+import com.example.snaptaplaque.network.apiCall.FavoritesCall;
+import com.example.snaptaplaque.network.apiCall.PredictionsCall;
+import com.example.snaptaplaque.network.apiCall.response.ApiPredictionsResponse;
+import com.example.snaptaplaque.network.apiCall.response.ApiResponseFavorites;
+import com.example.snaptaplaque.utils.SessionManager;
 import com.example.snaptaplaque.viewmodels.SharedViewModel;
 
 import java.util.ArrayList;
@@ -59,6 +72,9 @@ public class HistoryFragment extends Fragment {
      */
     private SharedViewModel sharedViewModel;
 
+    private ApiService apiService;
+    private SessionManager sessionManager;
+
     /**
      * Gonfle la vue du fragment et configure l'ensemble des composants graphiques.
      *
@@ -86,6 +102,12 @@ public class HistoryFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        // Pour faire les appels à l'API
+        // Même singleton Retrofit que dans LaunchActivity
+        apiService = ApiClient.getRetrofit().create(ApiService.class);
+        // Même SharedPreferences ("snap_tap_plaque_session") que dans LaunchActivity
+        sessionManager = new SessionManager(this.getContext());
+
         View view = inflater.inflate(R.layout.fragment_history, container, false);
 
         recyclerView = view.findViewById(R.id.rvVehicles);
@@ -110,5 +132,81 @@ public class HistoryFragment extends Fragment {
         });
 
         return view;
+    }
+
+    // Endpoint : /v1/predictions/history
+    public void getHistory(){
+        PredictionsCall.getHistory(apiService, new ApiCallback() {
+            @Override
+            public void onResponseSuccess(String message) {
+
+            }
+
+            @Override
+            public void onResponseFailure(String message) {
+
+            }
+
+            @Override
+            public void onCallFailure(Throwable t) {
+
+            }
+        }, new ApiPredictionsResponse() {
+            @Override
+            public void historyResponse(HistoryResponse historyResponse) {
+
+            }
+        });
+    }
+
+    // Endpoint : /v1/favorites/add
+    public void addFavorite(){
+        FavoritesCall.addFavorite(apiService, new FavoritesAddRequest(""), new ApiCallback() {
+            @Override
+            public void onResponseSuccess(String message) {
+                // Mettre à jour l'UI : afficher succès
+            }
+
+            @Override
+            public void onResponseFailure(String message) {
+                // Mettre à jour l'UI : afficher erreur
+            }
+
+            @Override
+            public void onCallFailure(Throwable t) {
+                // Mettre à jour l'UI : afficher erreur
+            }
+        }, new ApiResponseFavorites() {
+            @Override
+            public void AddResponse(FavoritesAddResponse favoritesAddResponse) {
+
+            }
+        });
+
+    }
+
+    // Endpoint : /v1/favorites/remove
+    public void removeFavorite(){
+        FavoritesCall.removeFavorite(apiService, new FavoritesRemoveRequest(""), new ApiCallback() {
+            @Override
+            public void onResponseSuccess(String message) {
+                // Mettre à jour l'UI : afficher succès
+            }
+
+            @Override
+            public void onResponseFailure(String message) {
+                // Mettre à jour l'UI : afficher erreur
+            }
+
+            @Override
+            public void onCallFailure(Throwable t) {
+                // Mettre à jour l'UI : afficher erreur
+            }
+        }, new ApiResponseFavorites() {
+            @Override
+            public void RemoveResponse(FavoritesRemoveResponse favoritesRemoveResponse) {
+
+            }
+        });
     }
 }

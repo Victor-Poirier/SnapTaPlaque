@@ -91,6 +91,7 @@ public class LaunchActivity extends AppCompatActivity {
                     Log.e(TAG, "API error code: " + response.code());
                     showApiUnavailableDialog();
                 }
+                return false;
             }
 
             @Override
