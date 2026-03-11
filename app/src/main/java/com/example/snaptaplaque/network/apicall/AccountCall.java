@@ -13,6 +13,7 @@ import com.example.snaptaplaque.models.api.account.RegisterRequest;
 import com.example.snaptaplaque.models.api.account.RegisterResponse;
 import com.example.snaptaplaque.network.ApiClient;
 import com.example.snaptaplaque.network.ApiService;
+import com.example.snaptaplaque.network.apicall.response.ApiResponseAccount;
 import com.example.snaptaplaque.utils.FeedbackManager;
 import com.example.snaptaplaque.utils.SessionManager;
 
@@ -50,7 +51,6 @@ public class AccountCall {
                         } else {
                             FeedbackManager.showError(activity, "Registration failed: " + response.message(), null);
                         }
-                        return 0;
                     }
 
                     @Override
@@ -97,5 +97,9 @@ public class AccountCall {
                     }
                 });
     }
+
+    public static void exportData(ApiService apiService, ApiCallback apiCallback ,ApiResponseAccount apiResponseAccount){}
+    public static void me (ApiService apiService, ApiCallback apiCallback ,ApiResponseAccount apiResponseAccount){}
+    public static void deleteAccount(ApiService apiService, ApiCallback apiCallback, ApiResponseAccount apiResponseAccount){}
 
 }
