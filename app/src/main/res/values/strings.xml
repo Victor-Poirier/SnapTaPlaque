@@ -37,4 +37,5 @@
     <string name="item_vehicle_description">Brand logo</string>
     <string name="describe_trace_title">Tire trace</string>
     <string name="description_indicator_scan">Indicator scan</string>
+    <string name="tiret">-</string>
 </resources>
