@@ -27,9 +27,6 @@ import retrofit2.Response;
  */
 public class LaunchActivity extends AppCompatActivity {
 
-    /** Durée d'affichage du splash screen en millisecondes (1.5 secondes) */
-    private static final int SPLASH_DISPLAY_LENGTH = 1500; // 1.5 secondes
-
     private static final String TAG = "API_TEST";
 
     /** Durée de 5 secondes pour le timeout de la connexion à l'API */
