@@ -117,11 +117,11 @@ public class LaunchActivity extends AppCompatActivity {
 
     private void showApiUnavailableDialog() {
         runOnUiThread(() -> new AlertDialog.Builder(this)
-                .setTitle("Service indisponible")
-                .setMessage("Impossible de se connecter au serveur. Vérifiez votre connexion et réessayez.")
+                .setTitle(R.string.service_unavailable)
+                .setMessage(R.string.connection_message)
                 .setCancelable(false)
-                .setPositiveButton("Réessayer", (dialog, which) -> testApiConnection())
-                .setNegativeButton("Quitter", (dialog, which) -> finishAffinity())
+                .setPositiveButton(R.string.try_again, (dialog, which) -> testApiConnection())
+                .setNegativeButton(R.string.exit, (dialog, which) -> finishAffinity())
                 .show());
     }
 }

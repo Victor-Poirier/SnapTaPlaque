@@ -1,5 +1,9 @@
 <resources>
     <string name="app_name">SnapTaPlaque</string>
+    <string name="service_unavailable">Service unavailable</string>
+    <string name="connection_message">Unable to connect to the server. Please check your connection and try again.</string>
+    <string name="try_again">Try again</string>
+    <string name="exit">Exit</string>
     <string name="title_history">Search History</string>
     <string name="title_search">Search</string>
     <string name="number_plate">Number plate</string>
