@@ -2,6 +2,9 @@
     <string name="app_name">SnapTaPlaque</string>
     <string name="title_history">Search History</string>
     <string name="title_search">Search</string>
+    <string name="number_plate">Number plate</string>
+    <string name="spell_plate">Spell out the number plate</string>
+    <string name="micro_not_available">Microphone not available</string>
     <string name="title_profile">Profile</string>
     <string name="title_favorite">Favorite Vehicles</string>
     <string name="edit_photo">Edit the photo</string>
@@ -28,4 +31,10 @@
     <string name="sign_in">Sign in</string>
     <string name="welcome">Welcome back !</string>
     <string name="accept_privacy_policy">Accept privacy policy</string>
+    <string name="picture_btn">Picture</string>
+    <string name="close">Close</string>
+    <string name="take_picture">Take a picture</string>
+    <string name="item_vehicle_description">Brand logo</string>
+    <string name="describe_trace_title">Tire trace</string>
+    <string name="description_indicator_scan">Indicator scan</string>
 </resources>

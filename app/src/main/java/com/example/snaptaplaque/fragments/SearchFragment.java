@@ -4,17 +4,16 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.Toast;
+import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.viewpager2.widget.ViewPager2;
 
 import com.example.snaptaplaque.R;
-import com.example.snaptaplaque.models.Vehicle;
+import com.example.snaptaplaque.adapters.InputSectionAdapter;
 import com.example.snaptaplaque.viewmodels.SharedViewModel;
 
 /**
@@ -32,16 +31,18 @@ import com.example.snaptaplaque.viewmodels.SharedViewModel;
  * </ul>
  * </p>
  *
- * @see SharedViewModel#addVehicle(Vehicle)
+ * @see SharedViewModel #addVehicle(Vehicle)
  * @see HistoryFragment
  * @see ProfileFragment
  */
 public class SearchFragment extends Fragment {
 
-    /**
-     * ViewModel partagé avec les autres fragments pour centraliser les données véhicules.
-     */
-    private SharedViewModel sharedViewModel;
+    private ViewPager2 viewPagerSearch;
+
+    // Les indicateurs
+    private ImageView indicatorScan;
+    private ImageView indicatorWheel;
+    private ImageView indicatorVocal;
 
     /**
      * Initialise la vue du fragment et configure le {@link SharedViewModel}.
@@ -61,25 +62,80 @@ public class SearchFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_search, container, false);
 
-        sharedViewModel = new ViewModelProvider(requireActivity()).get(SharedViewModel.class);
-        /*
-        // Exemple : un champ de saisie et un bouton de recherche
-        // Adaptez les IDs à votre layout fragment_search.xml
-        EditText etPlaque = view.findViewById(R.id.etPlaque);
-        Button btnSearch = view.findViewById(R.id.btnSearch);
+        viewPagerSearch = view.findViewById(R.id.viewPagerSearch);
+        indicatorScan = view.findViewById(R.id.indicatorScan);
+        indicatorWheel = view.findViewById(R.id.indicatorWheel);
+        indicatorVocal = view.findViewById(R.id.indicatorVocal);
 
-        btnSearch.setOnClickListener(v -> {
-            String plaque = etPlaque.getText().toString().trim().toUpperCase();
-            if (!plaque.isEmpty()) {
-                // Simuler un résultat de recherche (remplacer par un appel API réel)
-                Vehicle scannedVehicle = new Vehicle(plaque, "Véhicule trouvé pour " + plaque, false);
-                sharedViewModel.addVehicle(scannedVehicle);
-                Toast.makeText(getContext(), "Véhicule ajouté à l'historique", Toast.LENGTH_SHORT).show();
-                etPlaque.setText("");
-            }
-        });
-         */
+
+
+        // Configuration du ViewPager
+        if (viewPagerSearch != null) {
+            // Définit le swipe en mode vertical
+            viewPagerSearch.setOrientation(ViewPager2.ORIENTATION_VERTICAL);
+            InputSectionAdapter adapter = new InputSectionAdapter(this);
+            viewPagerSearch.setAdapter(adapter);
+
+            // Synchronisation : Swipe -> Mise à jour visuelle des cercles
+            viewPagerSearch.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+                @Override
+                public void onPageSelected(int position) {
+                    super.onPageSelected(position);
+                    updateIndicators(position);
+                }
+            });
+        }
+
+        // Synchronisation : Clic sur cercle -> Changement de page
+        if (indicatorScan != null) {
+            indicatorScan.setOnClickListener(v -> selectPage(0));
+        }
+        if (indicatorWheel != null) {
+            indicatorWheel.setOnClickListener(v -> selectPage(1));
+        }
+        if (indicatorVocal != null) {
+            indicatorVocal.setOnClickListener(v -> selectPage(2));
+        }
 
         return view;
+    }
+
+    /**
+     * Change la page du ViewPager
+     */
+    private void selectPage(int index) {
+        if (viewPagerSearch != null) {
+            viewPagerSearch.setCurrentItem(index, true);
+        }
+    }
+
+    /**
+     * Met à jour l'état visuel (Selected) des indicateurs
+     */
+    private void updateIndicators(int position) {
+        if (indicatorScan != null && indicatorWheel != null && indicatorVocal != null) {
+            indicatorScan.setSelected(position == 0);
+            indicatorWheel.setSelected(position == 1);
+            indicatorVocal.setSelected(position == 2);
+
+            View movingBar = getView().findViewById(R.id.movingBar);
+            ImageView targetIcon;
+
+            if (position == 0) targetIcon = indicatorScan;
+            else if (position == 1) targetIcon = indicatorWheel;
+            else targetIcon = indicatorVocal;
+
+            if (movingBar != null) {
+                targetIcon.post(() -> {
+                    // On calcule le centre vertical de l'icône pour y aligner le centre de la barre
+                    float targetY = targetIcon.getY() + (targetIcon.getHeight() / 2f) - (movingBar.getHeight() / 2f);
+
+                    movingBar.animate()
+                            .translationY(targetY)
+                            .setDuration(200)
+                            .start();
+                });
+            }
+        }
     }
 }

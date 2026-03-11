@@ -18,6 +18,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.snaptaplaque.R;
+import com.example.snaptaplaque.models.Photo;
 import com.example.snaptaplaque.adapters.VehicleAdapter;
 import com.example.snaptaplaque.viewmodels.SharedViewModel;
 
@@ -50,10 +51,11 @@ public class ProfileFragment extends Fragment {
      * ImageView affichant la photo de profil de l'utilisateur.
      */
     private ImageView ivProfile;
+    private ImageView ivLogout;
     private ActivityResultLauncher<String> requestPermissionLauncher;
     private ActivityResultLauncher<Uri> cameraLauncher;
     private ActivityResultLauncher<String> galleryLauncher;
-    private Uri tempImageUri;
+    private Photo photo;
     private RecyclerView recyclerView;
 
     /**
@@ -84,7 +86,7 @@ public class ProfileFragment extends Fragment {
                 new ActivityResultContracts.RequestPermission(),
                 isGranted -> {
                     if(isGranted) {
-                        openCamera();
+                        photo.openCamera();
                     }
                     else {
                         Toast.makeText(getContext(), R.string.necessary_camera, Toast.LENGTH_SHORT).show();
@@ -96,8 +98,9 @@ public class ProfileFragment extends Fragment {
         cameraLauncher = registerForActivityResult(
                 new ActivityResultContracts.TakePicture(),
                 success -> {
-                    if(success && tempImageUri != null) {
-                        ivProfile.setImageURI(tempImageUri);
+                    if(success && photo.getTempImageUri() != null) {
+                        ivProfile.setImageURI(null);
+                        ivProfile.setImageURI(photo.getTempImageUri());
                     }
                 }
         );
@@ -112,6 +115,9 @@ public class ProfileFragment extends Fragment {
                     }
                 }
         );
+
+        // Initialisation de la classe utilitaire Photo
+        photo = new Photo(requireContext(), requestPermissionLauncher, cameraLauncher, galleryLauncher);
     }
 
     /**
@@ -139,8 +145,10 @@ public class ProfileFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_profile, container, false);
 
         ivProfile = view.findViewById(R.id.ivProfilePicture);
+        ivProfile.setOnClickListener(v -> photo.showChoice());
 
-        ivProfile.setOnClickListener(v -> showChoice());
+        ivLogout = view.findViewById(R.id.ivLogout);
+        ivLogout.setOnClickListener(null);
 
         recyclerView = view.findViewById(R.id.rvVehicles);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -150,6 +158,11 @@ public class ProfileFragment extends Fragment {
         // Affiche uniquement les favoris
         adapter = new VehicleAdapter(
                 new ArrayList<>(),
+                vehicle -> {
+                    VehicleDetailDialogFragment dialog = VehicleDetailDialogFragment.newInstance(vehicle.getDetails());
+                    dialog.show(getChildFragmentManager(), "detail");
+                },
+
                 vehicle -> sharedViewModel.toggleFavorite(vehicle)
         );
         recyclerView.setAdapter(adapter);
@@ -160,51 +173,5 @@ public class ProfileFragment extends Fragment {
         });
 
         return view;
-    }
-
-    private void showChoice() {
-        String[] options = {
-                getString(R.string.camera_choice),
-                getString(R.string.gallery_choice)
-        };
-
-        // Récupère le choix de l'utlisateur
-        new android.app.AlertDialog.Builder(requireContext())
-                .setTitle(R.string.edit_photo)
-                .setItems(options, (dialog, which) -> {
-                    if(which == 0) {
-                        checkCameraPermission();
-                    }
-                    else {
-                        galleryLauncher.launch("image/*");
-                    }
-                }).show();
-    }
-
-    private void checkCameraPermission() {
-        // Vérifie la permission donnée par l'utilisateur pour l'utilisaton de la caméra
-        if(androidx.core.content.ContextCompat.checkSelfPermission(
-                requireContext(), android.Manifest.permission.CAMERA) ==
-                android.content.pm.PackageManager.PERMISSION_GRANTED) {
-
-            openCamera();
-        }
-        else {
-            requestPermissionLauncher.launch(android.Manifest.permission.CAMERA);
-        }
-    }
-
-    private void openCamera() {
-        // Crée un fichier vide pour recevoir la photo
-        java.io.File tempFile = new java.io.File(requireContext().getExternalFilesDir(android.os.Environment.DIRECTORY_PICTURES), "temp_image.jpg");
-
-        // Transforme le fichier en URI (image)
-        tempImageUri = androidx.core.content.FileProvider.getUriForFile(
-                requireContext(),
-                requireContext().getPackageName() + ".provider",
-                tempFile
-        );
-
-        cameraLauncher.launch(tempImageUri);
     }
 }
