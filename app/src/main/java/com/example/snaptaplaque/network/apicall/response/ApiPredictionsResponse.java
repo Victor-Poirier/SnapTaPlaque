@@ -1,4 +1,4 @@
-package com.example.snaptaplaque.network.apiCall.response;
+package com.example.snaptaplaque.network.apicall.response;
 
 import com.example.snaptaplaque.models.api.predictions.HistoryResponse;
 import com.example.snaptaplaque.models.api.predictions.PredictionResponse;

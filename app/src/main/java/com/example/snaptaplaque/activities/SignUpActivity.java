@@ -8,7 +8,6 @@ import android.widget.EditText;
 
 import com.example.snaptaplaque.R;
 import com.example.snaptaplaque.models.api.account.RegisterRequest;
-import com.example.snaptaplaque.network.apiCall.AccountCall;
 import com.example.snaptaplaque.network.apicall.AccountCall;
 import com.example.snaptaplaque.utils.FeedbackManager;
 

@@ -24,9 +24,9 @@ import com.example.snaptaplaque.models.api.favorites.FavoritesRemoveRequest;
 import com.example.snaptaplaque.models.api.favorites.FavoritesRemoveResponse;
 import com.example.snaptaplaque.network.ApiClient;
 import com.example.snaptaplaque.network.ApiService;
-import com.example.snaptaplaque.network.apiCall.ApiCallback;
-import com.example.snaptaplaque.network.apiCall.FavoritesCall;
-import com.example.snaptaplaque.network.apiCall.response.ApiResponseFavorites;
+import com.example.snaptaplaque.network.apicall.ApiCallback;
+import com.example.snaptaplaque.network.apicall.FavoritesCall;
+import com.example.snaptaplaque.network.apicall.response.ApiResponseFavorites;
 import com.example.snaptaplaque.viewmodels.SharedViewModel;
 
 import java.util.ArrayList;
@@ -171,7 +171,7 @@ public class ProfileFragment extends Fragment {
         adapter = new VehicleAdapter(
                 new ArrayList<>(),
                 vehicle -> {
-                    VehicleDetailDialogFragment dialog = VehicleDetailDialogFragment.newInstance(vehicle.getDetails());
+                    VehicleDetailDialogFragment dialog = VehicleDetailDialogFragment.createFrag(vehicle.getImmatriculation());
                     dialog.show(getChildFragmentManager(), "detail");
                 },
 

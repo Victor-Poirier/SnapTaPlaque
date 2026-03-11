@@ -1,11 +1,11 @@
-package com.example.snaptaplaque.network.apiCall;
+package com.example.snaptaplaque.network.apicall;
 
 import com.example.snaptaplaque.models.api.predictions.HistoryResponse;
 import com.example.snaptaplaque.models.api.predictions.PredictionRequest;
 import com.example.snaptaplaque.models.api.predictions.PredictionResponse;
 import com.example.snaptaplaque.models.api.predictions.StatsResponse;
 import com.example.snaptaplaque.network.ApiService;
-import com.example.snaptaplaque.network.apiCall.response.ApiPredictionsResponse;
+import com.example.snaptaplaque.network.apicall.response.ApiPredictionsResponse;
 
 import retrofit2.Call;
 import retrofit2.Callback;

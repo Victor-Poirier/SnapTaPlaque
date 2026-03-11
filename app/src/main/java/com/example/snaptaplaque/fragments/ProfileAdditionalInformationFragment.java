@@ -15,12 +15,12 @@ import com.example.snaptaplaque.models.api.root.ApiVersionResponse;
 import com.example.snaptaplaque.models.api.root.RgpdResponse;
 import com.example.snaptaplaque.network.ApiClient;
 import com.example.snaptaplaque.network.ApiService;
-import com.example.snaptaplaque.network.apiCall.AccountCall;
-import com.example.snaptaplaque.network.apiCall.ApiCallback;
-import com.example.snaptaplaque.network.apiCall.ModelCall;
-import com.example.snaptaplaque.network.apiCall.RootCall;
-import com.example.snaptaplaque.network.apiCall.response.ApiModelResponse;
-import com.example.snaptaplaque.network.apiCall.response.ApiRootResponse;
+import com.example.snaptaplaque.network.apicall.AccountCall;
+import com.example.snaptaplaque.network.apicall.ApiCallback;
+import com.example.snaptaplaque.network.apicall.ModelCall;
+import com.example.snaptaplaque.network.apicall.RootCall;
+import com.example.snaptaplaque.network.apicall.response.ApiModelResponse;
+import com.example.snaptaplaque.network.apicall.response.ApiRootResponse;
 
 public class ProfileAdditionalInformationFragment extends DialogFragment {
     private ApiService apiService;

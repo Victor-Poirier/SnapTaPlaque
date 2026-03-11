@@ -1,4 +1,4 @@
-package com.example.snaptaplaque.network.apiCall;
+package com.example.snaptaplaque.network.apicall;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -50,6 +50,7 @@ public class AccountCall {
                         } else {
                             FeedbackManager.showError(activity, "Registration failed: " + response.message(), null);
                         }
+                        return 0;
                     }
 
                     @Override
@@ -95,18 +96,6 @@ public class AccountCall {
                         FeedbackManager.showError(activity, "Connection error", null);
                     }
                 });
-    }
-
-    public static void deleteAccount(){
-
-    }
-
-    public static void me(){
-
-    }
-
-    public static void exportData(){
-
     }
 
 }

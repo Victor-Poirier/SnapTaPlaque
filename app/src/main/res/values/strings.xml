@@ -37,4 +37,8 @@
     <string name="item_vehicle_description">Brand logo</string>
     <string name="describe_trace_title">Tire trace</string>
     <string name="description_indicator_scan">Indicator scan</string>
+    <string name="enter_plate_number">Please enter a plate number</string>
+    <string name="field_required">All field required</string>
+    <string name="validate_plate">The plate is valid</string>
+    <string name="unvalidate_plate">The plate is not valid</string>
 </resources>

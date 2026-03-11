@@ -1,4 +1,4 @@
-package com.example.snaptaplaque.network.apiCall;
+package com.example.snaptaplaque.network.apicall;
 
 import com.example.snaptaplaque.models.api.favorites.FavoriteAllResponse;
 import com.example.snaptaplaque.models.api.favorites.FavoritesAddRequest;
@@ -6,7 +6,7 @@ import com.example.snaptaplaque.models.api.favorites.FavoritesAddResponse;
 import com.example.snaptaplaque.models.api.favorites.FavoritesRemoveRequest;
 import com.example.snaptaplaque.models.api.favorites.FavoritesRemoveResponse;
 import com.example.snaptaplaque.network.ApiService;
-import com.example.snaptaplaque.network.apiCall.response.ApiResponseFavorites;
+import com.example.snaptaplaque.network.apicall.response.ApiResponseFavorites;
 
 import retrofit2.Call;
 import retrofit2.Callback;

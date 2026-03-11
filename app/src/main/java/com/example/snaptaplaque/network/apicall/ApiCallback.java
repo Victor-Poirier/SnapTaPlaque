@@ -1,4 +1,4 @@
-package com.example.snaptaplaque.network.apiCall;
+package com.example.snaptaplaque.network.apicall;
 
 public interface ApiCallback {
     void onResponseSuccess(String message);

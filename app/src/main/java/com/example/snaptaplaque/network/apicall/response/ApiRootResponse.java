@@ -1,4 +1,4 @@
-package com.example.snaptaplaque.network.apiCall.response;
+package com.example.snaptaplaque.network.apicall.response;
 
 import com.example.snaptaplaque.models.api.root.ApiVersionResponse;
 import com.example.snaptaplaque.models.api.root.RgpdResponse;

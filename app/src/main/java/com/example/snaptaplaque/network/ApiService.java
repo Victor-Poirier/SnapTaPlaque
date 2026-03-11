@@ -1,12 +1,6 @@
 package com.example.snaptaplaque.network;
 
-import com.example.snaptaplaque.models.api.account.DataExportResponse;
-import com.example.snaptaplaque.models.api.account.DeleteAccountResponse;
-import com.example.snaptaplaque.models.api.account.LoginRequest;
-import com.example.snaptaplaque.models.api.account.LoginResponse;
-import com.example.snaptaplaque.models.api.account.MeResponse;
-import com.example.snaptaplaque.models.api.account.RegisterRequest;
-import com.example.snaptaplaque.models.api.account.RegisterResponse;
+import com.example.snaptaplaque.models.api.account.*;
 import com.example.snaptaplaque.models.api.favorites.FavoriteAllResponse;
 import com.example.snaptaplaque.models.api.favorites.FavoritesAddRequest;
 import com.example.snaptaplaque.models.api.favorites.FavoritesAddResponse;
@@ -38,15 +32,14 @@ public interface ApiService {
     /**
      * Endpoint pour l'authentification d'un utilisateur.
      *
-     * @param username Le nom d'utilisateur de l'utilisateur.
-     * @param password Le mot de passe de l'utilisateur.
+     * @param loginRequest Un objet {@link LoginRequest} contenant les informations d'identification de l'utilisateur (nom d'utilisateur et mot de passe).
      * @return Un objet {@link Call} encapsulant la réponse de l'API, contenant un {@link LoginResponse} en cas de succès.
      */
     @FormUrlEncoded
     @POST("v1/account/login")
     Call<LoginResponse> login(
             @Body LoginRequest loginRequest
-            );
+    );
 
     /**
      * Endpoint pour l'enregistrement d'un nouvel utilisateur.
@@ -91,9 +84,9 @@ public interface ApiService {
     /*********************/
     /* VEHICLES ENDPOINT */
     /*********************/
-    @GET("v1/vehicles/info")
-    Call<InfoResponse> info(
-      @Body InfoRequest infoRequest
+    @POST("v1/vehicles/info")
+    Call<InfoResponse> vehicleInfo(
+            @Body InfoRequest infoRequest
     );
 
     /*******************************/
@@ -120,7 +113,7 @@ public interface ApiService {
     /* MODEL ENDPOINT */
     /******************/
     @GET("v1/model/info")
-    Call<ModelInfoResponse> info();
+    Call<ModelInfoResponse> modelInfo();
 
     /**********************/
     /* FAVORITES ENDPOINT */

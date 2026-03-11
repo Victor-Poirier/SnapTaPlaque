@@ -1,9 +1,9 @@
-package com.example.snaptaplaque.network.apiCall;
+package com.example.snaptaplaque.network.apicall;
 
 import com.example.snaptaplaque.models.api.vehicles.InfoRequest;
 import com.example.snaptaplaque.models.api.vehicles.InfoResponse;
 import com.example.snaptaplaque.network.ApiService;
-import com.example.snaptaplaque.network.apiCall.response.ApiVehiclesResponse;
+import com.example.snaptaplaque.network.apicall.response.ApiVehiclesResponse;
 
 import retrofit2.Call;
 import retrofit2.Callback;

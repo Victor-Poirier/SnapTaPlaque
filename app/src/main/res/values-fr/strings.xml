@@ -38,4 +38,8 @@
     <string name="item_vehicle_description">Logo de la marque</string>
     <string name="describe_trace_title">Trace de pneu</string>
     <string name="description_indicator_scan">Appareil photo</string>
+    <string name="enter_plate_number">Veuillez entrer un numéro d\'immatriculation</string>
+    <string name="field_required">Tous les champs sont requis</string>
+    <string name="validate_plate">La plaque est valide</string>
+    <string name="unvalidate_plate">La plaque n\'est pas valide</string>
 </resources>

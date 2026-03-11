@@ -22,11 +22,11 @@ import com.example.snaptaplaque.models.api.favorites.FavoritesRemoveResponse;
 import com.example.snaptaplaque.models.api.predictions.HistoryResponse;
 import com.example.snaptaplaque.network.ApiClient;
 import com.example.snaptaplaque.network.ApiService;
-import com.example.snaptaplaque.network.apiCall.ApiCallback;
-import com.example.snaptaplaque.network.apiCall.FavoritesCall;
-import com.example.snaptaplaque.network.apiCall.PredictionsCall;
-import com.example.snaptaplaque.network.apiCall.response.ApiPredictionsResponse;
-import com.example.snaptaplaque.network.apiCall.response.ApiResponseFavorites;
+import com.example.snaptaplaque.network.apicall.ApiCallback;
+import com.example.snaptaplaque.network.apicall.FavoritesCall;
+import com.example.snaptaplaque.network.apicall.PredictionsCall;
+import com.example.snaptaplaque.network.apicall.response.ApiPredictionsResponse;
+import com.example.snaptaplaque.network.apicall.response.ApiResponseFavorites;
 import com.example.snaptaplaque.utils.SessionManager;
 import com.example.snaptaplaque.viewmodels.SharedViewModel;
 
@@ -118,8 +118,8 @@ public class HistoryFragment extends Fragment {
         adapter = new VehicleAdapter(
                 new ArrayList<>(),
                 vehicle -> {
-                    VehicleDetailDialogFragment dialog = VehicleDetailDialogFragment.newInstance(vehicle.getDetails());
-                    dialog.show(getChildFragmentManager(), "detail");
+                    VehicleDetailDialogFragment dialog = VehicleDetailDialogFragment.createFrag(vehicle.getImmatriculation());
+                    dialog.show(getChildFragmentManager(), "vehicle_detail");
                 },
 
                 vehicle -> sharedViewModel.toggleFavorite(vehicle)

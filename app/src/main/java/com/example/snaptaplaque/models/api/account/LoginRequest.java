@@ -1,7 +1,10 @@
 package com.example.snaptaplaque.models.api.account;
 
 public class LoginRequest {
+
+
     private String username;
+
     private String password;
 
     public LoginRequest(String username, String password) {

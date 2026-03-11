@@ -15,15 +15,25 @@ import com.example.snaptaplaque.R;
 import com.example.snaptaplaque.models.Vehicle;
 import com.example.snaptaplaque.viewmodels.SharedViewModel;
 
+/**
+ * DialogFragment pour afficher les détails d'un véhicule
+ * Affiche une fenêtre transparente avec les détails du véhicule et un bouton pour fermer la fenêtre
+ * Utilise un ViewModel partagé pour récupérer la liste des véhicules et trouver le véhicule correspondant
+ */
 public class VehicleDetailDialogFragment extends DialogFragment {
 
-    public static VehicleDetailDialogFragment newInstance(String detail) {
+    /**
+     * Construit une instance de la classe VehiculeDetailDialogFragment
+     */
+    public static VehicleDetailDialogFragment createFrag(String immatriculation) {
         VehicleDetailDialogFragment fragment = new VehicleDetailDialogFragment();
-        Bundle bundle = new Bundle();
-        bundle.putString("detail", detail);
-        fragment.setArguments(bundle);
+        Bundle args = new Bundle();
+        args.putString("immatriculation", immatriculation);
+        fragment.setArguments(args);
         return fragment;
     }
+
+
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -39,14 +49,18 @@ public class VehicleDetailDialogFragment extends DialogFragment {
 
         View view = inflater.inflate(R.layout.dialog_vehicle_detail, container, false);
 
-        String detail = getArguments().getString("detail");
         SharedViewModel viewModel = new ViewModelProvider(requireActivity()).get(SharedViewModel.class);
+
+        // Récupère l'immatriculation du véhicule sur lequel on vient de cliquer
+        String immatriculation = getArguments().getString("immatriculation");
+
+        System.out.println(immatriculation);
 
         // Cherche dans la liste le véhicule
         viewModel.getVehicleList().observe(getViewLifecycleOwner(), vehicles -> {
             for(Vehicle v : vehicles) {
-                if(v.getDetails().equals(detail)) {
-                    ((TextView) view.findViewById(R.id.tvDetail)).setText(v.getDetails());
+                if(v.getImmatriculation().equals(immatriculation)) {
+                    ((TextView) view.findViewById(R.id.tvDetail)).setText(v.getImmatriculation() + "\n" + v.getBrand() + " " + v.getModel() + " " + v.getInfo() + "\n" + v.getEnergy());
                     break;
                 }
             }

@@ -8,7 +8,7 @@ import android.widget.EditText;
 
 import com.example.snaptaplaque.R;
 import com.example.snaptaplaque.models.api.account.LoginRequest;
-import com.example.snaptaplaque.network.apiCall.AccountCall;
+import com.example.snaptaplaque.network.apicall.AccountCall;
 import com.example.snaptaplaque.utils.FeedbackManager;
 import com.example.snaptaplaque.utils.SessionManager;
 
@@ -44,7 +44,7 @@ public class SignInActivity extends Activity {
         LoginRequest loginRequest = new LoginRequest(_username, _password);
 
         if (_username.isEmpty() || _password.isEmpty()) {
-            FeedbackManager.showError(this, "login error", null);
+            FeedbackManager.showError(this, String.valueOf(R.string.field_required), null);
             return;
         }
 

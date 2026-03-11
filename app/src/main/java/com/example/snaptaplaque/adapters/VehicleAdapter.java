@@ -218,7 +218,7 @@ public class VehicleAdapter extends RecyclerView.Adapter<VehicleAdapter.VehicleV
         Vehicle vehicle = vehicleList.get(position);
 
         holder.tvImmatriculation.setText(vehicle.getImmatriculation());
-        holder.tvDetails.setText(vehicle.getDetails());
+        holder.tvDetails.setText(vehicle.getBrand() + " " + vehicle.getModel() + " " + vehicle.getInfo() + " " + vehicle.getEnergy());
 
         holder.ivFavorite.setImageResource(
                 vehicle.isFavorite() ? R.drawable.ic_star : R.drawable.ic_star_outline
