@@ -1,5 +1,6 @@
 package com.example.snaptaplaque.activities;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -11,117 +12,151 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.snaptaplaque.R;
-import com.example.snaptaplaque.models.api.root.TestApiResponse;
-import com.example.snaptaplaque.network.ApiClient;
-import com.example.snaptaplaque.network.ApiService;
+import com.example.snaptaplaque.models.api.account.MeResponse;
+import com.example.snaptaplaque.models.api.root.HealthResponse;
+
+import com.example.snaptaplaque.network.apicall.AccountCall;
+import com.example.snaptaplaque.network.apicall.ApiCallback;
+import com.example.snaptaplaque.network.apicall.RootCall;
+
 import com.example.snaptaplaque.utils.SessionManager;
 
-import retrofit2.Call;
-import retrofit2.Callback;
 import retrofit2.Response;
 
 /**
- * Activité de lancement qui affiche un écran de chargement et teste la connexion à l'API.
- * Si la connexion est réussie, redirige vers MainActivity ou LoginActivity selon la session.
- * Si la connexion échoue, affiche une boîte de dialogue pour réessayer ou quitter.
+ * Activité de lancement de l'application SnapTaPlaque.
+ *
+ * <p>Affiche un écran de chargement pendant la vérification de la disponibilité
+ * de l'API via l'endpoint {@code /health}. Selon le résultat :</p>
+ * <ul>
+ *     <li>API disponible et utilisateur authentifié → redirection vers {@link MainActivity}</li>
+ *     <li>API disponible et utilisateur non authentifié (HTTP 401) → redirection vers {@link SignInActivity}</li>
+ *     <li>API indisponible ou erreur réseau → affichage d'une boîte de dialogue
+ *         proposant de réessayer ou de quitter l'application</li>
+ * </ul>
+ *
+ * @see RootCall#health(ApiCallback)
+ * @see AccountCall#me(ApiCallback, Activity)
  */
 public class LaunchActivity extends AppCompatActivity {
 
-    /** Durée d'affichage du splash screen en millisecondes (1.5 secondes) */
-    private static final int SPLASH_DISPLAY_LENGTH = 1500; // 1.5 secondes
-
+    /** Tag utilisé pour les messages de log liés aux tests de connexion API. */
     private static final String TAG = "API_TEST";
 
-    /** Durée de 5 secondes pour le timeout de la connexion à l'API */
-    private static final int API_TIMEOUT_MS = 5000; // 5 secondes
-
-    /** Instance de l'interface ApiService pour effectuer les appels API */
-    private ApiService apiService;
-
-    /** Instance de SessionManager pour gérer la session utilisateur et les données de connexion */
+    /** Gestionnaire de session utilisateur (token JWT, identifiants). */
     private SessionManager sessionManager;
 
     /**
-     * Méthode appelée lors de la création de l'activité.
-     * Initialise les composants nécessaires et teste la connexion à l'API.
+     * Initialise le layout de l'écran de lancement et déclenche
+     * le test de connexion à l'API.
+     *
+     * @param savedInstanceState état sauvegardé de l'activité, ou {@code null}
+     *                           lors du premier lancement
      */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_launch);
-
-        // Initialiser ApiService
-        apiService = ApiClient.getRetrofit().create(ApiService.class);
-
-        // Initialiser SessionManager
-        sessionManager = new SessionManager(getApplicationContext());
-
-        // Debug : vérifier l'état de la session au lancement
-        Log.d(TAG, "isLoggedIn: " + sessionManager.isLoggedIn());
-        Log.d(TAG, "token: " + sessionManager.getToken());
-        Log.d(TAG, "username: " + sessionManager.getUsername());
-
         testApiConnection();
     }
 
     /**
-     * Méthode qui teste la connexion à l'API en effectuant une requête de connexion avec des identifiants de test.
-     * Si la connexion est réussie, affiche un message de succès et redirige vers l'activité suivante.
-     * Si la connexion échoue, affiche un message d'erreur et propose à l'utilisateur de réessayer ou de quitter.
+     * Vérifie la disponibilité de l'API en interrogeant l'endpoint {@code /health}
+     * via {@link RootCall#health(ApiCallback)}.
+     *
+     * <p>En cas de succès, enchaîne sur {@link #testConnexion()} pour vérifier
+     * l'état d'authentification de l'utilisateur. En cas d'échec (erreur HTTP
+     * ou erreur réseau), affiche la boîte de dialogue
+     * {@link #showApiUnavailableDialog()}.</p>
      */
     private void testApiConnection() {
-        Call<TestApiResponse> call = apiService.health();
 
-        Handler timeoutHandler = new Handler(Looper.getMainLooper());
-        Runnable timeoutRunnable = () -> {
-            call.cancel();
-            Log.e(TAG, "API timeout after " + API_TIMEOUT_MS + "ms");
-            showApiUnavailableDialog();
-        };
-        timeoutHandler.postDelayed(timeoutRunnable, API_TIMEOUT_MS);
-
-        call.enqueue(new Callback<TestApiResponse>() {
+        RootCall.health(new ApiCallback() {
             @Override
-            public void onResponse(Call<TestApiResponse> c, Response<TestApiResponse> response) {
-                timeoutHandler.removeCallbacks(timeoutRunnable);
-                if (response.isSuccessful() && response.body() != null) {
-                    Log.d(TAG, "API available — status: " + response.body().getStatus());
-                    proceedToApp();
-                } else {
-                    Log.e(TAG, "API error code: " + response.code());
-                    showApiUnavailableDialog();
-                }
+            public void onResponseSuccess(Response response) {
+                Log.e(TAG, "API available: " + response.message());
+                testConnexion();
             }
 
             @Override
-            public void onFailure(Call<TestApiResponse> c, Throwable t) {
-                timeoutHandler.removeCallbacks(timeoutRunnable);
-                if (!c.isCanceled()) {
-                    Log.e(TAG, "API connection failed: " + t.getMessage());
-                    showApiUnavailableDialog();
-                }
+            public void onResponseFailure(Response response) {
+                Log.e(TAG, "API error code: " + response.message());
+                showApiUnavailableDialog();
+            }
+
+            @Override
+            public void onCallFailure(Throwable t) {
+                Log.e(TAG, "API connection failed: " + t.getMessage());
+                showApiUnavailableDialog();
             }
         });
     }
 
-    private void proceedToApp() {
-        Intent intent;
-        if (sessionManager.isLoggedIn()) {
-            intent = new Intent(this, MainActivity.class);
-        } else {
-            intent = new Intent(this, SignInActivity.class);
-        }
-        startActivity(intent);
-        finish();
+    /**
+     * Vérifie si l'utilisateur dispose d'une session valide en interrogeant
+     * l'endpoint protégé {@code /v1/account/me} via {@link AccountCall#me(ApiCallback, Activity)}.
+     *
+     * <p>Comportement selon la réponse :</p>
+     * <ul>
+     *     <li>HTTP 200 → l'utilisateur est authentifié, redirection vers {@link MainActivity}</li>
+     *     <li>HTTP 401 → le token est absent ou expiré, redirection vers {@link SignInActivity}</li>
+     *     <li>Autre code HTTP ou erreur réseau → affichage de {@link #showApiUnavailableDialog()}</li>
+     * </ul>
+     */
+    private void testConnexion(){
+        AccountCall.me(new ApiCallback() {
+            Intent intent;
+
+            @Override
+            public void onResponseSuccess(Response response) {
+                Log.d(TAG, "User is logged in: " + response.message());
+                // HTTP 200 — l'utilisateur est authentifié
+                intent = new Intent(LaunchActivity.this, MainActivity.class);
+                startActivity(intent);
+                finish();
+            }
+
+            @Override
+            public void onResponseFailure(Response response) {
+                if (response.code() == 401) {
+                    Log.d(TAG, "User is not logged in: " + response.message());
+                    // HTTP 401 — Unauthorized : l'utilisateur n'est pas connecté
+                    intent = new Intent(LaunchActivity.this, SignInActivity.class);
+                    startActivity(intent);
+                    finish();
+                } else {
+                    Log.e(TAG, "API error code: " + response.message());
+                    showApiUnavailableDialog();
+                }
+            }
+
+            @Override
+            public void onCallFailure(Throwable t) {
+                Log.e(TAG, "API connection failed: " + t.getMessage());
+                showApiUnavailableDialog();
+            }
+        }, this);
     }
 
+    /**
+     * Affiche une boîte de dialogue modale informant l'utilisateur que l'API
+     * est indisponible, avec deux options :
+     * <ul>
+     *     <li><b>Réessayer</b> — relance {@link #testApiConnection()}</li>
+     *     <li><b>Quitter</b> — ferme l'application via {@link Activity#finishAffinity()}</li>
+     * </ul>
+     *
+     * <p>L'affichage est posté sur le thread principal via {@link #runOnUiThread(Runnable)}
+     * car cette méthode peut être appelée depuis un callback réseau exécuté
+     * sur un thread d'arrière-plan.</p>
+     */
     private void showApiUnavailableDialog() {
         runOnUiThread(() -> new AlertDialog.Builder(this)
-                .setTitle(R.string.service_unavailable)
-                .setMessage(R.string.connection_message)
+                .setTitle(R.string.launch_error_title)
+                .setMessage(R.string.launch_error_message)
                 .setCancelable(false)
-                .setPositiveButton(R.string.try_again, (dialog, which) -> testApiConnection())
-                .setNegativeButton(R.string.exit, (dialog, which) -> finishAffinity())
+                .setPositiveButton(R.string.launch_error_retry, (dialog, which) -> testApiConnection())
+                .setNegativeButton(R.string.launch_error_exit, (dialog, which) -> finishAffinity())
                 .show());
     }
 }

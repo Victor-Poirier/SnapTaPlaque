@@ -13,17 +13,21 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.LinearSnapHelper;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.snaptaplaque.R;
 import com.example.snaptaplaque.adapters.SlotAdapter;
+import com.example.snaptaplaque.viewmodels.SharedViewModel;
 
 public class WheelFragment extends Fragment {
 
     private RecyclerView[] slots;
     private Button btnSearch;
+
+    private SharedViewModel sharedViewModel;
 
     /**
      * Méthode appelée lorsque le fragment est créé.
@@ -38,6 +42,8 @@ public class WheelFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_wheel, container, false);
+
+        sharedViewModel = new ViewModelProvider(requireActivity()).get(SharedViewModel.class);
 
         // Définition des données
         String[] letters = {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"};
@@ -200,3 +206,4 @@ public class WheelFragment extends Fragment {
         }
     }
 }
+

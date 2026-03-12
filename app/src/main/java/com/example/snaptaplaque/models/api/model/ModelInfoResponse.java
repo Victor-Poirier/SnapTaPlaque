@@ -5,6 +5,12 @@ public class ModelInfoResponse {
     private String model_type;
     private String pipeline;
 
+    public ModelInfoResponse(boolean loaded, String pipeline, String model_type) {
+        this.loaded = loaded;
+        this.pipeline = pipeline;
+        this.model_type = model_type;
+    }
+
     public boolean isLoaded() {
         return loaded;
     }

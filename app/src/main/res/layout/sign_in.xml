@@ -5,7 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white">
+    android:background="@color/gray">
 
     <ImageView
         android:id="@+id/imageViewLogo"
@@ -37,7 +37,7 @@
             android:layout_marginBottom="16dp"
             android:gravity="center"
             android:text="@string/welcome"
-            android:textColor="@color/black"
+            android:textColor="@color/white"
             android:textSize="24sp"
             android:textStyle="bold" />
 
@@ -58,7 +58,7 @@
                 android:id="@+id/inputIdentifiant"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="text" />
+                android:inputType="text"/>
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
@@ -84,30 +84,29 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:orientation="vertical">
 
             <Button
-                android:id="@+id/buttonConnexion"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
-                android:layout_weight="1"
-                android:text="@string/sign_in"
-                android:textColor="@android:color/white"
-                android:textSize="12sp"
-                app:backgroundTint="#3F51B5"
-                app:cornerRadius="15dp" />
+                    android:id="@+id/buttonConnexion"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
 
+                    android:layout_weight="1"
+                    android:text="@string/sign_in"
+                    android:textColor="@android:color/white"
+                    android:textSize="12sp"
+                    app:backgroundTint="@color/red"
+                    app:cornerRadius="15dp"/>
             <Button
-                android:id="@+id/buttonInscription"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/sign_up"
-                android:textColor="@android:color/white"
-                android:textSize="12sp"
-                app:backgroundTint="#3F51B5"
-                app:cornerRadius="15dp" />
+                    android:id="@+id/buttonInscription"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/sign_up"
+                    android:textColor="@android:color/white"
+                    android:textSize="12sp"
+                    app:backgroundTint="@color/red"
+                    app:cornerRadius="15dp"/>
 
         </LinearLayout>
 

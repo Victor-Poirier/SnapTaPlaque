@@ -17,9 +17,24 @@ public class Vehicle {
     private String immatriculation;
 
     /**
-     * Les détails descriptifs du véhicule (marque, modèle, couleur, etc.).
+     * La marque de la voiture
      */
-    private String details;
+    private String brand;
+
+    /**
+     * Le modèle de la voiture
+     */
+    private String model;
+
+    /**
+     * Les informations complémentaires de la voiture
+     */
+    private String info;
+
+    /**
+     * L'énergie de la voiture
+     */
+    private String energy;
 
     /**
      * Indique si le véhicule est marqué comme favori par l'utilisateur.
@@ -27,17 +42,21 @@ public class Vehicle {
     private boolean isFavorite;
 
     /**
-     * Construit une nouvelle instance de {@code Vehicle} avec les informations spécifiées.
-     *
-     * @param Limmatriculation le numéro d'immatriculation du véhicule (ex. : "AB-123-CD")
-     * @param LeDetails        les détails descriptifs du véhicule
-     * @param LeisFavorite     {@code true} si le véhicule est marqué comme favori,
-     *                         {@code false} sinon
+     * Construit une instance de l'objet {@link Vehicle} avec les informations fournies.
+     * @param immatriculation L'immatriculation du véhicule
+     * @param brand La marque du véhicule
+     * @param model Le modèle du véhicule
+     * @param info Les informations complémentaires du véhicule
+     * @param energy L'énergie de la voiture
+     * @param isFavorite Indique si la voiture est dans les favoris
      */
-    public Vehicle(String Limmatriculation, String LeDetails, boolean LeisFavorite) {
-        this.immatriculation = Limmatriculation;
-        this.details = LeDetails;
-        this.isFavorite = LeisFavorite;
+    public Vehicle(String immatriculation, String brand, String model, String info, String energy, boolean isFavorite) {
+        this.immatriculation = immatriculation;
+        this.brand = brand;
+        this.model = model;
+        this.info = info;
+        this.energy = energy;
+        this.isFavorite = isFavorite;
     }
 
     /**
@@ -50,12 +69,36 @@ public class Vehicle {
     }
 
     /**
-     * Retourne les détails descriptifs du véhicule.
-     *
-     * @return les détails du véhicule sous forme de {@code String}
+     * Retourne la marque du véhicule.
+     * @return la marque du véhicule sous forme de {@code String}
      */
-    public String getDetails() {
-        return details;
+    public String getBrand() {
+        return brand;
+    }
+
+    /**
+     * Retourne le modèle du véhicule.
+     * @return le modèle du véhicule sous forme de {@code String}
+     */
+    public String getModel() {
+        return model;
+    }
+
+
+    /**
+     * Retourne les informations complémentaires du véhicule.
+     * @return les informations complémentaires du véhicule sous forme de {@code String}
+     */
+    public String getInfo() {
+        return info;
+    }
+
+    /**
+     * Retourne l'énergie du véhicule.
+     * @return l'énergie du véhicule sous forme de {@code String}
+     */
+    public String getEnergy() {
+        return energy;
     }
 
     /**

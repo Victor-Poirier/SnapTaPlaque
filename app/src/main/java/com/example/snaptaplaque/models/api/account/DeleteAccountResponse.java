@@ -6,4 +6,8 @@ public class DeleteAccountResponse {
     public String getMessage() {
         return message;
     }
+
+    public DeleteAccountResponse(String message) {
+        this.message = message;
+    }
 }

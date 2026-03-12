@@ -429,3 +429,20 @@ def create_vehicle(db: Session, vehicle_data: dict) -> Vehicle:
     db.refresh(db_vehicle)
     print(f"Véhicule créé en base de données : {db_vehicle}")
     return db_vehicle
+
+def get_vehicle_info_history_by_user(db: Session, user_id: int):
+    # Récupérer l'historique des informations de véhicules consultés ou enregistrés par un utilisateur. L'historique 
+    # ce situe dans la table User et est lié à la table Vehicle via une relation one-to-many. 
+    user = db.query(User).filter(User.id == user_id).first()
+    return user.vehicles_info_history if user else []
+
+def create_vehicle_info_history(db: Session, user_id: int, license_plate: str):
+    # Ajouter une entrée dans l'historique des informations de véhicules consultés ou enregistrés par un utilisateur.
+    # Cette fonction crée un nouvel enregistrement dans la table VehicleInfoHistory, associant l'utilisateur, la plaque 
+    # d'immatriculation du véhicule et les informations correspondantes. 
+    vehicle = get_vehicle_by_license_plate(db, license_plate)
+    user = db.query(User).filter(User.id == user_id).first()
+    user.vehicles_info_history.append(vehicle)
+    db.commit()
+
+    

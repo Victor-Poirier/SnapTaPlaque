@@ -15,9 +15,24 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.snaptaplaque.R;
 import com.example.snaptaplaque.adapters.VehicleAdapter;
+import com.example.snaptaplaque.models.Vehicle;
+import com.example.snaptaplaque.models.api.favorites.FavoritesAddRequest;
+import com.example.snaptaplaque.models.api.favorites.FavoritesRemoveRequest;;
+import com.example.snaptaplaque.models.api.predictions.HistoryResponse;
+import com.example.snaptaplaque.models.api.predictions.HistoryResult;
+import com.example.snaptaplaque.models.api.vehicles.HistoryVehiclesResponse;
+import com.example.snaptaplaque.models.api.vehicles.InfoResponse;
+import com.example.snaptaplaque.network.apicall.ApiCallback;
+import com.example.snaptaplaque.network.apicall.FavoritesCall;
+import com.example.snaptaplaque.network.apicall.PredictionsCall;
+import com.example.snaptaplaque.network.apicall.VehiclesCall;
+import com.example.snaptaplaque.utils.SessionManager;
 import com.example.snaptaplaque.viewmodels.SharedViewModel;
 
 import java.util.ArrayList;
+import java.util.List;
+
+import retrofit2.Response;
 
 /**
  * Fragment dédié à l'affichage de l'historique complet des véhicules scannés.
@@ -59,6 +74,8 @@ public class HistoryFragment extends Fragment {
      */
     private SharedViewModel sharedViewModel;
 
+    private SessionManager sessionManager;
+
     /**
      * Gonfle la vue du fragment et configure l'ensemble des composants graphiques.
      *
@@ -86,6 +103,9 @@ public class HistoryFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        // Même SharedPreferences ("snap_tap_plaque_session") que dans LaunchActivity
+        sessionManager = new SessionManager(this.getContext());
+
         View view = inflater.inflate(R.layout.fragment_history, container, false);
 
         recyclerView = view.findViewById(R.id.rvVehicles);
@@ -96,8 +116,8 @@ public class HistoryFragment extends Fragment {
         adapter = new VehicleAdapter(
                 new ArrayList<>(),
                 vehicle -> {
-                    VehicleDetailDialogFragment dialog = VehicleDetailDialogFragment.newInstance(vehicle.getDetails());
-                    dialog.show(getChildFragmentManager(), "detail");
+                    VehicleDetailDialogFragment dialog = VehicleDetailDialogFragment.createFrag(vehicle.getImmatriculation());
+                    dialog.show(getChildFragmentManager(), "vehicle_detail");
                 },
 
                 vehicle -> sharedViewModel.toggleFavorite(vehicle)
@@ -132,6 +152,33 @@ public class HistoryFragment extends Fragment {
             adapter.updateList(sharedViewModel.getFilteredVehicles());
         });
 
+        getHistory();
+
         return view;
+    }
+
+    // Endpoint : /v1/predictions/history
+    public void getHistory(){
+        VehiclesCall.history(new ApiCallback() {
+            @Override
+            public void onResponseSuccess(Response response) {
+                HistoryVehiclesResponse history = (HistoryVehiclesResponse)response.body();
+                List<InfoResponse> list = history.getHistory();
+
+                for(InfoResponse v : list){
+                    sharedViewModel.addVehicle(v.createVehicles());
+                }
+            }
+
+            @Override
+            public void onResponseFailure(Response response) {
+
+            }
+
+            @Override
+            public void onCallFailure(Throwable t) {
+
+            }
+        });
     }
 }

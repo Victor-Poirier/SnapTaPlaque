@@ -1,5 +1,6 @@
 package com.example.snaptaplaque.fragments;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -19,8 +20,21 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.snaptaplaque.R;
+import com.example.snaptaplaque.activities.SignInActivity;
+
 import com.example.snaptaplaque.models.Photo;
+
 import com.example.snaptaplaque.adapters.VehicleAdapter;
+
+import com.example.snaptaplaque.models.api.favorites.FavoritesRemoveRequest;
+
+import com.example.snaptaplaque.network.apicall.AccountCall;
+import com.example.snaptaplaque.network.apicall.ApiCallback;
+import com.example.snaptaplaque.network.apicall.FavoritesCall;
+import com.example.snaptaplaque.network.apicall.PredictionsCall;
+
+import com.example.snaptaplaque.utils.SessionManager;
+
 import com.example.snaptaplaque.viewmodels.SharedViewModel;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
@@ -30,6 +44,8 @@ import java.util.List;
 import java.util.Locale;
 
 import java.util.ArrayList;
+
+import retrofit2.Response;
 
 /**
  * Fragment dédié à l'affichage du profil utilisateur et de ses véhicules favoris.
@@ -80,6 +96,9 @@ public class ProfileFragment extends Fragment {
      * ViewModel partagé avec les autres fragments pour centraliser les données véhicules et profil.
      */
     private SharedViewModel sharedViewModel;
+
+    private SessionManager sessionManager;
+
 
     /**
      * Initialise le fragment et enregistre le lanceur de sélection d'image.
@@ -172,8 +191,18 @@ public class ProfileFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_profile, container, false);
 
+        sessionManager = new SessionManager(getContext());
+
+        ivProfile = view.findViewById(R.id.ivProfilePicture);
+        ivProfile.setOnClickListener(v -> photo.showChoice());
+
         ivLogout = view.findViewById(R.id.ivLogout);
-        ivLogout.setOnClickListener(null);
+        ivLogout.setOnClickListener(v -> {
+            Intent intent = new Intent(getActivity(), SignInActivity.class);
+            sessionManager.logout();
+            Toast.makeText(getContext(), R.string.logout_success, Toast.LENGTH_SHORT).show();
+            startActivity(intent);
+        });
 
         ivProfile = view.findViewById(R.id.ivProfilePicture);
         ivProfile.setOnClickListener(v -> photo.showChoice());
@@ -195,7 +224,7 @@ public class ProfileFragment extends Fragment {
         adapter = new VehicleAdapter(
                 new ArrayList<>(),
                 vehicle -> {
-                    VehicleDetailDialogFragment dialog = VehicleDetailDialogFragment.newInstance(vehicle.getDetails());
+                    VehicleDetailDialogFragment dialog = VehicleDetailDialogFragment.createFrag(vehicle.getImmatriculation());
                     dialog.show(getChildFragmentManager(), "detail");
                 },
 

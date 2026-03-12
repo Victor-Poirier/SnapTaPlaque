@@ -13,13 +13,21 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.example.snaptaplaque.R;
+import com.example.snaptaplaque.models.Vehicle;
+import com.example.snaptaplaque.models.api.vehicles.InfoResponse;
+import com.example.snaptaplaque.network.apicall.ApiCallback;
+import com.example.snaptaplaque.network.apicall.VehiclesCall;
+import com.example.snaptaplaque.viewmodels.SharedViewModel;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
 import java.util.ArrayList;
 import java.util.Locale;
+
+import retrofit2.Response;
 
 public class VocalFragment extends Fragment {
 
@@ -27,18 +35,23 @@ public class VocalFragment extends Fragment {
     private TextInputEditText numberPlate;
     private TextInputLayout btnVocal;
     private Button btnSearch;
+    private SharedViewModel sharedViewModel;
+
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+
         View view = inflater.inflate(R.layout.fragment_vocal, container, false);
+
+        sharedViewModel = new ViewModelProvider(requireActivity()).get(SharedViewModel.class);
 
         numberPlate = view.findViewById(R.id.numberPlate);
         btnVocal = view.findViewById(R.id.btnVocal);
         btnSearch = view.findViewById(R.id.btnSearch);
 
         btnVocal.setEndIconOnClickListener(v -> askSpeechInput());
-        btnSearch.setOnClickListener(v -> showToast());
+        btnSearch.setOnClickListener(v -> getInfo(numberPlate.getText().toString().trim()));
 
         return view;
     }
@@ -86,10 +99,38 @@ public class VocalFragment extends Fragment {
         String regex_2 = "(?i)((?!SS|WW|W)[A-HJ-NP-TV-Z]{2})((?!000)[0-9]{3})((?!SS|WW)[A-HJ-NP-TV-Z]{2})";
 
         if(plate.matches(regex_1) || plate.matches(regex_2)) {
-            Toast.makeText(getContext(), "La plaque d'immatriculation est valide ✅", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), R.string.validate_plate + " ✅", Toast.LENGTH_SHORT).show();
         }
         else {
-            Toast.makeText(getContext(), "La plaque d'immatriculation n'est pas valide ❌", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), R.string.unvalidate_plate + " ❌", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    /**
+     * Réalise un appel à l'API pour obtenir les informations du véhicule à partir de la plaque d'immatriculation.
+     * @param plate la plaque d'immatriculation à rechercher
+     */
+    private void getInfo(String plate) {
+        if (plate == null || plate.isEmpty()) {
+            Toast.makeText(getContext(), R.string.hint_immatriculation, Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        VehiclesCall.vehicleInfo(new InfoRequest(plate), new ApiCallback() {
+            @Override
+            public void onResponseSuccess(Response response) {
+
+            }
+
+            @Override
+            public void onResponseFailure(Response response) {
+
+            }
+
+            @Override
+            public void onCallFailure(Throwable t) {
+
+            }
+        });
     }
 }

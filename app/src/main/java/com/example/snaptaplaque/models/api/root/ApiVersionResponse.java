@@ -7,6 +7,11 @@ public class ApiVersionResponse {
 
     private String latest;
 
+    public ApiVersionResponse(ApiVersionResult versions, String latest) {
+        this.versions = versions;
+        this.latest = latest;
+    }
+
     public String getLatest() {
         return latest;
     }

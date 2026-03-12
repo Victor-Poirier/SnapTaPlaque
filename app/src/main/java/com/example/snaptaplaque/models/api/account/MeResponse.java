@@ -9,6 +9,16 @@ public class MeResponse {
     private Boolean is_admin;
     private String created_at;
 
+    public MeResponse(Integer id, String email, String username, String full_name, Boolean is_active, Boolean is_admin, String created_at) {
+        this.id = id;
+        this.email = email;
+        this.username = username;
+        this.full_name = full_name;
+        this.is_active = is_active;
+        this.is_admin = is_admin;
+        this.created_at = created_at;
+    }
+
     public Integer getId() {
         return id;
     }

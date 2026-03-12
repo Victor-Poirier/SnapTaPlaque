@@ -10,9 +10,16 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.snaptaplaque.R;
+import com.example.snaptaplaque.fragments.HistoryFragment;
 import com.example.snaptaplaque.models.Vehicle;
+import com.example.snaptaplaque.models.api.favorites.FavoritesAddRequest;
+import com.example.snaptaplaque.models.api.favorites.FavoritesRemoveRequest;
+import com.example.snaptaplaque.network.apicall.ApiCallback;
+import com.example.snaptaplaque.network.apicall.FavoritesCall;
 
 import java.util.List;
+
+import retrofit2.Response;
 
 /**
  * Adaptateur {@link RecyclerView.Adapter} responsable de l'affichage d'une liste
@@ -218,7 +225,7 @@ public class VehicleAdapter extends RecyclerView.Adapter<VehicleAdapter.VehicleV
         Vehicle vehicle = vehicleList.get(position);
 
         holder.tvImmatriculation.setText(vehicle.getImmatriculation());
-        holder.tvDetails.setText(vehicle.getDetails());
+        holder.tvDetails.setText(vehicle.getBrand() + " " + vehicle.getModel() + " " + vehicle.getInfo() + " " + vehicle.getEnergy());
 
         holder.ivFavorite.setImageResource(
                 vehicle.isFavorite() ? R.drawable.ic_star : R.drawable.ic_star_outline
@@ -234,7 +241,16 @@ public class VehicleAdapter extends RecyclerView.Adapter<VehicleAdapter.VehicleV
             if (favoriteClickListener != null) {
                 favoriteClickListener.onFavoriteClick(vehicle);
             } else {
-                vehicle.setFavorite(!vehicle.isFavorite());
+                // QUAND ON CLIQUE SUR L'ETOILE, soit cà l'ajoute
+                // dans les favoris si il n'y est pas. Soit ça le
+                // supprime
+                if ( vehicle.isFavorite() ){
+                    addFavorite();
+                }
+                else {
+                    removeFavorite();
+                }
+
             }
             holder.ivFavorite.setImageResource(
                     vehicle.isFavorite() ? R.drawable.ic_star : R.drawable.ic_star_outline
@@ -339,5 +355,51 @@ public class VehicleAdapter extends RecyclerView.Adapter<VehicleAdapter.VehicleV
             ivFavorite = itemView.findViewById(R.id.ivFavorite);
             ivCar = itemView.findViewById(R.id.ivVehicle);
         }
+    }
+
+
+
+
+
+
+    // Endpoint : /v1/favorites/add
+    public void addFavorite(){
+        FavoritesCall.addFavorite(new FavoritesAddRequest(""), new ApiCallback() {
+            @Override
+            public void onResponseSuccess(Response response) {
+                // Mettre à jour l'UI : afficher succès
+            }
+
+            @Override
+            public void onResponseFailure(Response response) {
+                // Mettre à jour l'UI : afficher erreur
+            }
+
+            @Override
+            public void onCallFailure(Throwable t) {
+                // Mettre à jour l'UI : afficher erreur
+            }
+        });
+
+    }
+
+    // Endpoint : /v1/favorites/remove
+    public void removeFavorite(){
+        FavoritesCall.removeFavorite(new FavoritesRemoveRequest(""), new ApiCallback() {
+            @Override
+            public void onResponseSuccess(Response response) {
+                // Mettre à jour l'UI : afficher succès
+            }
+
+            @Override
+            public void onResponseFailure(Response response) {
+                // Mettre à jour l'UI : afficher erreur
+            }
+
+            @Override
+            public void onCallFailure(Throwable t) {
+                // Mettre à jour l'UI : afficher erreur
+            }
+        });
     }
 }

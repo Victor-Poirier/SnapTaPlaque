@@ -1,11 +1,6 @@
 package com.example.snaptaplaque.network;
 
-import com.example.snaptaplaque.models.api.account.DataExportResponse;
-import com.example.snaptaplaque.models.api.account.DeleteAccountResponse;
-import com.example.snaptaplaque.models.api.account.LoginResponse;
-import com.example.snaptaplaque.models.api.account.MeResponse;
-import com.example.snaptaplaque.models.api.account.RegisterRequest;
-import com.example.snaptaplaque.models.api.account.RegisterResponse;
+import com.example.snaptaplaque.models.api.account.*;
 import com.example.snaptaplaque.models.api.favorites.FavoriteAllResponse;
 import com.example.snaptaplaque.models.api.favorites.FavoritesAddRequest;
 import com.example.snaptaplaque.models.api.favorites.FavoritesAddResponse;
@@ -18,8 +13,7 @@ import com.example.snaptaplaque.models.api.predictions.PredictionResponse;
 import com.example.snaptaplaque.models.api.predictions.StatsResponse;
 import com.example.snaptaplaque.models.api.root.ApiVersionResponse;
 import com.example.snaptaplaque.models.api.root.RgpdResponse;
-import com.example.snaptaplaque.models.api.root.TestApiResponse;
-import com.example.snaptaplaque.models.api.vehicles.InfoRequest;
+import com.example.snaptaplaque.models.api.root.HealthResponse;
 import com.example.snaptaplaque.models.api.vehicles.InfoResponse;
 
 import retrofit2.Call;
@@ -37,7 +31,7 @@ public interface ApiService {
     /**
      * Endpoint pour l'authentification d'un utilisateur.
      *
-     * @param username Le nom d'utilisateur de l'utilisateur.
+     * @param username Le nom d'utilisateur.
      * @param password Le mot de passe de l'utilisateur.
      * @return Un objet {@link Call} encapsulant la réponse de l'API, contenant un {@link LoginResponse} en cas de succès.
      */
@@ -60,7 +54,9 @@ public interface ApiService {
     );
 
     @GET("v1/account/me")
-    Call<MeResponse> me();
+    Call<MeResponse> me(
+            @Header("Authorization") String token
+    );
 
     @GET("v1/account/data-export")
     Call<DataExportResponse> data_export();
@@ -92,9 +88,12 @@ public interface ApiService {
     /* VEHICLES ENDPOINT */
     /*********************/
     @GET("v1/vehicles/info")
-    Call<InfoResponse> info(
-      @Body InfoRequest infoRequest
+    Call<InfoResponse> vehicleInfo(
+            @Query("license_plate") String licensePlate
     );
+
+    @GET("v1/vehicles/history")
+    Call<HistoryResponse> historyVehicles();
 
     /*******************************/
     /* GLOBAL INFORMATION ENDPOINT */
@@ -103,7 +102,7 @@ public interface ApiService {
      * Test si l'API est accessible en effectuant une requête GET sur un endpoint de test.
      */
     @GET("health")
-    Call<TestApiResponse> health();
+    Call<HealthResponse> health();
 
     /**
      * Faire appel à l'endpoint privacy-policy qui renvoie comment l'api utilise
@@ -120,7 +119,7 @@ public interface ApiService {
     /* MODEL ENDPOINT */
     /******************/
     @GET("v1/model/info")
-    Call<ModelInfoResponse> info();
+    Call<ModelInfoResponse> modelInfo();
 
     /**********************/
     /* FAVORITES ENDPOINT */

@@ -20,5 +20,7 @@ public class LoginResponse {
         return access_token;
     }
 
-
+    public LoginResponse(String access_token) {
+        this.access_token = access_token;
+    }
 }

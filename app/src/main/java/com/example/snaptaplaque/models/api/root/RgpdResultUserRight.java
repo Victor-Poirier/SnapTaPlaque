@@ -5,6 +5,12 @@ public class RgpdResultUserRight {
     private String erasure;
     private String rectification;
 
+    public RgpdResultUserRight(String acces, String erasure, String rectification) {
+        this.acces = acces;
+        this.erasure = erasure;
+        this.rectification = rectification;
+    }
+
     public String getAcces() {
         return acces;
     }

@@ -45,4 +45,14 @@
     <string name="description_indicator_scan">Indicator scan</string>
     <string name="tiret">-</string>
     <string name="searchInputHistory" type="id">Find a plate or a model...</string>
+    <string name="enter_plate_number">Please enter a plate number</string>
+    <string name="field_required">All field required</string>
+    <string name="validate_plate">The plate is valid</string>
+    <string name="unvalidate_plate">The plate is not valid</string>
+    <string name="launch_error_title">Service unavailable</string>
+    <string name="launch_error_message">Unable to connect to the server. Please check your connection and try again.
+    </string>
+    <string name="launch_error_retry">Retry</string>
+    <string name="launch_error_exit">Exit</string>
+    <string name="logout_success">"Log out successfully "</string>
 </resources>

@@ -8,11 +8,16 @@ package com.example.snaptaplaque.models.api.root;
         "version": "1.0"
     }
  */
-public class TestApiResponse {
+public class HealthResponse {
 
     private String status;
 
     private String version;
+
+    public HealthResponse(String status, String version) {
+        this.status = status;
+        this.version = version;
+    }
 
     public String getStatus() {
         return status;

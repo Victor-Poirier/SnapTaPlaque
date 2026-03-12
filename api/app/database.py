@@ -72,6 +72,13 @@ user_favorites = Table(
     Column("license_plate", String, ForeignKey("vehicles.license_plate"), primary_key=True),
 )
 
+user_vehicle_history = Table(
+    "user_vehicle_history",
+    Base.metadata,
+    Column("user_id", Integer, ForeignKey("users.id"), primary_key=True),
+    Column("license_plate", String, ForeignKey("vehicles.license_plate"), primary_key=True),
+)
+
 class User(Base):
     """
     Modèle ORM représentant un utilisateur de la plateforme SnapTaPlaque.
@@ -120,6 +127,11 @@ class User(Base):
     # Relation many-to-many vers le modèle Vehicle via une table d'association "favorites". Un utilisateur peut avoir
     # plusieurs véhicules favoris, et un véhicule peut être favori de plusieurs utilisateurs.
     favorites = relationship("Vehicle", secondary=user_favorites, back_populates="favorited_by")
+
+    # Relation one-to-many vers le modèle VehicleInfoHistory, représentant l'historique des informations de véhicules 
+    # consultés ou enregistrés par l'utilisateur. Un utilisateur peut avoir plusieurs entrées d'historique, 
+    # mais chaque entrée est associée à un seul utilisateur.
+    vehicles_info_history = relationship("Vehicle", secondary=user_vehicle_history ,back_populates="history_by")
 
     # RGPD : Consentement explicite de l'utilisateur lors de l'inscription.
     # Stocke la date à laquelle l'utilisateur a accepté la politique de
@@ -212,8 +224,8 @@ class Vehicle(Base):
     # Relation bidirectionnelle many-to-many vers le modèle User via la
     # table d'association ``user_favorites``. L'attribut ``back_populates``
     # assure la synchronisation automatique avec ``User.favorites``.
-    favorited_by = relationship("User", secondary=user_favorites, back_populates="favorites"
-)
+    favorited_by = relationship("User", secondary=user_favorites, back_populates="favorites")
+    history_by = relationship("User", secondary=user_vehicle_history, back_populates="vehicles_info_history")
 
 def create_tables():
     """
