@@ -223,8 +223,6 @@ public class ProfileFragment extends Fragment {
             public void onCallFailure(Throwable t) {
 
             }
-        });
-            }
         }, this.getActivity());
     }
 
