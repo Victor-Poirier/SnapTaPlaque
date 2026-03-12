@@ -260,7 +260,7 @@ class PredictionHistory(BaseModel):
 
     class Config:
         from_attributes = True
-
+    
 # ---------- USER ----------
 
 class UserCreate(BaseModel):
@@ -395,3 +395,36 @@ class VehicleInfoResponse(BaseModel):
     class Config:
         from_attributes = True
 
+class AllFavoritesResponse(BaseModel):
+    """
+    Schéma de sérialisation pour la liste complète des plaques favorites d'un utilisateur.
+
+    Représente la réponse d'une requête retournant toutes les plaques
+    favorites d'un utilisateur, incluant les informations détaillées de
+    chaque plaque (texte, marque, modèle, énergie).
+
+    Attributes:
+        favorites (list[VehicleInfoResponse]): Liste des plaques
+            favorites de l'utilisateur, avec leurs informations
+            détaillées.
+    """
+    favorites: List[VehicleInfoResponse]
+
+    class Config:
+        from_attributes = True
+
+class VehicleInfoHistoryResponse(BaseModel):
+    """
+    Schéma de sérialisation pour l'historique des informations de véhicules consultés ou enregistrés par l'utilisateur.
+
+    Représente la réponse d'une requête retournant l'historique des
+    plaques d'immatriculation consultées ou enregistrées par un
+    utilisateur, avec les détails de chaque véhicule.
+
+    Attributes: 
+        history (list[VehicleInfoResponse]): Liste des entrées d'historique, chacune contenant les détails d'un véhicule consulté ou enregistré par l'utilisateur.
+    """
+    history: List[VehicleInfoResponse]
+
+    class Config:
+        from_attributes = True

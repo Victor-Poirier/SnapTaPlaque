@@ -25,6 +25,7 @@ from sqlalchemy.orm import Session
 from app import crud, schemas
 from app.database import get_db, User
 from app.auth import get_current_user
+from app.schemas import AllFavoritesResponse
 
 # Instance du routeur FastAPI pour les endpoints de gestion des favoris.
 # Ce routeur est ensuite inclus dans l'application principale avec
@@ -115,7 +116,9 @@ def remove_favorite(
     return {"message": "Véhicule retiré des favoris."}
 
 # ================== GET ALL FAVORITES ==================
-@router.get("/all", response_model=list[schemas.VehicleInfoResponse])
+
+
+@router.get("/all", response_model=AllFavoritesResponse)
 def get_favorites(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -136,8 +139,11 @@ def get_favorites(
             token est absent, expiré ou invalide.
 
     Returns:
-        list[VehicleInfoResponse]: Liste des véhicules favoris de
+        Liste des véhicules favoris de
             l'utilisateur avec leurs informations complètes (plaque,
             marque, modèle, année, etc.).
     """
-    return crud.get_user_favorites(db, current_user.id)
+    return  {
+            "favorites":
+                crud.get_user_favorites(db, current_user.id)
+            }
