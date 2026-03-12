@@ -1,7 +1,14 @@
 package com.example.snaptaplaque.models.api.favorites;
 
-public class FavoritesRemoveRequest {
-    private String license_plate;
+import com.google.gson.annotations.SerializedName;
 
-    public FavoritesRemoveRequest(String lp) {this.license_plate = lp; }
+public class FavoritesRemoveRequest {
+
+    private String licensePlate;
+
+    public FavoritesRemoveRequest(String lp) {this.licensePlate = lp; }
+
+    public String getLicensePlate() {
+        return licensePlate;
+    }
 }

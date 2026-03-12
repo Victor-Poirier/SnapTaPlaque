@@ -1,7 +1,14 @@
 package com.example.snaptaplaque.models.api.favorites;
 
-public class FavoritesAddRequest {
-    private String license_plate;
+import com.google.gson.annotations.SerializedName;
 
-    public FavoritesAddRequest(String lp) {this.license_plate = lp; }
+public class FavoritesAddRequest {
+    @SerializedName("license_plate")
+    private String licensePlate;
+
+    public FavoritesAddRequest(String lp) {this.licensePlate = lp; }
+
+    public String getLicensePlate() {
+        return licensePlate;
+    }
 }

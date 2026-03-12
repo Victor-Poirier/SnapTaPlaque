@@ -1,6 +1,8 @@
 package com.example.snaptaplaque.models.api.account;
 
 
+import retrofit2.http.FormUrlEncoded;
+
 public class LoginRequest {
 
 
