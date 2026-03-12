@@ -15,13 +15,17 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.snaptaplaque.R;
 import com.example.snaptaplaque.adapters.VehicleAdapter;
+import com.example.snaptaplaque.models.Vehicle;
 import com.example.snaptaplaque.models.api.favorites.FavoritesAddRequest;
 import com.example.snaptaplaque.models.api.favorites.FavoritesRemoveRequest;;
 import com.example.snaptaplaque.models.api.predictions.HistoryResponse;
 import com.example.snaptaplaque.models.api.predictions.HistoryResult;
+import com.example.snaptaplaque.models.api.vehicles.HistoryVehiclesResponse;
+import com.example.snaptaplaque.models.api.vehicles.InfoResponse;
 import com.example.snaptaplaque.network.apicall.ApiCallback;
 import com.example.snaptaplaque.network.apicall.FavoritesCall;
 import com.example.snaptaplaque.network.apicall.PredictionsCall;
+import com.example.snaptaplaque.network.apicall.VehiclesCall;
 import com.example.snaptaplaque.utils.SessionManager;
 import com.example.snaptaplaque.viewmodels.SharedViewModel;
 
@@ -125,19 +129,21 @@ public class HistoryFragment extends Fragment {
             adapter.updateList(vehicles);
         });
 
+        getHistory();
+
         return view;
     }
 
     // Endpoint : /v1/predictions/history
     public void getHistory(){
-        PredictionsCall.getHistory(new ApiCallback() {
+        VehiclesCall.history(new ApiCallback() {
             @Override
             public void onResponseSuccess(Response response) {
-                HistoryResponse history = (HistoryResponse)response.body();
-                List<HistoryResult> list = history.getHistory();
+                HistoryVehiclesResponse history = (HistoryVehiclesResponse)response.body();
+                List<InfoResponse> list = history.getHistory();
 
-                for(HistoryResult v : list){
-                    sharedViewModel.addVehicle(v.);
+                for(InfoResponse v : list){
+                    sharedViewModel.addVehicle(v.createVehicles());
                 }
             }
 
@@ -149,47 +155,6 @@ public class HistoryFragment extends Fragment {
             @Override
             public void onCallFailure(Throwable t) {
 
-            }
-        });
-    }
-
-    // Endpoint : /v1/favorites/add
-    public void addFavorite(){
-        FavoritesCall.addFavorite(new FavoritesAddRequest(""), new ApiCallback() {
-            @Override
-            public void onResponseSuccess(Response response) {
-                // Mettre à jour l'UI : afficher succès
-            }
-
-            @Override
-            public void onResponseFailure(Response response) {
-                // Mettre à jour l'UI : afficher erreur
-            }
-
-            @Override
-            public void onCallFailure(Throwable t) {
-                // Mettre à jour l'UI : afficher erreur
-            }
-        });
-
-    }
-
-    // Endpoint : /v1/favorites/remove
-    public void removeFavorite(){
-        FavoritesCall.removeFavorite(new FavoritesRemoveRequest(""), new ApiCallback() {
-            @Override
-            public void onResponseSuccess(Response response) {
-                // Mettre à jour l'UI : afficher succès
-            }
-
-            @Override
-            public void onResponseFailure(Response response) {
-                // Mettre à jour l'UI : afficher erreur
-            }
-
-            @Override
-            public void onCallFailure(Throwable t) {
-                // Mettre à jour l'UI : afficher erreur
             }
         });
     }

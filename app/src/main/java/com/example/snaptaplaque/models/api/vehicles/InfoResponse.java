@@ -1,5 +1,7 @@
 package com.example.snaptaplaque.models.api.vehicles;
 
+import com.example.snaptaplaque.models.Vehicle;
+
 public class InfoResponse {
 
     private String license_plate;
@@ -18,6 +20,10 @@ public class InfoResponse {
         this.model = model;
         this.info = info;
         this.energy = energy;
+    }
+
+    public Vehicle createVehicles(){
+        return new Vehicle(this.getLicensePlate(), this.getBrand(), this.getModel(), this.getInfo(), this.getEnergy(), false);
     }
 
     public String getLicensePlate() { return license_plate; }

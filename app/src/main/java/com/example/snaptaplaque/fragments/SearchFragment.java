@@ -15,6 +15,7 @@ import androidx.viewpager2.widget.ViewPager2;
 
 import com.example.snaptaplaque.R;
 import com.example.snaptaplaque.adapters.InputSectionAdapter;
+import com.example.snaptaplaque.models.api.predictions.PredictionRequest;
 import com.example.snaptaplaque.models.api.vehicles.InfoRequest;
 import com.example.snaptaplaque.models.api.vehicles.InfoResponse;
 import com.example.snaptaplaque.network.apicall.ApiCallback;
@@ -146,52 +147,4 @@ public class SearchFragment extends Fragment {
             }
         }
     }
-
-    // Endpoint : /v1/predictions/predict
-    /*
-    public void picturePredict(){
-        PredictionsCall.picturePredict(new PredictionRequest(new Uri()), new ApiCallback() {
-            @Override
-            public void onResponseSuccess(Response response) {
-
-            }
-
-            @Override
-            public void onResponseFailure(Response response) {
-
-            }
-
-            @Override
-            public void onCallFailure(Throwable t) {
-
-            }
-        }, new ApiPredictionsResponse() {
-                @Override
-                public void predictionResponse(PredictionResponse predictionResponse) {
-
-                }
-            });
-    }
-    */
-
-    // Endpoint : /v1/vehicles/info
-    public void getVehicleInfo(){
-        VehiclesCall.getVehicleInfo(new InfoRequest(""), new ApiCallback() {
-            @Override
-            public void onResponseSuccess(Response response) {
-
-            }
-
-            @Override
-            public void onResponseFailure(Response response) {
-
-            }
-
-            @Override
-            public void onCallFailure(Throwable t) {
-
-            }
-        });
-    }
-
 }

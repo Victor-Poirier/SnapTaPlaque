@@ -44,7 +44,7 @@ public class WheelFragment extends Fragment {
             return;
         }
 
-        VehiclesCall.getVehicleInfo(new InfoRequest(plate), new ApiCallback() {
+        VehiclesCall.vehicleInfo(new InfoRequest(plate), new ApiCallback() {
             @Override
             public void onResponseSuccess(Response response) {
 

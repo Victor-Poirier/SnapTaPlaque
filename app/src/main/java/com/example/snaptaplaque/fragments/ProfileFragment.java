@@ -192,25 +192,6 @@ public class ProfileFragment extends Fragment {
     // Endpoint : /v1/favorites/all
     public void getAllFavorites(){return;}
 
-    // Endpoint : /v1/favorites/remove
-    public void removeFavorite(){
-        FavoritesCall.removeFavorite(new FavoritesRemoveRequest(""), new ApiCallback() {
-            @Override
-            public void onResponseSuccess(Response response) {
-                // Mettre à jour l'UI : afficher succès
-            }
-
-            @Override
-            public void onResponseFailure(Response response) {
-                // Mettre à jour l'UI : afficher erreur
-            }
-
-            @Override
-            public void onCallFailure(Throwable t) {
-                // Mettre à jour l'UI : afficher erreur
-            }
-        });
-    }
 
     // Endpoint : /v1/account/me
     public void getUserInfo(){

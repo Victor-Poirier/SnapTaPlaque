@@ -89,6 +89,9 @@ public interface ApiService {
             @Body InfoRequest infoRequest
     );
 
+    @GET("v1/vehicles/history")
+    Call<HistoryResponse> historyVehicles();
+
     /*******************************/
     /* GLOBAL INFORMATION ENDPOINT */
     /*******************************/

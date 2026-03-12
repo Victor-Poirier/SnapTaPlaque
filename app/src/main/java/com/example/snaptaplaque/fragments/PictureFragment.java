@@ -19,8 +19,10 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.example.snaptaplaque.R;
 import com.example.snaptaplaque.models.Photo;
+import com.example.snaptaplaque.models.api.predictions.PredictionRequest;
 import com.example.snaptaplaque.models.api.vehicles.InfoRequest;
 import com.example.snaptaplaque.network.apicall.ApiCallback;
+import com.example.snaptaplaque.network.apicall.PredictionsCall;
 import com.example.snaptaplaque.network.apicall.VehiclesCall;
 import com.example.snaptaplaque.viewmodels.SharedViewModel;
 
@@ -108,11 +110,15 @@ public class PictureFragment extends Fragment {
         showPlate = view.findViewById(R.id.showPlate);
         btnSearch = view.findViewById(R.id.btnSearch);
 
-        btnPicture.setOnClickListener(v -> photo.showChoice());
+        btnPicture.setOnClickListener(v -> {
+            photo.showChoice();
+            picturePredict(photo);
+        });
+
         btnSearch.setOnClickListener(v -> {
             String plate = showPlate.getText().toString().trim();
             if (!plate.isEmpty()) {
-                VehiclesCall.getVehicleInfo(new InfoRequest(plate), new ApiCallback() {
+                VehiclesCall.vehicleInfo(new InfoRequest(plate), new ApiCallback() {
                     @Override
                     public void onResponseSuccess(Response response) {
 
@@ -144,4 +150,25 @@ public class PictureFragment extends Fragment {
         showPlate.setVisibility(View.VISIBLE);
         btnSearch.setVisibility(View.VISIBLE);
     }
+
+    // Endpoint : /v1/predictions/predict
+    public void picturePredict(Photo photo){
+        PredictionsCall.picturePredict(new PredictionRequest(photo.getTempImageUri()), new ApiCallback() {
+            @Override
+            public void onResponseSuccess(Response response) {
+                showPlate.setText(response.toString());
+            }
+
+            @Override
+            public void onResponseFailure(Response response) {
+
+            }
+
+            @Override
+            public void onCallFailure(Throwable t) {
+
+            }
+        });
+    }
+
 }
