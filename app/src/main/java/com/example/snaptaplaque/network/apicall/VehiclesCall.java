@@ -5,6 +5,9 @@ import com.example.snaptaplaque.models.api.vehicles.InfoRequest;
 import com.example.snaptaplaque.models.api.vehicles.InfoResponse;
 import com.example.snaptaplaque.network.ApiClient;
 import com.example.snaptaplaque.network.ApiService;
+import com.example.snaptaplaque.viewmodels.SharedViewModel;
+
+import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -13,6 +16,12 @@ import retrofit2.Response;
 public class VehiclesCall {
     private static ApiService apiService = ApiClient.getRetrofit().create(ApiService.class);
 
+    /**
+     * Récupère les informations d'un véhicule par sa plaque d'immatriculation.
+     * Vérifie d'abord si le véhicule est déjà dans le SharedViewModel avant d'appeler l'API.
+     *
+     * @param apiCallback     le callback pour gérer la réponse
+     */
     public static void vehicleInfo(InfoRequest infoRequest, ApiCallback apiCallback){
         apiService.vehicleInfo(infoRequest)
                 .enqueue(new Callback<InfoResponse>() {

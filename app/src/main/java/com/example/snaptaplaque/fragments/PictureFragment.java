@@ -121,12 +121,23 @@ public class PictureFragment extends Fragment {
                 VehiclesCall.vehicleInfo(new InfoRequest(plate), new ApiCallback() {
                     @Override
                     public void onResponseSuccess(Response response) {
-
+                        InfoResponse info = (InfoResponse) response.body();
+                        if (info != null) {
+                            Vehicle vehicle = new Vehicle(
+                                    info.getLicensePlate(),
+                                    info.getBrand(),
+                                    info.getModel(),
+                                    info.getInfo(),
+                                    info.getEnergy(),
+                                    false
+                            );
+                            sharedViewModel.addVehicle(vehicle);
+                        }
                     }
 
                     @Override
                     public void onResponseFailure(Response response) {
-
+                        Toast.makeText(getContext(), "Véhicule non trouvé", Toast.LENGTH_SHORT).show();
                     }
 
                     @Override

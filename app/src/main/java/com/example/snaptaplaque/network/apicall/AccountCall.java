@@ -7,6 +7,7 @@ import android.util.Log;
 
 import com.example.snaptaplaque.activities.MainActivity;
 import com.example.snaptaplaque.activities.SignInActivity;
+import com.example.snaptaplaque.models.api.account.*;
 import com.example.snaptaplaque.models.api.account.DataExportResponse;
 import com.example.snaptaplaque.models.api.account.DeleteAccountResponse;
 import com.example.snaptaplaque.models.api.account.LoginRequest;
@@ -69,7 +70,7 @@ public class AccountCall {
      * @param sessionManager Le gestionnaire de session pour sauvegarder le token.
      */
     public static void login(Activity activity, LoginRequest request, SessionManager sessionManager) {
-        apiService.login(request)
+        apiService.login(request.getUsername(), request.getPassword())
                 .enqueue(new Callback<LoginResponse>() {
 
                     @Override
@@ -77,7 +78,7 @@ public class AccountCall {
                         if (response.isSuccessful() && response.body() != null) {
                             String token = response.body().getAccessToken();
 
-                            Log.d("token", token);
+                            Log.d("LOGIN", "Login successful, token: " + token);
 
                             new Handler().postDelayed(() -> {
                                 sessionManager.saveSession(token, request.getUsername(), request.getPassword());
@@ -118,8 +119,10 @@ public class AccountCall {
                     }
                 });
     }
-    public static void me (ApiCallback apiCallback){
-        apiService.me()
+    public static void me (ApiCallback apiCallback, Activity activity){
+
+        String token = new SessionManager(activity).getToken();
+        apiService.me("Bearer " + token)
                 .enqueue(new Callback<MeResponse>() {
                     @Override
                     public void onResponse(Call<MeResponse> call, Response<MeResponse> response) {

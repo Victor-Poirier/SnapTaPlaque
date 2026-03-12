@@ -1,5 +1,6 @@
 package com.example.snaptaplaque.fragments;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,15 +19,21 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.snaptaplaque.R;
+import com.example.snaptaplaque.activities.SignInActivity;
+
 import com.example.snaptaplaque.models.Photo;
+
 import com.example.snaptaplaque.adapters.VehicleAdapter;
+
 import com.example.snaptaplaque.models.api.favorites.FavoritesRemoveRequest;
-import com.example.snaptaplaque.network.ApiClient;
-import com.example.snaptaplaque.network.ApiService;
+
 import com.example.snaptaplaque.network.apicall.AccountCall;
 import com.example.snaptaplaque.network.apicall.ApiCallback;
 import com.example.snaptaplaque.network.apicall.FavoritesCall;
 import com.example.snaptaplaque.network.apicall.PredictionsCall;
+
+import com.example.snaptaplaque.utils.SessionManager;
+
 import com.example.snaptaplaque.viewmodels.SharedViewModel;
 
 import java.util.ArrayList;
@@ -77,7 +84,8 @@ public class ProfileFragment extends Fragment {
      */
     private SharedViewModel sharedViewModel;
 
-    private ApiService apiService;
+    private SessionManager sessionManager;
+
 
     /**
      * Initialise le fragment et enregistre le lanceur de sélection d'image.
@@ -92,8 +100,6 @@ public class ProfileFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Même singleton Retrofit que dans LaunchActivity
-        apiService = ApiClient.getRetrofit().create(ApiService.class);
 
         // Outil qui ouvre la permission d'utiliser la caméra
         requestPermissionLauncher = registerForActivityResult(
@@ -158,11 +164,18 @@ public class ProfileFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_profile, container, false);
 
+        sessionManager = new SessionManager(getContext());
+
         ivProfile = view.findViewById(R.id.ivProfilePicture);
         ivProfile.setOnClickListener(v -> photo.showChoice());
 
         ivLogout = view.findViewById(R.id.ivLogout);
-        ivLogout.setOnClickListener(null);
+        ivLogout.setOnClickListener(v -> {
+            Intent intent = new Intent(getActivity(), SignInActivity.class);
+            sessionManager.logout();
+            Toast.makeText(getContext(), R.string.logout_success, Toast.LENGTH_SHORT).show();
+            startActivity(intent);
+        });
 
         recyclerView = view.findViewById(R.id.rvVehicles);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -211,6 +224,8 @@ public class ProfileFragment extends Fragment {
 
             }
         });
+            }
+        }, this.getActivity());
     }
 
     // Endpoint : /v1/predictions/stats
