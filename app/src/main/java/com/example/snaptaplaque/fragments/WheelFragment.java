@@ -11,11 +11,10 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.example.snaptaplaque.models.api.vehicles.InfoRequest;
+import com.example.snaptaplaque.models.Vehicle;
 import com.example.snaptaplaque.models.api.vehicles.InfoResponse;
 import com.example.snaptaplaque.network.apicall.ApiCallback;
 import com.example.snaptaplaque.network.apicall.VehiclesCall;
-import com.example.snaptaplaque.network.apicall.response.ApiVehiclesResponse;
 import com.example.snaptaplaque.viewmodels.SharedViewModel;
 
 import retrofit2.Response;
@@ -45,25 +44,31 @@ public class WheelFragment extends Fragment {
             return;
         }
 
-        VehiclesCall.getVehicleInfo(new InfoRequest(plate), new ApiCallback() {
+        VehiclesCall.getInfo(plate, sharedViewModel, new ApiCallback() {
             @Override
             public void onResponseSuccess(Response response) {
-
+                InfoResponse info = (InfoResponse) response.body();
+                if (info != null) {
+                    Vehicle vehicle = new Vehicle(
+                            info.getLicensePlate(),
+                            info.getBrand(),
+                            info.getModel(),
+                            info.getInfo(),
+                            info.getEnergy(),
+                            false
+                    );
+                    sharedViewModel.addVehicle(vehicle);
+                }
             }
 
             @Override
             public void onResponseFailure(Response response) {
-
+                Toast.makeText(getContext(), "Véhicule non trouvé", Toast.LENGTH_SHORT).show();
             }
 
             @Override
             public void onCallFailure(Throwable t) {
-
-            }
-        }, new ApiVehiclesResponse() {
-            @Override
-            public void infoResponse(InfoResponse infoResponse) {
-
+                Toast.makeText(getContext(), "Erreur réseau: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }

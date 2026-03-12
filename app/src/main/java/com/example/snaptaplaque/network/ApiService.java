@@ -14,7 +14,6 @@ import com.example.snaptaplaque.models.api.predictions.StatsResponse;
 import com.example.snaptaplaque.models.api.root.ApiVersionResponse;
 import com.example.snaptaplaque.models.api.root.RgpdResponse;
 import com.example.snaptaplaque.models.api.root.HealthResponse;
-import com.example.snaptaplaque.models.api.vehicles.InfoRequest;
 import com.example.snaptaplaque.models.api.vehicles.InfoResponse;
 
 import retrofit2.Call;
@@ -32,13 +31,15 @@ public interface ApiService {
     /**
      * Endpoint pour l'authentification d'un utilisateur.
      *
-     * @param loginRequest Un objet {@link LoginRequest} contenant les informations d'identification de l'utilisateur (nom d'utilisateur et mot de passe).
+     * @param username Le nom d'utilisateur.
+     * @param password Le mot de passe de l'utilisateur.
      * @return Un objet {@link Call} encapsulant la réponse de l'API, contenant un {@link LoginResponse} en cas de succès.
      */
     @FormUrlEncoded
     @POST("v1/account/login")
     Call<LoginResponse> login(
-            @Body LoginRequest loginRequest
+            @Field("username") String username,
+            @Field("password") String password
     );
 
     /**
@@ -53,7 +54,9 @@ public interface ApiService {
     );
 
     @GET("v1/account/me")
-    Call<MeResponse> me();
+    Call<MeResponse> me(
+            @Header("Authorization") String token
+    );
 
     @GET("v1/account/data-export")
     Call<DataExportResponse> data_export();
@@ -84,9 +87,9 @@ public interface ApiService {
     /*********************/
     /* VEHICLES ENDPOINT */
     /*********************/
-    @POST("v1/vehicles/info")
+    @GET("v1/vehicles/info")
     Call<InfoResponse> vehicleInfo(
-            @Body InfoRequest infoRequest
+            @Query("license_plate") String licensePlate
     );
 
     /*******************************/

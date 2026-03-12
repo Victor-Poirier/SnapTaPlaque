@@ -16,12 +16,10 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.snaptaplaque.R;
-import com.example.snaptaplaque.models.api.vehicles.InfoRequest;
+import com.example.snaptaplaque.models.Vehicle;
 import com.example.snaptaplaque.models.api.vehicles.InfoResponse;
-import com.example.snaptaplaque.network.ApiService;
 import com.example.snaptaplaque.network.apicall.ApiCallback;
 import com.example.snaptaplaque.network.apicall.VehiclesCall;
-import com.example.snaptaplaque.network.apicall.response.ApiVehiclesResponse;
 import com.example.snaptaplaque.viewmodels.SharedViewModel;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
@@ -39,7 +37,6 @@ public class VocalFragment extends Fragment {
     private Button btnSearch;
     private SharedViewModel sharedViewModel;
 
-    private ApiService apiService;
 
     @Nullable
     @Override
@@ -119,25 +116,31 @@ public class VocalFragment extends Fragment {
             return;
         }
 
-        VehiclesCall.getVehicleInfo(new InfoRequest(plate), new ApiCallback() {
+        VehiclesCall.getInfo(plate, sharedViewModel, new ApiCallback() {
             @Override
             public void onResponseSuccess(Response response) {
-
+                InfoResponse info = (InfoResponse) response.body();
+                if (info != null) {
+                    Vehicle vehicle = new Vehicle(
+                            info.getLicensePlate(),
+                            info.getBrand(),
+                            info.getModel(),
+                            info.getInfo(),
+                            info.getEnergy(),
+                            false
+                    );
+                    sharedViewModel.addVehicle(vehicle);
+                }
             }
 
             @Override
             public void onResponseFailure(Response response) {
-
+                Toast.makeText(getContext(), "Véhicule non trouvé", Toast.LENGTH_SHORT).show();
             }
 
             @Override
             public void onCallFailure(Throwable t) {
-
-            }
-        }, new ApiVehiclesResponse() {
-            @Override
-            public void infoResponse(InfoResponse infoResponse) {
-
+                Toast.makeText(getContext(), "Erreur réseau: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }

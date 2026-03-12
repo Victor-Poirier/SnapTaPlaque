@@ -20,13 +20,9 @@ import com.example.snaptaplaque.models.api.favorites.FavoritesAddResponse;
 import com.example.snaptaplaque.models.api.favorites.FavoritesRemoveRequest;
 import com.example.snaptaplaque.models.api.favorites.FavoritesRemoveResponse;
 import com.example.snaptaplaque.models.api.predictions.HistoryResponse;
-import com.example.snaptaplaque.network.ApiClient;
-import com.example.snaptaplaque.network.ApiService;
 import com.example.snaptaplaque.network.apicall.ApiCallback;
 import com.example.snaptaplaque.network.apicall.FavoritesCall;
 import com.example.snaptaplaque.network.apicall.PredictionsCall;
-import com.example.snaptaplaque.network.apicall.response.ApiPredictionsResponse;
-import com.example.snaptaplaque.network.apicall.response.ApiResponseFavorites;
 import com.example.snaptaplaque.utils.SessionManager;
 import com.example.snaptaplaque.viewmodels.SharedViewModel;
 
@@ -149,11 +145,6 @@ public class HistoryFragment extends Fragment {
             public void onCallFailure(Throwable t) {
 
             }
-        }, new ApiPredictionsResponse() {
-            @Override
-            public void historyResponse(HistoryResponse historyResponse) {
-
-            }
         });
     }
 
@@ -173,11 +164,6 @@ public class HistoryFragment extends Fragment {
             @Override
             public void onCallFailure(Throwable t) {
                 // Mettre à jour l'UI : afficher erreur
-            }
-        }, new ApiResponseFavorites() {
-            @Override
-            public void AddResponse(FavoritesAddResponse favoritesAddResponse) {
-
             }
         });
 
@@ -199,11 +185,6 @@ public class HistoryFragment extends Fragment {
             @Override
             public void onCallFailure(Throwable t) {
                 // Mettre à jour l'UI : afficher erreur
-            }
-        }, new ApiResponseFavorites() {
-            @Override
-            public void RemoveResponse(FavoritesRemoveResponse favoritesRemoveResponse) {
-
             }
         });
     }

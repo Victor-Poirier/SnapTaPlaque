@@ -42,4 +42,10 @@
     <string name="field_required">Tous les champs sont requis</string>
     <string name="validate_plate">La plaque est valide</string>
     <string name="unvalidate_plate">La plaque n\'est pas valide</string>
+    <string name="launch_error_title">Service indisponible</string>
+    <string name="launch_error_message">Impossible de se connecter au serveur. Vérifiez votre connexion et réessayez.
+    </string>
+    <string name="launch_error_retry">Réessayer</string>
+    <string name="launch_error_exit">Quitter</string>
+    <string name="logout_success">Déconnexion réussie</string>
 </resources>

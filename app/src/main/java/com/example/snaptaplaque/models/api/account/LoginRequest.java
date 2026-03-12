@@ -1,6 +1,8 @@
 package com.example.snaptaplaque.models.api.account;
 
+
 public class LoginRequest {
+
 
 
     private String username;

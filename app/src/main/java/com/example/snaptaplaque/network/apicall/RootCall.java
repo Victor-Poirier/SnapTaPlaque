@@ -9,7 +9,6 @@ import com.example.snaptaplaque.models.api.root.HealthResponse;
 import com.example.snaptaplaque.models.api.root.RgpdResponse;
 import com.example.snaptaplaque.network.ApiClient;
 import com.example.snaptaplaque.network.ApiService;
-import com.example.snaptaplaque.network.apicall.response.ApiRootResponse;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -23,14 +22,13 @@ public class RootCall {
     private static final int API_TIMEOUT_MS = 5000; // 5 secondes
 
     private static ApiService apiService = ApiClient.getRetrofit().create(ApiService.class);
-    public static void apiVersion(ApiCallback apiCallback, ApiRootResponse apiRootResponse){
+    public static void apiVersion(ApiCallback apiCallback){
         apiService.versions()
                 .enqueue(new Callback<ApiVersionResponse>() {
                     @Override
                     public void onResponse(Call<ApiVersionResponse> call, Response<ApiVersionResponse> response) {
                         if (response.isSuccessful() && response.body() != null){
                             apiCallback.onResponseSuccess(response);
-                            apiRootResponse.apiVersionResponse(response.body());
                         }
                         else {
                             apiCallback.onResponseFailure(response);
@@ -44,14 +42,13 @@ public class RootCall {
                 });
     }
 
-    public static void privacyPolicy(ApiCallback apiCallback, ApiRootResponse apiRootResponse){
+    public static void privacyPolicy(ApiCallback apiCallback){
         apiService.privacy_policy()
                 .enqueue(new Callback<RgpdResponse>() {
                     @Override
                     public void onResponse(Call<RgpdResponse> call, Response<RgpdResponse> response) {
                         if (response.isSuccessful() && response.body() != null){
                             apiCallback.onResponseSuccess(response);
-                            apiRootResponse.rgpdResponse(response.body());
                         }
                         else {
                             apiCallback.onResponseFailure(response);
@@ -65,7 +62,7 @@ public class RootCall {
                 });
     }
 
-    public static void health(ApiCallback apiCallback, ApiRootResponse apiRootResponse){
+    public static void health(ApiCallback apiCallback){
 
         Handler timeoutHandler = new Handler(Looper.getMainLooper());
         Runnable timeoutRunnable = () -> {
@@ -81,7 +78,6 @@ public class RootCall {
                         if (response.isSuccessful() && response.body() != null){
                             timeoutHandler.removeCallbacks(timeoutRunnable);
                             apiCallback.onResponseSuccess(response);
-                            apiRootResponse.healthResponse(response.body());
                         }
                         else {
                             apiCallback.onResponseFailure(response);

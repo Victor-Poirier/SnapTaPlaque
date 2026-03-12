@@ -22,8 +22,6 @@ import com.example.snaptaplaque.models.api.vehicles.InfoResponse;
 import com.example.snaptaplaque.network.apicall.ApiCallback;
 import com.example.snaptaplaque.network.apicall.PredictionsCall;
 import com.example.snaptaplaque.network.apicall.VehiclesCall;
-import com.example.snaptaplaque.network.apicall.response.ApiPredictionsResponse;
-import com.example.snaptaplaque.network.apicall.response.ApiVehiclesResponse;
 import com.example.snaptaplaque.viewmodels.SharedViewModel;
 
 import retrofit2.Response;
@@ -179,28 +177,5 @@ public class SearchFragment extends Fragment {
     */
 
     // Endpoint : /v1/vehicles/info
-    public void getVehicleInfo(){
-        VehiclesCall.getVehicleInfo(new InfoRequest(""), new ApiCallback() {
-            @Override
-            public void onResponseSuccess(Response response) {
-
-            }
-
-            @Override
-            public void onResponseFailure(Response response) {
-
-            }
-
-            @Override
-            public void onCallFailure(Throwable t) {
-
-            }
-        }, new ApiVehiclesResponse() {
-            @Override
-            public void infoResponse(InfoResponse infoResponse) {
-                super.infoResponse(infoResponse);
-            }
-        });
-    }
 
 }

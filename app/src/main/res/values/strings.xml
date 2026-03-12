@@ -41,4 +41,10 @@
     <string name="field_required">All field required</string>
     <string name="validate_plate">The plate is valid</string>
     <string name="unvalidate_plate">The plate is not valid</string>
+    <string name="launch_error_title">Service unavailable</string>
+    <string name="launch_error_message">Unable to connect to the server. Please check your connection and try again.
+    </string>
+    <string name="launch_error_retry">Retry</string>
+    <string name="launch_error_exit">Exit</string>
+    <string name="logout_success">"Log out successfully "</string>
 </resources>
