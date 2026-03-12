@@ -18,6 +18,8 @@ import com.example.snaptaplaque.network.apicall.VehiclesCall;
 import com.example.snaptaplaque.network.apicall.response.ApiVehiclesResponse;
 import com.example.snaptaplaque.viewmodels.SharedViewModel;
 
+import retrofit2.Response;
+
 public class WheelFragment extends Fragment {
 
     private SharedViewModel sharedViewModel;
@@ -38,20 +40,19 @@ public class WheelFragment extends Fragment {
      * @param plate la plaque d'immatriculation à rechercher
      */
     public void getInfo(String plate) {
-        InfoRequest infoRequest = new InfoRequest(plate);
         if (plate == null || plate.isEmpty()) {
             Toast.makeText(getContext(), "Veuillez saisir une plaque", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        VehiclesCall.getVehicleInfo(infoRequest, new ApiCallback() {
+        VehiclesCall.getVehicleInfo(new InfoRequest(plate), new ApiCallback() {
             @Override
-            public void onResponseSuccess(String message) {
+            public void onResponseSuccess(Response response) {
 
             }
 
             @Override
-            public void onResponseFailure(String message) {
+            public void onResponseFailure(Response response) {
 
             }
 
@@ -62,7 +63,6 @@ public class WheelFragment extends Fragment {
         }, new ApiVehiclesResponse() {
             @Override
             public void infoResponse(InfoResponse infoResponse) {
-                super.infoResponse(infoResponse);
 
             }
         });

@@ -32,6 +32,8 @@ import com.example.snaptaplaque.viewmodels.SharedViewModel;
 
 import java.util.ArrayList;
 
+import retrofit2.Response;
+
 /**
  * Fragment dédié à l'affichage de l'historique complet des véhicules scannés.
  *
@@ -72,7 +74,6 @@ public class HistoryFragment extends Fragment {
      */
     private SharedViewModel sharedViewModel;
 
-    private ApiService apiService;
     private SessionManager sessionManager;
 
     /**
@@ -102,9 +103,6 @@ public class HistoryFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        // Pour faire les appels à l'API
-        // Même singleton Retrofit que dans LaunchActivity
-        apiService = ApiClient.getRetrofit().create(ApiService.class);
         // Même SharedPreferences ("snap_tap_plaque_session") que dans LaunchActivity
         sessionManager = new SessionManager(this.getContext());
 
@@ -136,14 +134,14 @@ public class HistoryFragment extends Fragment {
 
     // Endpoint : /v1/predictions/history
     public void getHistory(){
-        PredictionsCall.getHistory(apiService, new ApiCallback() {
+        PredictionsCall.getHistory(new ApiCallback() {
             @Override
-            public void onResponseSuccess(String message) {
+            public void onResponseSuccess(Response response) {
 
             }
 
             @Override
-            public void onResponseFailure(String message) {
+            public void onResponseFailure(Response response) {
 
             }
 
@@ -161,14 +159,14 @@ public class HistoryFragment extends Fragment {
 
     // Endpoint : /v1/favorites/add
     public void addFavorite(){
-        FavoritesCall.addFavorite(apiService, new FavoritesAddRequest(""), new ApiCallback() {
+        FavoritesCall.addFavorite(new FavoritesAddRequest(""), new ApiCallback() {
             @Override
-            public void onResponseSuccess(String message) {
+            public void onResponseSuccess(Response response) {
                 // Mettre à jour l'UI : afficher succès
             }
 
             @Override
-            public void onResponseFailure(String message) {
+            public void onResponseFailure(Response response) {
                 // Mettre à jour l'UI : afficher erreur
             }
 
@@ -187,14 +185,14 @@ public class HistoryFragment extends Fragment {
 
     // Endpoint : /v1/favorites/remove
     public void removeFavorite(){
-        FavoritesCall.removeFavorite(apiService, new FavoritesRemoveRequest(""), new ApiCallback() {
+        FavoritesCall.removeFavorite(new FavoritesRemoveRequest(""), new ApiCallback() {
             @Override
-            public void onResponseSuccess(String message) {
+            public void onResponseSuccess(Response response) {
                 // Mettre à jour l'UI : afficher succès
             }
 
             @Override
-            public void onResponseFailure(String message) {
+            public void onResponseFailure(Response response) {
                 // Mettre à jour l'UI : afficher erreur
             }
 

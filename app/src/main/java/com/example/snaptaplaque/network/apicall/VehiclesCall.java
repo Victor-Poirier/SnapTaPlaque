@@ -11,9 +11,7 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 public class VehiclesCall {
-
     private static ApiService apiService = ApiClient.getRetrofit().create(ApiService.class);
-
     // Endpoint : /v1/vehicles/info
     public static void getVehicleInfo(InfoRequest infoRequest, ApiCallback apiCallback, ApiVehiclesResponse apiVehiclesResponse){
         apiService.vehicleInfo(infoRequest)
@@ -21,11 +19,11 @@ public class VehiclesCall {
                     @Override
                     public void onResponse(Call<InfoResponse> call, Response<InfoResponse> response) {
                         if (response.isSuccessful() && response.body() != null){
-                            apiCallback.onResponseSuccess(response.message());
+                            apiCallback.onResponseSuccess(response);
                             apiVehiclesResponse.infoResponse(response.body());
                         }
                         else {
-                            apiCallback.onResponseFailure(response.message());
+                            apiCallback.onResponseFailure(response);
                         }
                     }
 

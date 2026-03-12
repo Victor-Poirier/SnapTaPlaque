@@ -26,6 +26,8 @@ import com.example.snaptaplaque.network.apicall.VehiclesCall;
 import com.example.snaptaplaque.network.apicall.response.ApiVehiclesResponse;
 import com.example.snaptaplaque.viewmodels.SharedViewModel;
 
+import retrofit2.Response;
+
 public class PictureFragment extends Fragment {
 
     private ImageView ivLicencePlate;
@@ -114,12 +116,12 @@ public class PictureFragment extends Fragment {
             if (!plate.isEmpty()) {
                 VehiclesCall.getVehicleInfo(new InfoRequest(plate), new ApiCallback() {
                     @Override
-                    public void onResponseSuccess(String message) {
+                    public void onResponseSuccess(Response response) {
 
                     }
 
                     @Override
-                    public void onResponseFailure(String message) {
+                    public void onResponseFailure(Response response) {
 
                     }
 
@@ -130,7 +132,7 @@ public class PictureFragment extends Fragment {
                 }, new ApiVehiclesResponse() {
                     @Override
                     public void infoResponse(InfoResponse infoResponse) {
-                        super.infoResponse(infoResponse);
+
                     }
                 });
             } else {

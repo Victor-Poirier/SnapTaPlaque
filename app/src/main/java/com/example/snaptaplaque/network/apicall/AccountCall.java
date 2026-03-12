@@ -28,7 +28,6 @@ import retrofit2.Response;
  * Elle encapsule les méthodes pour l'authentification, l'inscription, la récupération des informations du compte, la suppression du compte, et l'exportation des données personnelles.
  */
 public class AccountCall {
-
     private static ApiService apiService = ApiClient.getRetrofit().create(ApiService.class);
 
 
@@ -98,8 +97,8 @@ public class AccountCall {
                 });
     }
 
-    public static void exportData(ApiService apiService, ApiCallback apiCallback ,ApiResponseAccount apiResponseAccount){}
-    public static void me (ApiService apiService, ApiCallback apiCallback ,ApiResponseAccount apiResponseAccount){}
-    public static void deleteAccount(ApiService apiService, ApiCallback apiCallback, ApiResponseAccount apiResponseAccount){}
+    public static void exportData(ApiCallback apiCallback ,ApiResponseAccount apiResponseAccount){}
+    public static void me (ApiCallback apiCallback ,ApiResponseAccount apiResponseAccount){}
+    public static void deleteAccount(ApiCallback apiCallback, ApiResponseAccount apiResponseAccount){}
 
 }

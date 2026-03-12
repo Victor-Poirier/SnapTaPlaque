@@ -25,6 +25,8 @@ import com.example.snaptaplaque.network.apicall.response.ApiModelResponse;
 import com.example.snaptaplaque.network.apicall.response.ApiResponseAccount;
 import com.example.snaptaplaque.network.apicall.response.ApiRootResponse;
 
+import retrofit2.Response;
+
 public class ProfileAdditionalInformationFragment extends DialogFragment {
     private ApiService apiService;
 
@@ -32,7 +34,7 @@ public class ProfileAdditionalInformationFragment extends DialogFragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
 
-        // MÃªme singleton Retrofit que dans LaunchActivity
+        // Même singleton Retrofit que dans LaunchActivity
         apiService = ApiClient.getRetrofit().create(ApiService.class);
 
         // A CHANGER
@@ -44,14 +46,14 @@ public class ProfileAdditionalInformationFragment extends DialogFragment {
 
 
     public void exportUserData(){
-        AccountCall.exportData(apiService, new ApiCallback() {
+        AccountCall.exportData(new ApiCallback() {
             @Override
-            public void onResponseSuccess(String message) {
+            public void onResponseSuccess(Response response) {
 
             }
 
             @Override
-            public void onResponseFailure(String message) {
+            public void onResponseFailure(Response response) {
 
             }
 
@@ -68,14 +70,14 @@ public class ProfileAdditionalInformationFragment extends DialogFragment {
     }
 
     public void deleteAccount(){
-        AccountCall.deleteAccount(apiService, new ApiCallback() {
+        AccountCall.deleteAccount(new ApiCallback() {
             @Override
-            public void onResponseSuccess(String message) {
+            public void onResponseSuccess(Response response) {
 
             }
 
             @Override
-            public void onResponseFailure(String message) {
+            public void onResponseFailure(Response response) {
 
             }
 
@@ -92,14 +94,14 @@ public class ProfileAdditionalInformationFragment extends DialogFragment {
     }
 
     public void apiVersion(){
-        RootCall.apiVersion(apiService, new ApiCallback() {
+        RootCall.apiVersion(new ApiCallback() {
             @Override
-            public void onResponseSuccess(String message) {
+            public void onResponseSuccess(Response response) {
 
             }
 
             @Override
-            public void onResponseFailure(String message) {
+            public void onResponseFailure(Response response) {
 
             }
 
@@ -117,14 +119,14 @@ public class ProfileAdditionalInformationFragment extends DialogFragment {
     }
 
     public void privacyPolicy(){
-        RootCall.privacyPolicy(apiService, new ApiCallback() {
+        RootCall.privacyPolicy(new ApiCallback() {
             @Override
-            public void onResponseSuccess(String message) {
+            public void onResponseSuccess(Response response) {
 
             }
 
             @Override
-            public void onResponseFailure(String message) {
+            public void onResponseFailure(Response response) {
 
             }
 
@@ -141,14 +143,14 @@ public class ProfileAdditionalInformationFragment extends DialogFragment {
     }
 
     public void modelInfo(){
-        ModelCall.modelInfo(apiService, new ApiCallback() {
+        ModelCall.modelInfo(new ApiCallback() {
             @Override
-            public void onResponseSuccess(String message) {
+            public void onResponseSuccess(Response response) {
 
             }
 
             @Override
-            public void onResponseFailure(String message) {
+            public void onResponseFailure(Response response) {
 
             }
 
