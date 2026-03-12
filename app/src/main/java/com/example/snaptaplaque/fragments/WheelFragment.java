@@ -32,10 +32,9 @@ public class WheelFragment extends Fragment {
     /**
      * Méthode appelée lorsque le fragment est créé.
      *
-     * @param inflater Le LayoutInflater utilisé pour inflaté le layout du fragment
-     * @param container Le ViewGroup parent du fragment
+     * @param inflater           Le LayoutInflater utilisé pour inflaté le layout du fragment
+     * @param container          Le ViewGroup parent du fragment
      * @param savedInstanceState Les données sauvegardées du fragment
-     *
      * @return Retourne la vue du fragment
      */
     @Nullable
@@ -77,7 +76,7 @@ public class WheelFragment extends Fragment {
      * Méthode qui initialise un NumberPicker avec les données fournies.
      *
      * @param recyclerView Le RecyclerView qui contiendra le NumberPicker
-     * @param data Les données à afficher dans le NumberPicker
+     * @param data         Les données à afficher dans le NumberPicker
      */
     private void setupSlot(RecyclerView recyclerView, String[] data) {
         if (recyclerView == null) return;
@@ -144,10 +143,12 @@ public class WheelFragment extends Fragment {
             }
 
             @Override
-            public void onTouchEvent(@NonNull RecyclerView rv, @NonNull MotionEvent e) {}
+            public void onTouchEvent(@NonNull RecyclerView rv, @NonNull MotionEvent e) {
+            }
 
             @Override
-            public void onRequestDisallowInterceptTouchEvent(boolean disallowIntercept) {}
+            public void onRequestDisallowInterceptTouchEvent(boolean disallowIntercept) {
+            }
         });
     }
 
@@ -198,10 +199,9 @@ public class WheelFragment extends Fragment {
         String regex_1 = "(?i)((?!SS|WW|W)[A-HJ-NP-TV-Z]{2})-((?!000)[0-9]{3})-((?!SS|WW)[A-HJ-NP-TV-Z]{2})";
         String regex_2 = "(?i)((?!SS|WW|W)[A-HJ-NP-TV-Z]{2})((?!000)[0-9]{3})((?!SS|WW)[A-HJ-NP-TV-Z]{2})";
 
-        if(plate.matches(regex_1) || plate.matches(regex_2)) {
+        if (plate.matches(regex_1) || plate.matches(regex_2)) {
             Toast.makeText(getContext(), "La plaque d'immatriculation est valide ✅", Toast.LENGTH_SHORT).show();
-        }
-        else {
+        } else {
             Toast.makeText(getContext(), "La plaque d'immatriculation n'est pas valide ❌", Toast.LENGTH_SHORT).show();
         }
     }

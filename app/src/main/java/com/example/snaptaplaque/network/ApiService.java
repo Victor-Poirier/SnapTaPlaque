@@ -14,6 +14,7 @@ import com.example.snaptaplaque.models.api.predictions.StatsResponse;
 import com.example.snaptaplaque.models.api.root.ApiVersionResponse;
 import com.example.snaptaplaque.models.api.root.RgpdResponse;
 import com.example.snaptaplaque.models.api.root.HealthResponse;
+import com.example.snaptaplaque.models.api.vehicles.InfoRequest;
 import com.example.snaptaplaque.models.api.vehicles.InfoResponse;
 
 import retrofit2.Call;
@@ -89,11 +90,13 @@ public interface ApiService {
     /*********************/
     @GET("v1/vehicles/info")
     Call<InfoResponse> vehicleInfo(
-            @Query("license_plate") String licensePlate
+            @Body InfoRequest infoRequest
     );
 
     @GET("v1/vehicles/history")
-    Call<HistoryResponse> historyVehicles();
+    Call<HistoryResponse> historyVehicles(
+
+    );
 
     /*******************************/
     /* GLOBAL INFORMATION ENDPOINT */

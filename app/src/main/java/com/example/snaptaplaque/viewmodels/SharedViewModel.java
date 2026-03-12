@@ -261,7 +261,8 @@ public class SharedViewModel extends ViewModel {
 
         return allVehicles.stream()
                 .filter(v -> v.getImmatriculation().toLowerCase().contains(query)
-                        || v.getDetails().toLowerCase().contains(query))
+                        || v.getInfo().toLowerCase().contains(query) || v.getEnergy().toLowerCase().contains(query)
+                        || v.getBrand().toLowerCase().contains(query) || v.getModel().toLowerCase().contains(query))
                 .collect(Collectors.toList());
     }
 }
