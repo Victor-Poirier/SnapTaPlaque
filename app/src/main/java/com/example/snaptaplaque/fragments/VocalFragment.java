@@ -29,6 +29,8 @@ import com.google.android.material.textfield.TextInputLayout;
 import java.util.ArrayList;
 import java.util.Locale;
 
+import retrofit2.Response;
+
 public class VocalFragment extends Fragment {
 
     private static final int REQUEST_CODE_SPEECH = 101;
@@ -119,12 +121,12 @@ public class VocalFragment extends Fragment {
 
         VehiclesCall.getVehicleInfo(new InfoRequest(plate), new ApiCallback() {
             @Override
-            public void onResponseSuccess(String message) {
+            public void onResponseSuccess(Response response) {
 
             }
 
             @Override
-            public void onResponseFailure(String message) {
+            public void onResponseFailure(Response response) {
 
             }
 

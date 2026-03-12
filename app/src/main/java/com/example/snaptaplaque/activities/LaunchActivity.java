@@ -11,10 +11,12 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.snaptaplaque.R;
-import com.example.snaptaplaque.models.api.root.TestApiResponse;
+import com.example.snaptaplaque.models.api.root.HealthResponse;
 import com.example.snaptaplaque.network.ApiClient;
 import com.example.snaptaplaque.network.ApiService;
-import com.example.snaptaplaque.network.apicall.AccountCall;
+import com.example.snaptaplaque.network.apicall.ApiCallback;
+import com.example.snaptaplaque.network.apicall.RootCall;
+import com.example.snaptaplaque.network.apicall.response.ApiRootResponse;
 import com.example.snaptaplaque.utils.SessionManager;
 
 import retrofit2.Call;
@@ -73,36 +75,31 @@ public class LaunchActivity extends AppCompatActivity {
      * Si la connexion échoue, affiche un message d'erreur et propose à l'utilisateur de réessayer ou de quitter.
      */
     private void testApiConnection() {
-        Call<TestApiResponse> call = apiService.health();
 
-        Handler timeoutHandler = new Handler(Looper.getMainLooper());
-        Runnable timeoutRunnable = () -> {
-            call.cancel();
-            Log.e(TAG, "API timeout after " + API_TIMEOUT_MS + "ms");
-            showApiUnavailableDialog();
-        };
-        timeoutHandler.postDelayed(timeoutRunnable, API_TIMEOUT_MS);
-
-        call.enqueue(new Callback<TestApiResponse>() {
+        RootCall.health(new ApiCallback() {
             @Override
-            public void onResponse(Call<TestApiResponse> c, Response<TestApiResponse> response) {
-                timeoutHandler.removeCallbacks(timeoutRunnable);
-                if (response.isSuccessful() && response.body() != null) {
-                    Log.d(TAG, "API available — status: " + response.body().getStatus());
-                    proceedToApp();
-                } else {
-                    Log.e(TAG, "API error code: " + response.code());
-                    showApiUnavailableDialog();
-                }
+            public void onResponseSuccess(Response response) {
+                Log.e(TAG, "API available: " + response.message());
+                showApiUnavailableDialog();
             }
 
             @Override
-            public void onFailure(Call<TestApiResponse> c, Throwable t) {
-                timeoutHandler.removeCallbacks(timeoutRunnable);
-                if (!c.isCanceled()) {
-                    Log.e(TAG, "API connection failed: " + t.getMessage());
-                    showApiUnavailableDialog();
-                }
+            public void onResponseFailure(Response response) {
+                Log.e(TAG, "API error code: " + response.message());
+                showApiUnavailableDialog();
+            }
+
+            @Override
+            public void onCallFailure(Throwable t) {
+                Log.e(TAG, "API connection failed: " + t.getMessage());
+                showApiUnavailableDialog();
+            }
+        }, new ApiRootResponse() {
+            @Override
+            public void healthResponse(HealthResponse healthResponse) {
+                super.healthResponse(healthResponse);
+                Log.d(TAG, "API available — status: " + healthResponse.getStatus());
+                proceedToApp();
             }
         });
     }

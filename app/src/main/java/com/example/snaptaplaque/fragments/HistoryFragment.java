@@ -32,6 +32,8 @@ import com.example.snaptaplaque.viewmodels.SharedViewModel;
 
 import java.util.ArrayList;
 
+import retrofit2.Response;
+
 /**
  * Fragment dédié à l'affichage de l'historique complet des véhicules scannés.
  *
@@ -132,14 +134,14 @@ public class HistoryFragment extends Fragment {
 
     // Endpoint : /v1/predictions/history
     public void getHistory(){
-        PredictionsCall.getHistory(apiService, new ApiCallback() {
+        PredictionsCall.getHistory(new ApiCallback() {
             @Override
-            public void onResponseSuccess(String message) {
+            public void onResponseSuccess(Response response) {
 
             }
 
             @Override
-            public void onResponseFailure(String message) {
+            public void onResponseFailure(Response response) {
 
             }
 
@@ -159,12 +161,12 @@ public class HistoryFragment extends Fragment {
     public void addFavorite(){
         FavoritesCall.addFavorite(new FavoritesAddRequest(""), new ApiCallback() {
             @Override
-            public void onResponseSuccess(String message) {
+            public void onResponseSuccess(Response response) {
                 // Mettre à jour l'UI : afficher succès
             }
 
             @Override
-            public void onResponseFailure(String message) {
+            public void onResponseFailure(Response response) {
                 // Mettre à jour l'UI : afficher erreur
             }
 
@@ -185,12 +187,12 @@ public class HistoryFragment extends Fragment {
     public void removeFavorite(){
         FavoritesCall.removeFavorite(new FavoritesRemoveRequest(""), new ApiCallback() {
             @Override
-            public void onResponseSuccess(String message) {
+            public void onResponseSuccess(Response response) {
                 // Mettre à jour l'UI : afficher succès
             }
 
             @Override
-            public void onResponseFailure(String message) {
+            public void onResponseFailure(Response response) {
                 // Mettre à jour l'UI : afficher erreur
             }
 

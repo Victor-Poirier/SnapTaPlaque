@@ -19,11 +19,11 @@ public class VehiclesCall {
                     @Override
                     public void onResponse(Call<InfoResponse> call, Response<InfoResponse> response) {
                         if (response.isSuccessful() && response.body() != null){
-                            apiCallback.onResponseSuccess(response.message());
+                            apiCallback.onResponseSuccess(response);
                             apiVehiclesResponse.infoResponse(response.body());
                         }
                         else {
-                            apiCallback.onResponseFailure(response.message());
+                            apiCallback.onResponseFailure(response);
                         }
                     }
 

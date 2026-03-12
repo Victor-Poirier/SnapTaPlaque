@@ -20,16 +20,24 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.snaptaplaque.R;
 import com.example.snaptaplaque.models.Photo;
 import com.example.snaptaplaque.adapters.VehicleAdapter;
+import com.example.snaptaplaque.models.api.account.MeResponse;
 import com.example.snaptaplaque.models.api.favorites.FavoritesRemoveRequest;
 import com.example.snaptaplaque.models.api.favorites.FavoritesRemoveResponse;
+import com.example.snaptaplaque.models.api.predictions.StatsResponse;
 import com.example.snaptaplaque.network.ApiClient;
 import com.example.snaptaplaque.network.ApiService;
+import com.example.snaptaplaque.network.apicall.AccountCall;
 import com.example.snaptaplaque.network.apicall.ApiCallback;
 import com.example.snaptaplaque.network.apicall.FavoritesCall;
+import com.example.snaptaplaque.network.apicall.PredictionsCall;
+import com.example.snaptaplaque.network.apicall.response.ApiPredictionsResponse;
+import com.example.snaptaplaque.network.apicall.response.ApiResponseAccount;
 import com.example.snaptaplaque.network.apicall.response.ApiResponseFavorites;
 import com.example.snaptaplaque.viewmodels.SharedViewModel;
 
 import java.util.ArrayList;
+
+import retrofit2.Response;
 
 /**
  * Fragment dédié à l'affichage du profil utilisateur et de ses véhicules favoris.
@@ -194,12 +202,12 @@ public class ProfileFragment extends Fragment {
     public void removeFavorite(){
         FavoritesCall.removeFavorite(new FavoritesRemoveRequest(""), new ApiCallback() {
             @Override
-            public void onResponseSuccess(String message) {
+            public void onResponseSuccess(Response response) {
                 // Mettre à jour l'UI : afficher succès
             }
 
             @Override
-            public void onResponseFailure(String message) {
+            public void onResponseFailure(Response response) {
                 // Mettre à jour l'UI : afficher erreur
             }
 
@@ -216,10 +224,54 @@ public class ProfileFragment extends Fragment {
     }
 
     // Endpoint : /v1/account/me
-    public void getUserInfo(){return;}
+    public void getUserInfo(){
+        AccountCall.me(new ApiCallback() {
+            @Override
+            public void onResponseSuccess(Response response) {
+
+            }
+
+            @Override
+            public void onResponseFailure(Response response) {
+
+            }
+
+            @Override
+            public void onCallFailure(Throwable t) {
+
+            }
+        }, new ApiResponseAccount() {
+            @Override
+            public void meResponse(MeResponse meResponse) {
+                super.meResponse(meResponse);
+            }
+        });
+    }
 
     // Endpoint : /v1/predictions/stats
-    public void userStat(){return;}
+    public void userStat(){
+        PredictionsCall.userStat(new ApiCallback() {
+            @Override
+            public void onResponseSuccess(Response response) {
+
+            }
+
+            @Override
+            public void onResponseFailure(Response response) {
+
+            }
+
+            @Override
+            public void onCallFailure(Throwable t) {
+
+            }
+        }, new ApiPredictionsResponse() {
+            @Override
+            public void statsResponse(StatsResponse statsResponse) {
+                super.statsResponse(statsResponse);
+            }
+        });
+    }
 
 
 }

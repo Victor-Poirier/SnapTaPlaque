@@ -15,18 +15,24 @@ import retrofit2.Response;
 
 public class FavoritesCall {
     private static ApiService apiService = ApiClient.getRetrofit().create(ApiService.class);
-    // Endpoint : /v1/favorites/add
+
+    /**
+     *
+     * @param favoritesAddRequest
+     * @param apiCallback
+     * @param apiResponseFavorites
+     */
     public static void addFavorite(FavoritesAddRequest favoritesAddRequest, ApiCallback apiCallback, ApiResponseFavorites apiResponseFavorites){
         apiService.add(favoritesAddRequest)
                 .enqueue(new Callback<FavoritesAddResponse>() {
                     @Override
                     public void onResponse(Call<FavoritesAddResponse> call, Response<FavoritesAddResponse> response) {
                         if (response.isSuccessful() && response.body() != null){
-                            apiCallback.onResponseSuccess(response.message());
+                            apiCallback.onResponseSuccess(response);
                             apiResponseFavorites.AddResponse(response.body());
                         }
                         else {
-                            apiCallback.onResponseFailure(response.message());
+                            apiCallback.onResponseFailure(response);
                         }
                     }
 
@@ -37,7 +43,12 @@ public class FavoritesCall {
                 });
     }
 
-    // Endpoint : /v1/favorites/remove
+    /**
+     *
+     * @param favoritesRemoveRequest
+     * @param apiCallback
+     * @param apiResponseFavorites
+     */
     public static void removeFavorite(FavoritesRemoveRequest favoritesRemoveRequest, ApiCallback apiCallback, ApiResponseFavorites apiResponseFavorites){
 
         apiService.remove(favoritesRemoveRequest)
@@ -45,11 +56,11 @@ public class FavoritesCall {
                     @Override
                     public void onResponse(Call<FavoritesRemoveResponse> call, Response<FavoritesRemoveResponse> response) {
                         if (response.isSuccessful() && response.body() != null){
-                            apiCallback.onResponseSuccess(response.message());
+                            apiCallback.onResponseSuccess(response);
                             apiResponseFavorites.RemoveResponse(response.body());
                         }
                         else {
-                            apiCallback.onResponseFailure(response.message());
+                            apiCallback.onResponseFailure(response);
                         }
                     }
 
@@ -60,17 +71,22 @@ public class FavoritesCall {
                 });
     }
 
+    /**
+     *
+     * @param apiCallback
+     * @param apiResponseFavorites
+     */
     public static void allFavorites(ApiCallback apiCallback, ApiResponseFavorites apiResponseFavorites){
         apiService.all()
                 .enqueue(new Callback<FavoriteAllResponse>() {
                     @Override
                     public void onResponse(Call<FavoriteAllResponse> call, Response<FavoriteAllResponse> response) {
                         if (response.isSuccessful() && response.body() != null){
-                            apiCallback.onResponseSuccess(response.message());
+                            apiCallback.onResponseSuccess(response);
                             apiResponseFavorites.AllResponse(response.body());
                         }
                         else {
-                            apiCallback.onResponseFailure(response.message());
+                            apiCallback.onResponseFailure(response);
                         }
                     }
 

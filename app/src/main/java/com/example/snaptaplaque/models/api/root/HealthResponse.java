@@ -8,7 +8,7 @@ package com.example.snaptaplaque.models.api.root;
         "version": "1.0"
     }
  */
-public class TestApiResponse {
+public class HealthResponse {
 
     private String status;
 

@@ -18,6 +18,8 @@ import com.example.snaptaplaque.network.apicall.VehiclesCall;
 import com.example.snaptaplaque.network.apicall.response.ApiVehiclesResponse;
 import com.example.snaptaplaque.viewmodels.SharedViewModel;
 
+import retrofit2.Response;
+
 public class WheelFragment extends Fragment {
 
     private SharedViewModel sharedViewModel;
@@ -45,12 +47,12 @@ public class WheelFragment extends Fragment {
 
         VehiclesCall.getVehicleInfo(new InfoRequest(plate), new ApiCallback() {
             @Override
-            public void onResponseSuccess(String message) {
+            public void onResponseSuccess(Response response) {
 
             }
 
             @Override
-            public void onResponseFailure(String message) {
+            public void onResponseFailure(Response response) {
 
             }
 

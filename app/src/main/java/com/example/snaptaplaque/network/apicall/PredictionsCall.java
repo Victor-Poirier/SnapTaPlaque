@@ -22,11 +22,11 @@ public class PredictionsCall {
                     @Override
                     public void onResponse(Call<HistoryResponse> call, Response<HistoryResponse> response) {
                         if (response.isSuccessful() && response.body() != null){
-                            apiCallback.onResponseSuccess(response.message());
+                            apiCallback.onResponseSuccess(response);
                             apiPredictionsResponse.historyResponse(response.body());
                         }
                         else {
-                            apiCallback.onResponseFailure(response.message());
+                            apiCallback.onResponseFailure(response);
                         }
                     }
 
@@ -44,11 +44,11 @@ public class PredictionsCall {
                     @Override
                     public void onResponse(Call<StatsResponse> call, Response<StatsResponse> response) {
                         if (response.isSuccessful() && response.body() != null){
-                            apiCallback.onResponseSuccess(response.message());
+                            apiCallback.onResponseSuccess(response);
                             apiPredictionsResponse.statsResponse(response.body());
                         }
                         else {
-                            apiCallback.onResponseFailure(response.message());
+                            apiCallback.onResponseFailure(response);
                         }
                     }
 
@@ -60,17 +60,17 @@ public class PredictionsCall {
     }
 
     // Endpoint : /v1/predictions/predict
-    public void picturePredict(PredictionRequest predictionRequest, ApiCallback apiCallback, ApiPredictionsResponse apiPredictionsResponse){
+    public static void picturePredict(PredictionRequest predictionRequest, ApiCallback apiCallback, ApiPredictionsResponse apiPredictionsResponse){
         apiService.predict(predictionRequest)
                 .enqueue(new Callback<PredictionResponse>() {
                     @Override
                     public void onResponse(Call<PredictionResponse> call, Response<PredictionResponse> response) {
                         if (response.isSuccessful() && response.body() != null){
-                            apiCallback.onResponseSuccess(response.message());
+                            apiCallback.onResponseSuccess(response);
                             apiPredictionsResponse.predictionResponse(response.body());
                         }
                         else {
-                            apiCallback.onResponseFailure(response.message());
+                            apiCallback.onResponseFailure(response);
                         }
                     }
 

@@ -17,11 +17,11 @@ public class ModelCall {
                     @Override
                     public void onResponse(Call<ModelInfoResponse> call, Response<ModelInfoResponse> response) {
                         if (response.isSuccessful() && response.body() != null){
-                            apiCallback.onResponseSuccess(response.message());
+                            apiCallback.onResponseSuccess(response);
                             apiModelResponse.modelInfoResponse(response.body());
                         }
                         else {
-                            apiCallback.onResponseFailure(response.message());
+                            apiCallback.onResponseFailure(response);
                         }
                     }
 

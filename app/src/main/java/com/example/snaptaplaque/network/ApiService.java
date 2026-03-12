@@ -13,7 +13,7 @@ import com.example.snaptaplaque.models.api.predictions.PredictionResponse;
 import com.example.snaptaplaque.models.api.predictions.StatsResponse;
 import com.example.snaptaplaque.models.api.root.ApiVersionResponse;
 import com.example.snaptaplaque.models.api.root.RgpdResponse;
-import com.example.snaptaplaque.models.api.root.TestApiResponse;
+import com.example.snaptaplaque.models.api.root.HealthResponse;
 import com.example.snaptaplaque.models.api.vehicles.InfoRequest;
 import com.example.snaptaplaque.models.api.vehicles.InfoResponse;
 
@@ -96,7 +96,7 @@ public interface ApiService {
      * Test si l'API est accessible en effectuant une requête GET sur un endpoint de test.
      */
     @GET("health")
-    Call<TestApiResponse> health();
+    Call<HealthResponse> health();
 
     /**
      * Faire appel à l'endpoint privacy-policy qui renvoie comment l'api utilise
