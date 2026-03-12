@@ -78,8 +78,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="25dp"
-        android:layout_marginTop="15dp"
-        android:text="Username"
+        android:layout_marginTop="5dp"
         android:textColor="@color/white"
         android:textSize="20sp"
         android:textStyle="bold"
@@ -92,14 +91,25 @@
         android:id="@+id/tvEmail"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="15dp"
-        android:text="email@example.com"
+        android:layout_marginTop="10dp"
         android:textColor="@color/gray"
         android:textSize="15sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="@id/tvUsername"
         app:layout_constraintTop_toBottomOf="@id/tvUsername"
     />
+
+    <TextView
+        android:id="@+id/tvCountry"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:textColor="@color/gray"
+        android:textSize="15sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@id/tvEmail"
+        app:layout_constraintTop_toBottomOf="@id/tvEmail"
+        />
 
     <TextView
         android:id="@+id/tvTitleFavorite"

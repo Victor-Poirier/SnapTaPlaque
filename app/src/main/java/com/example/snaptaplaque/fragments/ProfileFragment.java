@@ -7,6 +7,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.Toast;
 import android.net.Uri;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -21,6 +22,12 @@ import com.example.snaptaplaque.R;
 import com.example.snaptaplaque.models.Photo;
 import com.example.snaptaplaque.adapters.VehicleAdapter;
 import com.example.snaptaplaque.viewmodels.SharedViewModel;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+import android.location.Address;
+import android.location.Geocoder;
+import java.util.List;
+import java.util.Locale;
 
 import java.util.ArrayList;
 
@@ -52,11 +59,17 @@ public class ProfileFragment extends Fragment {
      */
     private ImageView ivProfile;
     private ImageView ivLogout;
-    private ActivityResultLauncher<String> requestPermissionLauncher;
+    private TextView tvUsername;
+    private TextView tvEmail;
+    private TextView tvCountry;
+    private ActivityResultLauncher<String> requestCameraPermissionLauncher;
+    private ActivityResultLauncher<String> requestLocationPermissionLauncher;
     private ActivityResultLauncher<Uri> cameraLauncher;
     private ActivityResultLauncher<String> galleryLauncher;
     private Photo photo;
     private RecyclerView recyclerView;
+    private FusedLocationProviderClient fusedLocationClient;
+    private static final int LOCATION_PERMISSION_REQUEST_CODE = 100;
 
     /**
      * Adapteur gérant l'affichage des véhicules favoris dans le {@link RecyclerView}.
@@ -81,8 +94,21 @@ public class ProfileFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        // Outil qui ouvre la permission d'utiliser la localisation
+        requestLocationPermissionLauncher = registerForActivityResult(
+                new ActivityResultContracts.RequestPermission(),
+                isGranted -> {
+                    if(isGranted) {
+                        getLastLocation();
+                    }
+                    else {
+                        Toast.makeText(getContext(), R.string.necessary_gps, Toast.LENGTH_SHORT).show();
+                    }
+                }
+        );
+
         // Outil qui ouvre la permission d'utiliser la caméra
-        requestPermissionLauncher = registerForActivityResult(
+        requestCameraPermissionLauncher = registerForActivityResult(
                 new ActivityResultContracts.RequestPermission(),
                 isGranted -> {
                     if(isGranted) {
@@ -117,7 +143,9 @@ public class ProfileFragment extends Fragment {
         );
 
         // Initialisation de la classe utilitaire Photo
-        photo = new Photo(requireContext(), requestPermissionLauncher, cameraLauncher, galleryLauncher);
+        photo = new Photo(requireContext(), requestCameraPermissionLauncher, cameraLauncher, galleryLauncher);
+
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity());
     }
 
     /**
@@ -144,11 +172,19 @@ public class ProfileFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_profile, container, false);
 
+        ivLogout = view.findViewById(R.id.ivLogout);
+        ivLogout.setOnClickListener(null);
+
         ivProfile = view.findViewById(R.id.ivProfilePicture);
         ivProfile.setOnClickListener(v -> photo.showChoice());
 
-        ivLogout = view.findViewById(R.id.ivLogout);
-        ivLogout.setOnClickListener(null);
+        tvUsername = view.findViewById(R.id.tvUsername);
+        tvUsername.setText("Username");
+        tvEmail = view.findViewById(R.id.tvEmail);
+        tvEmail.setText("email@example.com");
+        tvCountry = view.findViewById(R.id.tvCountry);
+
+        getLastLocation();
 
         recyclerView = view.findViewById(R.id.rvVehicles);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -173,5 +209,69 @@ public class ProfileFragment extends Fragment {
         });
 
         return view;
+    }
+
+    private void getLastLocation() {
+        if(androidx.core.app.ActivityCompat.checkSelfPermission(requireContext(),
+                android.Manifest.permission.ACCESS_FINE_LOCATION) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+            requestLocationPermissionLauncher.launch(android.Manifest.permission.ACCESS_FINE_LOCATION);
+
+            tvCountry.setText(R.string.country);
+
+            return;
+        }
+
+        fusedLocationClient.getLastLocation()
+                .addOnSuccessListener(requireActivity(), location -> {
+                    if(location != null) {
+                        tvCountry.setText(getCityName(location.getLatitude(), location.getLongitude()));
+                    }
+                    else {
+                        tvCountry.setText(R.string.country);
+                    }
+                });
+    }
+
+    private String getCityName(double latitude, double longitude) {
+        String Location = getString(R.string.country);
+        Geocoder geocoder = new Geocoder(requireContext(), Locale.getDefault());
+
+        try {
+            // Demande 1 seule adresse correspondant aux coordonnées
+            List<Address> addresses = geocoder.getFromLocation(latitude, longitude, 1);
+
+            if((addresses != null) && (!addresses.isEmpty())) {
+                Address address = addresses.get(0);
+
+                String cityName = address.getLocality();
+                String subName = address.getSubLocality();
+                String adminAreaName = address.getAdminArea();
+                String countryName = address.getCountryName();
+
+                if(((cityName != null) && (!cityName.isEmpty())) &&
+                   ((adminAreaName != null) && (!adminAreaName.isEmpty()))) {
+
+                    Location = cityName + ", " + adminAreaName;
+                }
+                else if(((subName != null) && (!subName.isEmpty())) &&
+                        ((adminAreaName != null) && (!adminAreaName.isEmpty()))) {
+
+                    Location = subName + ", " + adminAreaName;
+                }
+                else if((adminAreaName != null) && (!adminAreaName.isEmpty()) &&
+                        ((countryName != null) && (!countryName.isEmpty()))) {
+                    Location = adminAreaName + ", " + countryName;
+                }
+                else {
+                    Location = countryName;
+                }
+            }
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            Location = getString(R.string.country);
+        }
+
+        return Location;
     }
 }

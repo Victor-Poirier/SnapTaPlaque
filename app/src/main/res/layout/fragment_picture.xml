@@ -7,13 +7,20 @@
 
     <Button
         android:id="@+id/btnPicture"
-        android:layout_width="224dp"
-        android:layout_height="94dp"
-        android:layout_marginTop="32dp"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:minHeight="60dp"
         android:text="@string/picture_btn"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="@color/white"
+        app:backgroundTint="@color/red"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintVertical_bias="0.1"
+        app:layout_constraintWidth_percent="0.6"/>
 
     <ImageView
         android:id="@+id/ivLicencePlate"
@@ -43,14 +50,21 @@
 
     <Button
         android:id="@+id/btnSearch"
-        android:layout_width="224dp"
-        android:layout_height="94dp"
-        android:layout_marginTop="592dp"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="200dp"
+        android:minHeight="60dp"
         android:text="@string/search"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="@color/white"
+        app:backgroundTint="@color/red"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.497"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintVertical_bias="0.9"
+        app:layout_constraintWidth_percent="0.6"
         android:visibility="gone"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -5,6 +5,8 @@
 <uses-feature android:name="android.hardware.camera" android:required="false" />
 <uses-permission android:name="android.permission.CAMERA" />
 <uses-permission android:name="android.permission.INTERNET" />
+<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
 <application
     android:allowBackup="true"
@@ -19,7 +21,9 @@
 
     <activity
         android:name=".activities.LaunchActivity"
+        android:windowSoftInputMode="adjustResize"
         android:screenOrientation="portrait"
+        android:configChanges="orientation|screenSize"
         android:exported="true">
         <intent-filter>
             <action android:name="android.intent.action.MAIN"/>
@@ -29,14 +33,18 @@
     </activity>
 
     <activity android:name=".activities.SignInActivity"
-              android:screenOrientation="portrait" />
+              android:screenOrientation="portrait"
+              android:configChanges="orientation|screenSize"/>
+
 
     <activity android:name=".activities.SignUpActivity"
-              android:screenOrientation="portrait" />
+              android:screenOrientation="portrait"
+        android:configChanges="orientation|screenSize"/>
 
 
     <activity android:name=".activities.MainActivity"
-              android:screenOrientation="portrait" />
+              android:screenOrientation="portrait"
+        android:configChanges="orientation|screenSize"/>
 
     <provider
         android:name="androidx.core.content.FileProvider"

@@ -109,6 +109,29 @@ public class HistoryFragment extends Fragment {
             adapter.updateList(vehicles);
         });
 
+        androidx.appcompat.widget.SearchView searchView = view.findViewById(R.id.searchView);
+
+        searchView.setOnQueryTextListener(new androidx.appcompat.widget.SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                // Met à jour la requête dans le ViewModel
+                sharedViewModel.setSearchQuery(newText);
+                // Filtre et affiche la liste
+                adapter.updateList(sharedViewModel.getFilteredVehicles());
+                return true;
+            }
+        });
+
+        // lors d'un ajout de véhicule en arrière-plan
+        sharedViewModel.getVehicleList().observe(getViewLifecycleOwner(), vehicles -> {
+            adapter.updateList(sharedViewModel.getFilteredVehicles());
+        });
+
         return view;
     }
 }
