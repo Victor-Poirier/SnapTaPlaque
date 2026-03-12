@@ -5,7 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white">
+    android:background="@color/gray">
 
     <ImageView
         android:id="@+id/imageViewLogo"
@@ -15,7 +15,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/snap_ta_plaque" />
+        app:srcCompat="@drawable/snap_ta_plaque"/>
 
     <LinearLayout
         android:layout_width="360dp"
@@ -37,7 +37,7 @@
             android:layout_marginBottom="16dp"
             android:gravity="center"
             android:text="@string/join_us"
-            android:textColor="@color/black"
+            android:textColor="@color/white"
             android:textSize="24sp"
             android:textStyle="bold" />
 
@@ -120,41 +120,43 @@
 
         </com.google.android.material.textfield.TextInputLayout>
 
-        <Switch
-            android:id="@+id/buttonRGPD"
-            android:layout_width="322dp"
-            android:layout_height="83dp"
-            android:layout_weight="1"
-            android:text="@string/accept_privacy_policy" />
+        <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/buttonRGPD"
+                android:layout_width="322dp"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:text="@string/accept_privacy_policy"
+                android:textColor="@color/white"
+                android:textColorLink="@color/red" app:thumbTint="@color/red"/>
 
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:orientation="vertical">
 
             <Button
                 android:id="@+id/buttonInscription"
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
                 android:layout_weight="1"
                 android:text="@string/sign_up"
                 android:textColor="@android:color/white"
                 android:textSize="12sp"
-                app:backgroundTint="#3F51B5"
+                app:backgroundTint="@color/red"
                 app:cornerRadius="15dp" />
 
             <Button
                 android:id="@+id/buttonConnexion"
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
                 android:layout_weight="1"
                 android:text="@string/sign_in"
                 android:textColor="@android:color/white"
                 android:textSize="12sp"
-                app:backgroundTint="#3F51B5"
+                app:backgroundTint="@color/red"
                 app:cornerRadius="15dp" />
 
         </LinearLayout>
