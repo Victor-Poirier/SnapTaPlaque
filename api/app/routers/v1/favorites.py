@@ -115,8 +115,6 @@ def remove_favorite(
     return {"message": "Véhicule retiré des favoris."}
 
 # ================== GET ALL FAVORITES ==================
-
-
 @router.get("/all", response_model=list[schemas.VehicleInfoResponse])
 def get_favorites(
     db: Session = Depends(get_db),

@@ -5,6 +5,12 @@ public class ApiVersionResult {
     private String status;
     private String pipeline;
 
+    public ApiVersionResult(String version, String pipeline, String status) {
+        this.version = version;
+        this.pipeline = pipeline;
+        this.status = status;
+    }
+
     public String getVersion() {
         return version;
     }

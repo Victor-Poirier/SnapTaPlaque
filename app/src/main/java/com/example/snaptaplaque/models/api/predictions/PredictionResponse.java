@@ -14,6 +14,10 @@ public class PredictionResponse {
      */
     private List<PredictionDetectionResult> result;
 
+    public PredictionResponse(List<PredictionDetectionResult> result) {
+        this.result = result;
+    }
+
     public List<PredictionDetectionResult> getResults() {
         return result;
     }

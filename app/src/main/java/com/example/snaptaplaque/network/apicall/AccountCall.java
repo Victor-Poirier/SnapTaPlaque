@@ -7,13 +7,15 @@ import android.util.Log;
 
 import com.example.snaptaplaque.activities.MainActivity;
 import com.example.snaptaplaque.activities.SignInActivity;
+import com.example.snaptaplaque.models.api.account.DataExportResponse;
+import com.example.snaptaplaque.models.api.account.DeleteAccountResponse;
 import com.example.snaptaplaque.models.api.account.LoginRequest;
 import com.example.snaptaplaque.models.api.account.LoginResponse;
+import com.example.snaptaplaque.models.api.account.MeResponse;
 import com.example.snaptaplaque.models.api.account.RegisterRequest;
 import com.example.snaptaplaque.models.api.account.RegisterResponse;
 import com.example.snaptaplaque.network.ApiClient;
 import com.example.snaptaplaque.network.ApiService;
-import com.example.snaptaplaque.network.apicall.response.ApiResponseAccount;
 import com.example.snaptaplaque.utils.FeedbackManager;
 import com.example.snaptaplaque.utils.SessionManager;
 
@@ -97,8 +99,62 @@ public class AccountCall {
                 });
     }
 
-    public static void exportData(ApiCallback apiCallback ,ApiResponseAccount apiResponseAccount){}
-    public static void me (ApiCallback apiCallback ,ApiResponseAccount apiResponseAccount){}
-    public static void deleteAccount(ApiCallback apiCallback, ApiResponseAccount apiResponseAccount){}
+    public static void exportData(ApiCallback apiCallback){
+        apiService.data_export()
+                .enqueue(new Callback<DataExportResponse>() {
+                    @Override
+                    public void onResponse(Call<DataExportResponse> call, Response<DataExportResponse> response) {
+                        if (response.isSuccessful() && response.body() != null){
+                            apiCallback.onResponseSuccess(response);
+                        }
+                        else {
+                            apiCallback.onResponseFailure(response);
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<DataExportResponse> call, Throwable t) {
+                        apiCallback.onCallFailure(t);
+                    }
+                });
+    }
+    public static void me (ApiCallback apiCallback){
+        apiService.me()
+                .enqueue(new Callback<MeResponse>() {
+                    @Override
+                    public void onResponse(Call<MeResponse> call, Response<MeResponse> response) {
+                        if (response.isSuccessful() && response.body() != null){
+                            apiCallback.onResponseSuccess(response);
+                        }
+                        else {
+                            apiCallback.onResponseFailure(response);
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<MeResponse> call, Throwable t) {
+                        apiCallback.onCallFailure(t);
+                    }
+                });
+    }
+    public static void deleteAccount(ApiCallback apiCallback){
+        apiService.delete_account()
+                .enqueue(new Callback<DeleteAccountResponse>() {
+                    @Override
+                    public void onResponse(Call<DeleteAccountResponse> call, Response<DeleteAccountResponse> response) {
+                        if (response.isSuccessful() && response.body() != null){
+                            apiCallback.onResponseSuccess(response);
+                        }
+                        else {
+                            apiCallback.onResponseFailure(response);
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<DeleteAccountResponse> call, Throwable t) {
+                        apiCallback.onCallFailure(t);
+                    }
+                });
+    }
 
 }

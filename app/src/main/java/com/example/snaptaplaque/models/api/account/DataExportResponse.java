@@ -20,4 +20,10 @@ public class DataExportResponse {
     public FavoriteAllResponse getFavorites() {
         return favorites;
     }
+
+    public DataExportResponse(MeResponse profile, List<PredictionResponse> predictions, FavoriteAllResponse favorites) {
+        this.profile = profile;
+        this.predictions = predictions;
+        this.favorites = favorites;
+    }
 }

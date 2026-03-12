@@ -6,6 +6,13 @@ public class HistoryResult {
     private Float confidence;
     private String created_at;
 
+    public HistoryResult(Integer id, String plate_text, Float confidence, String created_at) {
+        this.id = id;
+        this.plate_text = plate_text;
+        this.confidence = confidence;
+        this.created_at = created_at;
+    }
+
     public Integer getId() {
         return id;
     }

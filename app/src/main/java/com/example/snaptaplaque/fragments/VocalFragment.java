@@ -21,7 +21,6 @@ import com.example.snaptaplaque.models.api.vehicles.InfoResponse;
 import com.example.snaptaplaque.network.ApiService;
 import com.example.snaptaplaque.network.apicall.ApiCallback;
 import com.example.snaptaplaque.network.apicall.VehiclesCall;
-import com.example.snaptaplaque.network.apicall.response.ApiVehiclesResponse;
 import com.example.snaptaplaque.viewmodels.SharedViewModel;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
@@ -132,11 +131,6 @@ public class VocalFragment extends Fragment {
 
             @Override
             public void onCallFailure(Throwable t) {
-
-            }
-        }, new ApiVehiclesResponse() {
-            @Override
-            public void infoResponse(InfoResponse infoResponse) {
 
             }
         });

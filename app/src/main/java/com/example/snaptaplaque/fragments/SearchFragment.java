@@ -15,15 +15,11 @@ import androidx.viewpager2.widget.ViewPager2;
 
 import com.example.snaptaplaque.R;
 import com.example.snaptaplaque.adapters.InputSectionAdapter;
-import com.example.snaptaplaque.models.api.predictions.PredictionRequest;
-import com.example.snaptaplaque.models.api.predictions.PredictionResponse;
 import com.example.snaptaplaque.models.api.vehicles.InfoRequest;
 import com.example.snaptaplaque.models.api.vehicles.InfoResponse;
 import com.example.snaptaplaque.network.apicall.ApiCallback;
 import com.example.snaptaplaque.network.apicall.PredictionsCall;
 import com.example.snaptaplaque.network.apicall.VehiclesCall;
-import com.example.snaptaplaque.network.apicall.response.ApiPredictionsResponse;
-import com.example.snaptaplaque.network.apicall.response.ApiVehiclesResponse;
 import com.example.snaptaplaque.viewmodels.SharedViewModel;
 
 import retrofit2.Response;
@@ -194,11 +190,6 @@ public class SearchFragment extends Fragment {
             @Override
             public void onCallFailure(Throwable t) {
 
-            }
-        }, new ApiVehiclesResponse() {
-            @Override
-            public void infoResponse(InfoResponse infoResponse) {
-                super.infoResponse(infoResponse);
             }
         });
     }

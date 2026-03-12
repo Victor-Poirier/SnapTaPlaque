@@ -7,6 +7,11 @@ public class PredictionDetectionResult {
     private String plaque_number;
     private double confidence;
 
+    public PredictionDetectionResult(String plaque_number, double confidence) {
+        this.plaque_number = plaque_number;
+        this.confidence = confidence;
+    }
+
     public String getPlaque_number() {
         return plaque_number;
     }

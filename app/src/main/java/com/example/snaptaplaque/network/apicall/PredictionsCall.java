@@ -6,7 +6,6 @@ import com.example.snaptaplaque.models.api.predictions.PredictionResponse;
 import com.example.snaptaplaque.models.api.predictions.StatsResponse;
 import com.example.snaptaplaque.network.ApiClient;
 import com.example.snaptaplaque.network.ApiService;
-import com.example.snaptaplaque.network.apicall.response.ApiPredictionsResponse;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -16,14 +15,13 @@ public class PredictionsCall {
     private static ApiService apiService = ApiClient.getRetrofit().create(ApiService.class);
 
     // Endpoint : /v1/predictions/history
-    public static void getHistory(ApiCallback apiCallback, ApiPredictionsResponse apiPredictionsResponse){
+    public static void getHistory(ApiCallback apiCallback){
         apiService.history()
                 .enqueue(new Callback<HistoryResponse>() {
                     @Override
                     public void onResponse(Call<HistoryResponse> call, Response<HistoryResponse> response) {
                         if (response.isSuccessful() && response.body() != null){
                             apiCallback.onResponseSuccess(response);
-                            apiPredictionsResponse.historyResponse(response.body());
                         }
                         else {
                             apiCallback.onResponseFailure(response);
@@ -38,14 +36,13 @@ public class PredictionsCall {
     }
 
     // Endpoint : /v1/predictions/stats
-    public static void userStat(ApiCallback apiCallback, ApiPredictionsResponse apiPredictionsResponse){
+    public static void userStat(ApiCallback apiCallback){
         apiService.stats()
                 .enqueue(new Callback<StatsResponse>() {
                     @Override
                     public void onResponse(Call<StatsResponse> call, Response<StatsResponse> response) {
                         if (response.isSuccessful() && response.body() != null){
                             apiCallback.onResponseSuccess(response);
-                            apiPredictionsResponse.statsResponse(response.body());
                         }
                         else {
                             apiCallback.onResponseFailure(response);
@@ -60,14 +57,13 @@ public class PredictionsCall {
     }
 
     // Endpoint : /v1/predictions/predict
-    public static void picturePredict(PredictionRequest predictionRequest, ApiCallback apiCallback, ApiPredictionsResponse apiPredictionsResponse){
+    public static void picturePredict(PredictionRequest predictionRequest, ApiCallback apiCallback){
         apiService.predict(predictionRequest)
                 .enqueue(new Callback<PredictionResponse>() {
                     @Override
                     public void onResponse(Call<PredictionResponse> call, Response<PredictionResponse> response) {
                         if (response.isSuccessful() && response.body() != null){
                             apiCallback.onResponseSuccess(response);
-                            apiPredictionsResponse.predictionResponse(response.body());
                         }
                         else {
                             apiCallback.onResponseFailure(response);

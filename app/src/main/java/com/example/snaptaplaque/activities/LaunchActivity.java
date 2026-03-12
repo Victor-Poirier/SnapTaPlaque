@@ -16,7 +16,6 @@ import com.example.snaptaplaque.network.ApiClient;
 import com.example.snaptaplaque.network.ApiService;
 import com.example.snaptaplaque.network.apicall.ApiCallback;
 import com.example.snaptaplaque.network.apicall.RootCall;
-import com.example.snaptaplaque.network.apicall.response.ApiRootResponse;
 import com.example.snaptaplaque.utils.SessionManager;
 
 import retrofit2.Call;
@@ -80,7 +79,7 @@ public class LaunchActivity extends AppCompatActivity {
             @Override
             public void onResponseSuccess(Response response) {
                 Log.e(TAG, "API available: " + response.message());
-                showApiUnavailableDialog();
+                proceedToApp();
             }
 
             @Override
@@ -93,13 +92,6 @@ public class LaunchActivity extends AppCompatActivity {
             public void onCallFailure(Throwable t) {
                 Log.e(TAG, "API connection failed: " + t.getMessage());
                 showApiUnavailableDialog();
-            }
-        }, new ApiRootResponse() {
-            @Override
-            public void healthResponse(HealthResponse healthResponse) {
-                super.healthResponse(healthResponse);
-                Log.d(TAG, "API available — status: " + healthResponse.getStatus());
-                proceedToApp();
             }
         });
     }

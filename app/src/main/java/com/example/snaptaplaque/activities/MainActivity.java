@@ -97,11 +97,6 @@ public class MainActivity extends AppCompatActivity {
         Profil profil = Profil.createProfil("testuser", "Test", "User", "password123", "user@email.fr");
         sharedViewModel.setProfil(profil);
 
-        // Données fictives initiales pour l'historique
-        List<Vehicle> initialVehicles = new ArrayList<>();
-        initialVehicles.add(new Vehicle("DR-593-DE", "Renault", "Laguna 3", "Coupé Intens 2.0 dCi 175", "Diesel",true));
-        sharedViewModel.setVehicles(initialVehicles);
-
         viewPager = findViewById(R.id.viewPager);
         circleHistory = findViewById(R.id.circleHistory);
         circleSearch = findViewById(R.id.circleSearch);

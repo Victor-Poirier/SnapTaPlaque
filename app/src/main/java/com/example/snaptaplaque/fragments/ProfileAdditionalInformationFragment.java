@@ -10,20 +10,12 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 
 import com.example.snaptaplaque.R;
-import com.example.snaptaplaque.models.api.account.DataExportResponse;
-import com.example.snaptaplaque.models.api.account.DeleteAccountResponse;
-import com.example.snaptaplaque.models.api.model.ModelInfoResponse;
-import com.example.snaptaplaque.models.api.root.ApiVersionResponse;
-import com.example.snaptaplaque.models.api.root.RgpdResponse;
 import com.example.snaptaplaque.network.ApiClient;
 import com.example.snaptaplaque.network.ApiService;
 import com.example.snaptaplaque.network.apicall.AccountCall;
 import com.example.snaptaplaque.network.apicall.ApiCallback;
 import com.example.snaptaplaque.network.apicall.ModelCall;
 import com.example.snaptaplaque.network.apicall.RootCall;
-import com.example.snaptaplaque.network.apicall.response.ApiModelResponse;
-import com.example.snaptaplaque.network.apicall.response.ApiResponseAccount;
-import com.example.snaptaplaque.network.apicall.response.ApiRootResponse;
 
 import retrofit2.Response;
 
@@ -61,11 +53,6 @@ public class ProfileAdditionalInformationFragment extends DialogFragment {
             public void onCallFailure(Throwable t) {
 
             }
-        }, new ApiResponseAccount() {
-            @Override
-            public void dataExportResponse(DataExportResponse dataExportResponse) {
-
-            }
         });
     }
 
@@ -83,11 +70,6 @@ public class ProfileAdditionalInformationFragment extends DialogFragment {
 
             @Override
             public void onCallFailure(Throwable t) {
-
-            }
-        }, new ApiResponseAccount() {
-            @Override
-            public void deleteAccount(DeleteAccountResponse deleteAccountResponse) {
 
             }
         });
@@ -109,12 +91,6 @@ public class ProfileAdditionalInformationFragment extends DialogFragment {
             public void onCallFailure(Throwable t) {
 
             }
-        }, new ApiRootResponse() {
-            @Override
-            public void apiVersionResponse(ApiVersionResponse apiVersionResponse) {
-
-            }
-
         });
     }
 
@@ -134,11 +110,6 @@ public class ProfileAdditionalInformationFragment extends DialogFragment {
             public void onCallFailure(Throwable t) {
 
             }
-        }, new ApiRootResponse() {
-            @Override
-            public void rgpdResponse(RgpdResponse rgpdResponse) {
-
-            }
         });
     }
 
@@ -156,11 +127,6 @@ public class ProfileAdditionalInformationFragment extends DialogFragment {
 
             @Override
             public void onCallFailure(Throwable t) {
-
-            }
-        }, new ApiModelResponse() {
-            @Override
-            public void modelInfoResponse(ModelInfoResponse modelInfoResponse) {
 
             }
         });

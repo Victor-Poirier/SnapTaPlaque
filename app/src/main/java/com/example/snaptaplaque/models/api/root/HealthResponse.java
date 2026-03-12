@@ -14,6 +14,11 @@ public class HealthResponse {
 
     private String version;
 
+    public HealthResponse(String status, String version) {
+        this.status = status;
+        this.version = version;
+    }
+
     public String getStatus() {
         return status;
     }

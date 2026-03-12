@@ -16,21 +16,17 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.snaptaplaque.R;
 import com.example.snaptaplaque.adapters.VehicleAdapter;
 import com.example.snaptaplaque.models.api.favorites.FavoritesAddRequest;
-import com.example.snaptaplaque.models.api.favorites.FavoritesAddResponse;
-import com.example.snaptaplaque.models.api.favorites.FavoritesRemoveRequest;
-import com.example.snaptaplaque.models.api.favorites.FavoritesRemoveResponse;
+import com.example.snaptaplaque.models.api.favorites.FavoritesRemoveRequest;;
 import com.example.snaptaplaque.models.api.predictions.HistoryResponse;
-import com.example.snaptaplaque.network.ApiClient;
-import com.example.snaptaplaque.network.ApiService;
+import com.example.snaptaplaque.models.api.predictions.HistoryResult;
 import com.example.snaptaplaque.network.apicall.ApiCallback;
 import com.example.snaptaplaque.network.apicall.FavoritesCall;
 import com.example.snaptaplaque.network.apicall.PredictionsCall;
-import com.example.snaptaplaque.network.apicall.response.ApiPredictionsResponse;
-import com.example.snaptaplaque.network.apicall.response.ApiResponseFavorites;
 import com.example.snaptaplaque.utils.SessionManager;
 import com.example.snaptaplaque.viewmodels.SharedViewModel;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import retrofit2.Response;
 
@@ -137,7 +133,12 @@ public class HistoryFragment extends Fragment {
         PredictionsCall.getHistory(new ApiCallback() {
             @Override
             public void onResponseSuccess(Response response) {
+                HistoryResponse history = (HistoryResponse)response.body();
+                List<HistoryResult> list = history.getHistory();
 
+                for(HistoryResult v : list){
+                    sharedViewModel.addVehicle(v.);
+                }
             }
 
             @Override
@@ -147,11 +148,6 @@ public class HistoryFragment extends Fragment {
 
             @Override
             public void onCallFailure(Throwable t) {
-
-            }
-        }, new ApiPredictionsResponse() {
-            @Override
-            public void historyResponse(HistoryResponse historyResponse) {
 
             }
         });
@@ -174,11 +170,6 @@ public class HistoryFragment extends Fragment {
             public void onCallFailure(Throwable t) {
                 // Mettre à jour l'UI : afficher erreur
             }
-        }, new ApiResponseFavorites() {
-            @Override
-            public void AddResponse(FavoritesAddResponse favoritesAddResponse) {
-
-            }
         });
 
     }
@@ -199,11 +190,6 @@ public class HistoryFragment extends Fragment {
             @Override
             public void onCallFailure(Throwable t) {
                 // Mettre à jour l'UI : afficher erreur
-            }
-        }, new ApiResponseFavorites() {
-            @Override
-            public void RemoveResponse(FavoritesRemoveResponse favoritesRemoveResponse) {
-
             }
         });
     }

@@ -13,6 +13,18 @@ public class RgpdResponse {
     private String data_sharing;
     private List<String> security_measures;
 
+    public RgpdResponse(String controller, String contact, String purpose, String legal_basis, List<String> data_collected, String retention_period, RgpdResultUserRight user_rights, String data_sharing, List<String> security_measures) {
+        this.controller = controller;
+        this.contact = contact;
+        this.purpose = purpose;
+        this.legal_basis = legal_basis;
+        this.data_collected = data_collected;
+        this.retention_period = retention_period;
+        this.user_rights = user_rights;
+        this.data_sharing = data_sharing;
+        this.security_measures = security_measures;
+    }
+
     public String getController() {
         return controller;
     }
