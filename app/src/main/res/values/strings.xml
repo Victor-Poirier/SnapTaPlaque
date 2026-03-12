@@ -44,4 +44,5 @@
     <string name="describe_trace_title">Tire trace</string>
     <string name="description_indicator_scan">Indicator scan</string>
     <string name="tiret">-</string>
+    <string name="searchInputHistory" type="id">Find a plate or a model...</string>
 </resources>

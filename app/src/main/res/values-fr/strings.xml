@@ -44,4 +44,6 @@
     <string name="item_vehicle_description">Logo de la marque</string>
     <string name="describe_trace_title">Trace de pneu</string>
     <string name="description_indicator_scan">Appareil photo</string>
+    <string name="tiret">-</string>
+    <string name="searchInputHistory" type="id">Rechercher une plaque ou un modèle...</string>
 </resources>

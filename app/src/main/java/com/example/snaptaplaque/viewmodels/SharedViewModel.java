@@ -72,6 +72,14 @@ public class SharedViewModel extends ViewModel {
     private final MutableLiveData<List<Vehicle>> favoriteList = new MutableLiveData<>(new ArrayList<>());
 
     /**
+     * Flux observable contenant la requête de recherche courante.
+     *
+     * <p>Chaque modification déclenche une notification aux observateurs inscrits
+     * via {@link LiveData#observe}.</p>
+     */
+    private final MutableLiveData<String> searchQuery = new MutableLiveData<>("");
+
+    /**
      * Profil de l'utilisateur actuellement connecté.
      *
      * <p>Sa liste {@link Profil#favoriteVehicule} est synchronisée avec
@@ -228,5 +236,32 @@ public class SharedViewModel extends ViewModel {
                 currentProfil.favoriteVehicule.addAll(favorites);
             }
         }
+    }
+
+    /**
+     * Définit la requête de recherche courante.
+     *
+     * @param query
+     */
+    public void setSearchQuery(String query) {
+        searchQuery.setValue(query);
+    }
+
+    /**
+     * Retourne la liste des véhicules qui correspondent à la requête de recherche.
+     *
+     * @return
+     */
+    public List<Vehicle> getFilteredVehicles() {
+        String query = searchQuery.getValue().toLowerCase();
+        List<Vehicle> allVehicles = vehicleList.getValue();
+
+        if (allVehicles == null) return new ArrayList<>();
+        if (query.isEmpty()) return allVehicles;
+
+        return allVehicles.stream()
+                .filter(v -> v.getImmatriculation().toLowerCase().contains(query)
+                        || v.getDetails().toLowerCase().contains(query))
+                .collect(Collectors.toList());
     }
 }

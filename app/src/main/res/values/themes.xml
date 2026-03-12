@@ -14,4 +14,9 @@
         <item name="android:textColorPrimary">@android:color/black</item>
         <item name="android:colorControlNormal">@android:color/transparent</item>
     </style>
+    <style name="WhiteSearchViewStyle" parent="Widget.AppCompat.SearchView">
+        <item name="android:editTextColor">@color/white</item>
+        <item name="android:textColorHint">@color/white</item>
+        <item name="android:tint">@color/white</item>
+    </style>
 </resources>
