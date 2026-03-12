@@ -15,6 +15,8 @@
     <string name="camera_choice">Take a photo</string>
     <string name="gallery_choice">Select from the gallery</string>
     <string name="necessary_camera">The camera is needed to take a photo</string>
+    <string name="necessary_gps">The GPS is needed to see your location</string>
+    <string name="country">United States</string>
     <string name="bnt_search_other">Search another vehicle</string>
     <string name="hint_immatriculation">License Plate Number</string>
     <string name="placeholder_make_model">Make Model Trim Engine ...</string>
