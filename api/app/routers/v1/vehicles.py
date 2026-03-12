@@ -71,6 +71,8 @@ async def get_vehicle_info(
             else:
                 # Sauvegarde dans la base de données
                 crud.create_vehicle(db, vehicle)
+                # Enregistrement de l'historique de consultation pour l'utilisateur
+                crud.create_vehicle_info_history(db, current_user.id, license_plate=plate_formatted)
                 logger.info(f"Véhicule '{plate_formatted}' récupéré et sauvegardé en bdd.")
 
 
@@ -84,3 +86,32 @@ async def get_vehicle_info(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Erreur lors de la récupération des données du véhicule."
         )
+    
+@router.get("/history", response_model=schemas.VehicleInfoHistoryResponse)
+async def get_vehicle_info_history(
+        db: Session = Depends(get_db),
+        current_user: User = Depends(get_current_user),
+):
+    """
+    Récupère l'historique des informations de véhicules consultés ou enregistrés par l'utilisateur.
+
+    Ce service retourne une liste d'entrées d'historique, chacune contenant les détails d'un véhicule
+    et la date de consultation/enregistrement.
+
+    :param db: Session de base de données SQLAlchemy.
+    :type db: Session
+    :param current_user: Utilisateur extrait du token JWT.
+    :type current_user: User
+    :returns: Liste d'entrées d'historique des véhicules.
+    :rtype: schemas.VehicleInfoHistoryResponse
+    """
+    try:
+        history_entries = crud.get_vehicle_info_history_by_user(db, current_user.id)
+        return schemas.VehicleInfoHistoryResponse(history=history_entries)
+    
+    except Exception as e:
+        logger.error(f"Erreur lors de la récupération de l'historique des véhicules: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Erreur lors de la récupération de l'historique des véhicules."
+        )  

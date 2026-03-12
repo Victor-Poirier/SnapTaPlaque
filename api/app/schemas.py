@@ -412,3 +412,19 @@ class AllFavoritesResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+class VehicleInfoHistoryResponse(BaseModel):
+    """
+    Schéma de sérialisation pour l'historique des informations de véhicules consultés ou enregistrés par l'utilisateur.
+
+    Représente la réponse d'une requête retournant l'historique des
+    plaques d'immatriculation consultées ou enregistrées par un
+    utilisateur, avec les détails de chaque véhicule.
+
+    Attributes: 
+        history (list[VehicleInfoResponse]): Liste des entrées d'historique, chacune contenant les détails d'un véhicule consulté ou enregistré par l'utilisateur.
+    """
+    history: List[VehicleInfoResponse]
+
+    class Config:
+        from_attributes = True
