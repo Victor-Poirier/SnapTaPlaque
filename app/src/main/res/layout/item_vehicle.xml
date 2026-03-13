@@ -19,7 +19,6 @@
                 android:id="@+id/ivVehicle"
                 android:layout_width="60dp"
                 android:layout_height="60dp"
-                android:src="@drawable/ic_car"
                 android:contentDescription="@string/item_vehicle_description"/>
 
         <View

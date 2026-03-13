@@ -13,6 +13,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.snaptaplaque.R;
 import com.example.snaptaplaque.activities.SignInActivity;
 import com.example.snaptaplaque.models.Vehicle;
@@ -45,7 +46,7 @@ import retrofit2.Response;
  * <p>Cet adaptateur supporte deux modes de fonctionnement pour la gestion des favoris :
  * <ol>
  *     <li><strong>Avec listener :</strong> lorsqu'un {@link OnFavoriteClickListener} est fourni
- *         via le constructeur {@link #VehicleAdapter(List, OnVehicleClickListener, OnFavoriteClickListener)}, le clic
+ *         via le constructeur, le clic
  *         sur l'icône étoile est délégué au listener (typiquement le
  *         {@link com.example.snaptaplaque.viewmodels.SharedViewModel#toggleFavorite(Vehicle)}).
  *         Ce mode garantit la synchronisation des données entre tous les fragments.</li>
@@ -234,6 +235,16 @@ public class VehicleAdapter extends RecyclerView.Adapter<VehicleAdapter.VehicleV
         holder.tvImmatriculation.setText(vehicle.getImmatriculation());
         holder.tvDetails.setText(vehicle.getBrand() + " " + vehicle.getModel() + " " + vehicle.getInfo() + " " + vehicle.getEnergy());
 
+        // Chargement de l'image du logo du constructeur
+        String logoUrl = com.example.snaptaplaque.utils.BrandLogoHelper.getLogoUrl(vehicle.getBrand());
+
+        Glide.with(holder.itemView.getContext())
+                .load(logoUrl)
+                .centerInside()
+                .placeholder(R.drawable.ic_car)
+                .error(R.drawable.ic_car)
+                .into(holder.ivCar);
+
         holder.ivFavorite.setImageResource(
                 vehicle.isFavorite() ? R.drawable.ic_star : R.drawable.ic_star_outline
         );
@@ -263,8 +274,6 @@ public class VehicleAdapter extends RecyclerView.Adapter<VehicleAdapter.VehicleV
                 );
             }
         });
-
-
     }
 
     /**
