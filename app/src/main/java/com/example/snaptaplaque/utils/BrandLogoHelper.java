@@ -16,7 +16,7 @@ public class BrandLogoHelper {
         BRAND_LOGO_MAP.put("HONDA",       "honda");
         BRAND_LOGO_MAP.put("OPEL",        "opel");
         BRAND_LOGO_MAP.put("PEUGEOT",     "peugeot");
-        BRAND_LOGO_MAP.put("CITROEN",     "citroen");
+        BRAND_LOGO_MAP.put("CITROËN",     "citroen");
         BRAND_LOGO_MAP.put("FIAT",        "fiat");
         BRAND_LOGO_MAP.put("DACIA",       "dacia");
         BRAND_LOGO_MAP.put("VOLKSWAGEN",  "volkswagen");

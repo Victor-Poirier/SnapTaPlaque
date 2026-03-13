@@ -238,8 +238,6 @@ public class PictureFragment extends Fragment {
                 }
             });
         }
-    }
-
     private File getFileFromUri(Uri uri) {
         try {
             File tempFile = new File(requireContext().getCacheDir(), "image.jpg");
