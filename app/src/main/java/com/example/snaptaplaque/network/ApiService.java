@@ -14,9 +14,11 @@ import com.example.snaptaplaque.models.api.predictions.StatsResponse;
 import com.example.snaptaplaque.models.api.root.ApiVersionResponse;
 import com.example.snaptaplaque.models.api.root.RgpdResponse;
 import com.example.snaptaplaque.models.api.root.HealthResponse;
+import com.example.snaptaplaque.models.api.vehicles.HistoryVehiclesResponse;
 import com.example.snaptaplaque.models.api.vehicles.InfoRequest;
 import com.example.snaptaplaque.models.api.vehicles.InfoResponse;
 
+import retrofit2.http.Field;
 import retrofit2.Call;
 import retrofit2.http.*;
 
@@ -32,8 +34,6 @@ public interface ApiService {
     /**
      * Endpoint pour l'authentification d'un utilisateur.
      *
-     * @param username Le nom d'utilisateur.
-     * @param password Le mot de passe de l'utilisateur.
      * @return Un objet {@link Call} encapsulant la réponse de l'API, contenant un {@link LoginResponse} en cas de succès.
      */
     @FormUrlEncoded
@@ -60,10 +60,14 @@ public interface ApiService {
     );
 
     @GET("v1/account/data-export")
-    Call<DataExportResponse> data_export();
+    Call<DataExportResponse> data_export(
+            @Header("Authorization") String token
+    );
 
     @DELETE("v1/account/delete-account")
-    Call<DeleteAccountResponse> delete_account();
+    Call<DeleteAccountResponse> delete_account(
+            @Header("Authorization") String token
+    );
 
 
     /************************/
@@ -76,26 +80,32 @@ public interface ApiService {
      */
     @POST("v1/predictions/predict")
     Call<PredictionResponse> predict(
+            @Header("Authorization") String token,
             @Body PredictionRequest predictionRequest
     );
 
     @GET("v1/predictions/history")
-    Call<HistoryResponse> history();
+    Call<HistoryResponse> history(
+            @Header("Authorization") String token
+    );
 
     @GET("v1/predictions/stats")
-    Call<StatsResponse> stats();
+    Call<StatsResponse> stats(
+            @Header("Authorization") String token
+    );
 
     /*********************/
     /* VEHICLES ENDPOINT */
     /*********************/
-    @GET("v1/vehicles/info")
+    @POST("v1/vehicles/info")
     Call<InfoResponse> vehicleInfo(
-            @Body InfoRequest infoRequest
+            @Header("Authorization") String token,
+            @Query("license_plate") String licensePlate
     );
 
     @GET("v1/vehicles/history")
-    Call<HistoryResponse> historyVehicles(
-
+    Call<HistoryVehiclesResponse> vehiclesHistory(
+            @Header("Authorization") String token
     );
 
     /*******************************/
@@ -127,17 +137,22 @@ public interface ApiService {
     /**********************/
     /* FAVORITES ENDPOINT */
     /**********************/
+
     @POST("v1/favorites/add")
     Call<FavoritesAddResponse> add(
-            @Body FavoritesAddRequest favoritesAddRequest
+            @Header("Authorization") String token,
+            @Query("license_plate") String licensePlate
     );
 
     @DELETE("v1/favorites/remove")
     Call<FavoritesRemoveResponse> remove(
-        @Body FavoritesRemoveRequest favoritesRemoveRequest
+            @Header("Authorization") String token,
+            @Query("license_plate") String licensePlate
     );
 
     @GET("v1/favorites/all")
-    Call<FavoriteAllResponse> all();
+    Call<FavoriteAllResponse> all(
+            @Header("Authorization") String token
+    );
 
 }

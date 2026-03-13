@@ -6,6 +6,7 @@ import com.example.snaptaplaque.models.api.predictions.PredictionResponse;
 import com.example.snaptaplaque.models.api.predictions.StatsResponse;
 import com.example.snaptaplaque.network.ApiClient;
 import com.example.snaptaplaque.network.ApiService;
+import com.example.snaptaplaque.utils.SessionManager;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -13,10 +14,12 @@ import retrofit2.Response;
 
 public class PredictionsCall {
     private static ApiService apiService = ApiClient.getRetrofit().create(ApiService.class);
+    private static SessionManager sessionManager = AccountCall.sessionManager;
 
     // Endpoint : /v1/predictions/history
     public static void getHistory(ApiCallback apiCallback){
-        apiService.history()
+        String token = sessionManager.getToken();
+        apiService.history("Bearer " + token)
                 .enqueue(new Callback<HistoryResponse>() {
                     @Override
                     public void onResponse(Call<HistoryResponse> call, Response<HistoryResponse> response) {
@@ -37,7 +40,8 @@ public class PredictionsCall {
 
     // Endpoint : /v1/predictions/stats
     public static void userStat(ApiCallback apiCallback){
-        apiService.stats()
+        String token = sessionManager.getToken();
+        apiService.stats("Bearer " + token)
                 .enqueue(new Callback<StatsResponse>() {
                     @Override
                     public void onResponse(Call<StatsResponse> call, Response<StatsResponse> response) {
@@ -58,7 +62,8 @@ public class PredictionsCall {
 
     // Endpoint : /v1/predictions/predict
     public static void picturePredict(PredictionRequest predictionRequest, ApiCallback apiCallback){
-        apiService.predict(predictionRequest)
+        String token = sessionManager.getToken();
+        apiService.predict("Bearer " + token, predictionRequest)
                 .enqueue(new Callback<PredictionResponse>() {
                     @Override
                     public void onResponse(Call<PredictionResponse> call, Response<PredictionResponse> response) {

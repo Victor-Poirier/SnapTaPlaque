@@ -1,10 +1,12 @@
 package com.example.snaptaplaque.network.apicall;
 
 import com.example.snaptaplaque.models.api.predictions.HistoryResponse;
+import com.example.snaptaplaque.models.api.vehicles.HistoryVehiclesResponse;
 import com.example.snaptaplaque.models.api.vehicles.InfoRequest;
 import com.example.snaptaplaque.models.api.vehicles.InfoResponse;
 import com.example.snaptaplaque.network.ApiClient;
 import com.example.snaptaplaque.network.ApiService;
+import com.example.snaptaplaque.utils.SessionManager;
 import com.example.snaptaplaque.viewmodels.SharedViewModel;
 
 import java.util.List;
@@ -15,6 +17,7 @@ import retrofit2.Response;
 
 public class VehiclesCall {
     private static ApiService apiService = ApiClient.getRetrofit().create(ApiService.class);
+    private static SessionManager sessionManager = AccountCall.sessionManager;
 
     /**
      * Récupère les informations d'un véhicule par sa plaque d'immatriculation.
@@ -23,7 +26,8 @@ public class VehiclesCall {
      * @param apiCallback     le callback pour gérer la réponse
      */
     public static void vehicleInfo(InfoRequest infoRequest, ApiCallback apiCallback){
-        apiService.vehicleInfo(infoRequest)
+        String token = sessionManager.getToken();
+        apiService.vehicleInfo("Bearer " + token, infoRequest.getLicense_plate())
                 .enqueue(new Callback<InfoResponse>() {
                     @Override
                     public void onResponse(Call<InfoResponse> call, Response<InfoResponse> response) {
@@ -42,11 +46,12 @@ public class VehiclesCall {
                 });
     }
 
-    public static void history(ApiCallback apiCallback){
-        apiService.historyVehicles()
-                .enqueue(new Callback<HistoryResponse>() {
+    public static void vehiclesHistory(ApiCallback apiCallback){
+        String token = sessionManager.getToken();
+        apiService.vehiclesHistory("Bearer " + token)
+                .enqueue(new Callback<HistoryVehiclesResponse>() {
                     @Override
-                    public void onResponse(Call<HistoryResponse> call, Response<HistoryResponse> response) {
+                    public void onResponse(Call<HistoryVehiclesResponse> call, Response<HistoryVehiclesResponse> response) {
                         if (response.isSuccessful() && response.body() != null){
                             apiCallback.onResponseSuccess(response);
                         }
@@ -56,10 +61,11 @@ public class VehiclesCall {
                     }
 
                     @Override
-                    public void onFailure(Call<HistoryResponse> call, Throwable t) {
+                    public void onFailure(Call<HistoryVehiclesResponse> call, Throwable t) {
                         apiCallback.onCallFailure(t);
                     }
                 });
     }
+
 
 }

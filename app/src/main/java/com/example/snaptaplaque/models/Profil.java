@@ -116,4 +116,8 @@ public class Profil {
     public String getUsername() {
         return username;
     }
+
+    public void setFavoriteVehicule(List<Vehicle> favorites) {
+        this.favoriteVehicule = favorites;
+    }
 }
