@@ -1,7 +1,9 @@
 package com.example.snaptaplaque.fragments;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,20 +23,13 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.snaptaplaque.R;
 import com.example.snaptaplaque.activities.SignInActivity;
-
 import com.example.snaptaplaque.models.Photo;
-
 import com.example.snaptaplaque.adapters.VehicleAdapter;
-
-import com.example.snaptaplaque.models.api.favorites.FavoritesRemoveRequest;
-
+import com.example.snaptaplaque.models.api.account.MeResponse;
+import com.example.snaptaplaque.network.ApiService;
 import com.example.snaptaplaque.network.apicall.AccountCall;
 import com.example.snaptaplaque.network.apicall.ApiCallback;
-import com.example.snaptaplaque.network.apicall.FavoritesCall;
-import com.example.snaptaplaque.network.apicall.PredictionsCall;
-
 import com.example.snaptaplaque.utils.SessionManager;
-
 import com.example.snaptaplaque.viewmodels.SharedViewModel;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
@@ -42,72 +37,231 @@ import android.location.Address;
 import android.location.Geocoder;
 import java.util.List;
 import java.util.Locale;
-
 import java.util.ArrayList;
 
 import retrofit2.Response;
 
 /**
- * Fragment dédié à l'affichage du profil utilisateur et de ses véhicules favoris.
+ * Fragment responsable de l'affichage et de la gestion du profil utilisateur.
  *
- * <p>Ce fragment permet à l'utilisateur de :
+ * <p>Ce fragment présente les informations personnelles de l'utilisateur et affiche
+ * la liste de ses véhicules favoris. Il fournit également des fonctionnalités pour :
  * <ul>
- *     <li>Modifier sa photo de profil en sélectionnant une image depuis la galerie</li>
- *     <li>Consulter la liste de ses véhicules marqués comme favoris</li>
- *     <li>Retirer un véhicule de ses favoris en cliquant sur l'icône étoile</li>
+ *     <li>Modifier la photo de profil (appareil photo ou galerie)</li>
+ *     <li>Afficher la localisation actuelle de l'utilisateur</li>
+ *     <li>Gérer les véhicules favoris via une {@link RecyclerView}</li>
+ *     <li>Se déconnecter de l'application</li>
  * </ul>
  * </p>
  *
- * <p>La liste des favoris est alimentée par le {@link SharedViewModel} partagé
- * au niveau de l'activité hôte. Toute modification de l'état favori d'un véhicule
- * (depuis {@link HistoryFragment} ou ce fragment) est automatiquement reflétée
- * grâce à l'observation du {@code LiveData} exposé par le ViewModel.</p>
+ * <p>Le fragment utilise le {@link com.example.snaptaplaque.viewmodels.SharedViewModel}
+ * pour observer et manipuler la liste des véhicules favoris de manière synchronisée
+ * avec les autres fragments de l'application. Il évite les appels API redondants en
+ * s'appuyant sur le cache centralisé du ViewModel.</p>
  *
- * @see SharedViewModel#getFavoriteList()
- * @see SharedViewModel#toggleFavorite(com.example.snaptaplaque.models.Vehicle)
- * @see HistoryFragment
+ * <h3>Gestion des permissions :</h3>
+ * <p>Le fragment gère automatiquement les demandes de permissions pour :
+ * <ul>
+ *     <li><strong>Appareil photo :</strong> {@code CAMERA} pour prendre une photo de profil</li>
+ *     <li><strong>Localisation :</strong> {@code ACCESS_FINE_LOCATION} pour afficher
+ *         la ville/région actuelle</li>
+ * </ul>
+ * </p>
+ *
+ * <h3>Synchronisation des données :</h3>
+ * <p>Le fragment observe la liste {@code favoriteList} du {@link SharedViewModel}
+ * et met automatiquement à jour l'affichage lorsque l'état des favoris change
+ * depuis d'autres fragments (ex: {@link HistoryFragment}). Les données sont
+ * chargées une seule fois via {@code loadDataIfNeeded()} pour optimiser les
+ * performances et réduire les appels API.</p>
+ *
+ * <h3>Exemple d'utilisation dans une activité :</h3>
+ * <pre>{@code
+ * FragmentManager fm = getSupportFragmentManager();
+ * FragmentTransaction ft = fm.beginTransaction();
+ * ft.replace(R.id.container, new ProfileFragment());
+ * ft.commit();
+ * }</pre>
+ *
+ * @see SharedViewModel
  * @see VehicleAdapter
+ * @see Photo
+ * @see HistoryFragment
  */
 public class ProfileFragment extends Fragment {
 
     /**
-     * ImageView affichant la photo de profil de l'utilisateur.
+     * L'{@link ImageView} affichant la photo de profil de l'utilisateur.
+     *
+     * <p>Permet à l'utilisateur de modifier sa photo de profil en cliquant dessus,
+     * ce qui déclenche l'ouverture d'un sélecteur (appareil photo ou galerie)
+     * via la classe utilitaire {@link Photo}.</p>
      */
     private ImageView ivProfile;
+
+    /**
+     * L'{@link ImageView} représentant le bouton de déconnexion.
+     *
+     * <p>Un clic sur cette icône déclenche la déconnexion de l'utilisateur,
+     * efface la session via {@link SessionManager} et redirige vers
+     * {@link SignInActivity}.</p>
+     */
     private ImageView ivLogout;
+
+    /**
+     * Le {@link TextView} affichant le nom d'utilisateur.
+     *
+     * <p>Actuellement configuré avec une valeur statique "Username".
+     * Dans une implémentation complète, cette valeur devrait être récupérée
+     * depuis les données utilisateur du {@link SharedViewModel}.</p>
+     */
     private TextView tvUsername;
+
+    /**
+     * Le {@link TextView} affichant l'adresse email de l'utilisateur.
+     *
+     * <p>Actuellement configuré avec une valeur statique "email@example.com".
+     * Dans une implémentation complète, cette valeur devrait être récupérée
+     * depuis les données utilisateur du {@link SharedViewModel}.</p>
+     */
     private TextView tvEmail;
+
+    /**
+     * Le {@link TextView} affichant la localisation actuelle de l'utilisateur.
+     *
+     * <p>Affiche la ville et la région basées sur les coordonnées GPS obtenues
+     * via {@link FusedLocationProviderClient}. Si la permission de localisation
+     * n'est pas accordée, affiche une valeur par défaut.</p>
+     */
     private TextView tvCountry;
+
+    /**
+     * Lanceur de demande de permission pour l'utilisation de l'appareil photo.
+     *
+     * <p>Utilisé par la classe {@link Photo} pour demander la permission
+     * {@code CAMERA} avant d'ouvrir l'appareil photo. En cas de refus,
+     * un message d'erreur est affiché à l'utilisateur.</p>
+     */
     private ActivityResultLauncher<String> requestCameraPermissionLauncher;
+
+    /**
+     * Lanceur de demande de permission pour l'accès à la localisation.
+     *
+     * <p>Demande la permission {@code ACCESS_FINE_LOCATION} pour obtenir
+     * les coordonnées GPS de l'utilisateur et afficher sa ville/région actuelle.
+     * En cas de refus, un message d'erreur est affiché.</p>
+     */
     private ActivityResultLauncher<String> requestLocationPermissionLauncher;
+
+    /**
+     * Lanceur pour l'ouverture de l'appareil photo.
+     *
+     * <p>Utilisé par la classe {@link Photo} pour capturer une nouvelle
+     * photo de profil. Une fois la photo prise, elle est automatiquement
+     * affichée dans {@link #ivProfile}.</p>
+     */
     private ActivityResultLauncher<Uri> cameraLauncher;
+
+    /**
+     * Lanceur pour l'ouverture de la galerie de photos.
+     *
+     * <p>Permet à l'utilisateur de sélectionner une image existante depuis
+     * la galerie pour l'utiliser comme photo de profil. L'image sélectionnée
+     * est immédiatement affichée dans {@link #ivProfile}.</p>
+     */
     private ActivityResultLauncher<String> galleryLauncher;
+
+    /**
+     * Instance de la classe utilitaire {@link Photo} pour la gestion des images.
+     *
+     * <p>Encapsule la logique de gestion des photos de profil, incluant :
+     * <ul>
+     *     <li>Les demandes de permission</li>
+     *     <li>L'ouverture de l'appareil photo</li>
+     *     <li>La sélection depuis la galerie</li>
+     *     <li>L'affichage du sélecteur de source (caméra/galerie)</li>
+     * </ul>
+     * </p>
+     */
     private Photo photo;
+
+    /**
+     * Le {@link RecyclerView} affichant la liste des véhicules favoris de l'utilisateur.
+     *
+     * <p>Utilise un {@link VehicleAdapter} pour représenter chaque véhicule favori
+     * et permet à l'utilisateur de voir les détails ou de supprimer des favoris
+     * directement depuis le profil. La liste est automatiquement synchronisée
+     * avec les changements effectués dans d'autres fragments.</p>
+     */
     private RecyclerView recyclerView;
+
+    /**
+     * Client de localisation Google Play Services pour obtenir la position GPS.
+     *
+     * <p>Utilisé pour récupérer la dernière position connue de l'utilisateur
+     * et la convertir en nom de ville/région via {@link Geocoder}.
+     * Nécessite la permission {@code ACCESS_FINE_LOCATION}.</p>
+     */
     private FusedLocationProviderClient fusedLocationClient;
+
+    /**
+     * Code de demande de permission pour l'accès à la localisation.
+     *
+     * <p>Constante utilisée pour identifier les demandes de permission
+     * de localisation dans les callbacks de résultat. Actuellement non
+     * utilisée car la gestion se fait via {@link #requestLocationPermissionLauncher}.</p>
+     */
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 100;
 
     /**
-     * Adapteur gérant l'affichage des véhicules favoris dans le {@link RecyclerView}.
+     * L'adaptateur {@link VehicleAdapter} responsable de l'affichage des véhicules favoris.
+     *
+     * <p>Configure les listeners pour gérer :
+     * <ul>
+     *     <li>Le clic sur un véhicule (ouverture des détails)</li>
+     *     <li>Le clic sur l'icône favori (suppression du favori)</li>
+     * </ul>
+     * La logique de gestion des favoris est déléguée au {@link SharedViewModel}.</p>
      */
     private VehicleAdapter adapter;
 
     /**
-     * ViewModel partagé avec les autres fragments pour centraliser les données véhicules et profil.
+     * Le {@link SharedViewModel} partagé entre tous les fragments de l'application.
+     *
+     * <p>Centralise la gestion des données des véhicules et des favoris,
+     * assurant la synchronisation entre {@link ProfileFragment} et
+     * {@link HistoryFragment}. Évite les appels API redondants grâce
+     * à son système de cache intégré.</p>
      */
     private SharedViewModel sharedViewModel;
 
+    /**
+     * Gestionnaire de session pour les opérations de connexion/déconnexion.
+     *
+     * <p>Utilisé pour effacer les données de session lors de la déconnexion
+     * de l'utilisateur et gérer l'état d'authentification de l'application.</p>
+     */
     private SessionManager sessionManager;
 
 
     /**
-     * Initialise le fragment et enregistre le lanceur de sélection d'image.
+     * Initialise les lanceurs de permissions et les utilitaires nécessaires au fragment.
      *
-     * <p>Le {@link ActivityResultLauncher} est enregistré dans {@code onCreate}
-     * conformément aux recommandations du cycle de vie des fragments. Lorsqu'une
-     * image est sélectionnée, elle est directement appliquée à l'{@link #ivProfile}.</p>
+     * <p>Cette méthode configure :
+     * <ul>
+     *     <li>Les lanceurs de demande de permissions (localisation et appareil photo)</li>
+     *     <li>Les lanceurs pour l'appareil photo et la galerie</li>
+     *     <li>L'instance de la classe utilitaire {@link Photo}</li>
+     *     <li>Le client de localisation {@link FusedLocationProviderClient}</li>
+     * </ul>
+     * </p>
      *
-     * @param savedInstanceState l'état précédemment sauvegardé du fragment, ou {@code null}
+     * <p>Les lanceurs sont configurés avec des callbacks appropriés pour gérer
+     * les réponses de l'utilisateur (accord/refus de permission) et afficher
+     * des messages d'erreur en cas de refus des permissions nécessaires.</p>
+     *
+     * @param savedInstanceState l'état sauvegardé du fragment, s'il existe ;
+     *                          peut être {@code null} lors de la première création
      */
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -119,8 +273,7 @@ public class ProfileFragment extends Fragment {
                 isGranted -> {
                     if(isGranted) {
                         getLastLocation();
-                    }
-                    else {
+                    }else {
                         Toast.makeText(getContext(), R.string.necessary_gps, Toast.LENGTH_SHORT).show();
                     }
                 }
@@ -132,8 +285,7 @@ public class ProfileFragment extends Fragment {
                 isGranted -> {
                     if(isGranted) {
                         photo.openCamera();
-                    }
-                    else {
+                    }else {
                         Toast.makeText(getContext(), R.string.necessary_camera, Toast.LENGTH_SHORT).show();
                     }
                 }
@@ -168,23 +320,38 @@ public class ProfileFragment extends Fragment {
     }
 
     /**
-     * Gonfle la vue du fragment et configure l'ensemble des composants graphiques.
+     * Crée et configure la vue du fragment avec tous ses composants UI.
      *
      * <p>Cette méthode effectue les opérations suivantes :
      * <ol>
-     *     <li>Gonfle le layout {@code fragment_profile.xml}</li>
-     *     <li>Configure le clic sur la photo de profil pour ouvrir le sélecteur d'images</li>
-     *     <li>Initialise le {@link RecyclerView} avec un {@link LinearLayoutManager}</li>
-     *     <li>Récupère le {@link SharedViewModel} scopé à l'activité parente</li>
-     *     <li>Crée le {@link VehicleAdapter} avec un callback de toggle favori</li>
-     *     <li>Observe la liste des favoris pour mettre à jour l'affichage automatiquement</li>
+     *     <li><strong>Inflation du layout :</strong> charge {@code fragment_profile.xml}</li>
+     *     <li><strong>Configuration des vues :</strong> photo de profil, bouton déconnexion,
+     *         informations utilisateur</li>
+     *     <li><strong>Initialisation du RecyclerView :</strong> configuration de l'adaptateur
+     *         et des listeners pour les véhicules favoris</li>
+     *     <li><strong>Configuration des observers :</strong> écoute les changements de la liste
+     *         des favoris depuis le {@link SharedViewModel}</li>
+     *     <li><strong>Chargement des données :</strong> déclenche le chargement des données
+     *         si nécessaire via le cache du ViewModel</li>
+     *     <li><strong>Récupération de la localisation :</strong> demande la position GPS
+     *         pour afficher la ville/région</li>
      * </ol>
      * </p>
      *
-     * @param inflater           le {@link LayoutInflater} utilisé pour gonfler la vue
-     * @param container          le conteneur parent dans lequel la vue sera insérée
-     * @param savedInstanceState l'état précédemment sauvegardé du fragment, ou {@code null}
-     * @return la vue racine du fragment
+     * <p>L'adaptateur est configuré avec deux listeners :
+     * <ul>
+     *     <li><strong>Clic sur véhicule :</strong> ouvre un dialog de détails via
+     *         {@link VehicleDetailDialogFragment}</li>
+     *     <li><strong>Clic sur favori :</strong> délègue au {@link SharedViewModel}
+     *         pour synchroniser les changements</li>
+     * </ul>
+     * </p>
+     *
+     * @param inflater           le {@link LayoutInflater} pour gonfler la vue du fragment
+     * @param container          le {@link ViewGroup} parent dans lequel la vue sera insérée ;
+     *                          peut être {@code null}
+     * @param savedInstanceState l'état sauvegardé du fragment ; peut être {@code null}
+     * @return la vue racine du fragment configurée et prête à être affichée
      */
     @Nullable
     @Override
@@ -204,15 +371,13 @@ public class ProfileFragment extends Fragment {
             startActivity(intent);
         });
 
-        ivProfile = view.findViewById(R.id.ivProfilePicture);
-        ivProfile.setOnClickListener(v -> photo.showChoice());
-
         tvUsername = view.findViewById(R.id.tvUsername);
-        tvUsername.setText("Username");
+        tvUsername.setText("Default Username");
         tvEmail = view.findViewById(R.id.tvEmail);
-        tvEmail.setText("email@example.com");
+        tvEmail.setText("Default email@example.com");
         tvCountry = view.findViewById(R.id.tvCountry);
 
+        getUserInfo();
         getLastLocation();
 
         recyclerView = view.findViewById(R.id.rvVehicles);
@@ -220,33 +385,48 @@ public class ProfileFragment extends Fragment {
 
         sharedViewModel = new ViewModelProvider(requireActivity()).get(SharedViewModel.class);
 
-        // Affiche uniquement les favoris
         adapter = new VehicleAdapter(
                 new ArrayList<>(),
                 vehicle -> {
                     VehicleDetailDialogFragment dialog = VehicleDetailDialogFragment.createFrag(vehicle.getImmatriculation());
                     dialog.show(getChildFragmentManager(), "detail");
                 },
-
-                vehicle -> sharedViewModel.toggleFavorite(vehicle)
+                vehicle -> sharedViewModel.toggleFavorite(vehicle),
+                this.getActivity()
         );
         recyclerView.setAdapter(adapter);
 
-        // Se met à jour automatiquement quand les favoris changent
         sharedViewModel.getFavoriteList().observe(getViewLifecycleOwner(), favorites -> {
             adapter.updateList(favorites);
         });
 
+        sharedViewModel.loadDataIfNeeded();
+
         return view;
     }
 
+    /**
+     * Récupère et affiche la localisation actuelle de l'utilisateur.
+     *
+     * <p>Cette méthode vérifie d'abord si la permission {@code ACCESS_FINE_LOCATION}
+     * est accordée. Si ce n'est pas le cas, elle déclenche une demande de permission
+     * via {@link #requestLocationPermissionLauncher}.</p>
+     *
+     * <p>Si la permission est accordée, elle utilise {@link FusedLocationProviderClient}
+     * pour obtenir la dernière position connue et la convertit en nom de ville/région
+     * via {@link #getCityName(double, double)}. En cas d'échec (pas de position disponible
+     * ou permission refusée), une valeur par défaut est affichée.</p>
+     *
+     * <p><strong>Note :</strong> cette méthode est appelée automatiquement lors de
+     * la création de la vue et peut également être déclenchée par l'accord de permission
+     * de localisation.</p>
+     */
     private void getLastLocation() {
         if(androidx.core.app.ActivityCompat.checkSelfPermission(requireContext(),
                 android.Manifest.permission.ACCESS_FINE_LOCATION) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
             requestLocationPermissionLauncher.launch(android.Manifest.permission.ACCESS_FINE_LOCATION);
 
             tvCountry.setText(R.string.country);
-
             return;
         }
 
@@ -261,6 +441,32 @@ public class ProfileFragment extends Fragment {
                 });
     }
 
+    /**
+     * Convertit des coordonnées GPS en nom de ville et région lisible.
+     *
+     * <p>Cette méthode utilise {@link Geocoder} pour effectuer une géolocalisation inverse
+     * et obtenir des informations d'adresse à partir des coordonnées latitude/longitude.
+     * Elle privilégie l'affichage dans l'ordre de priorité suivant :
+     * <ol>
+     *     <li><strong>Ville + Région :</strong> ex. "Paris, Île-de-France"</li>
+     *     <li><strong>Sous-localité + Région :</strong> ex. "Montmartre, Île-de-France"</li>
+     *     <li><strong>Région + Pays :</strong> ex. "Île-de-France, France"</li>
+     *     <li><strong>Pays seulement :</strong> ex. "France"</li>
+     * </ol>
+     * </p>
+     *
+     * <p>En cas d'erreur (pas de connexion Internet, coordonnées invalides, etc.),
+     * la méthode retourne une valeur par défaut obtenue depuis les ressources string.</p>
+     *
+     * <p><strong>Note :</strong> cette méthode effectue une opération réseau et peut
+     * donc prendre quelques secondes à s'exécuter. Elle est appelée de manière
+     * asynchrone depuis {@link #getLastLocation()}.</p>
+     *
+     * @param latitude  la latitude GPS en degrés décimaux
+     * @param longitude la longitude GPS en degrés décimaux
+     * @return une chaîne formatée représentant la localisation (ville, région, pays)
+     *         ou une valeur par défaut en cas d'erreur
+     */
     private String getCityName(double latitude, double longitude) {
         String Location = getString(R.string.country);
         Geocoder geocoder = new Geocoder(requireContext(), Locale.getDefault());
@@ -278,7 +484,7 @@ public class ProfileFragment extends Fragment {
                 String countryName = address.getCountryName();
 
                 if(((cityName != null) && (!cityName.isEmpty())) &&
-                   ((adminAreaName != null) && (!adminAreaName.isEmpty()))) {
+                        ((adminAreaName != null) && (!adminAreaName.isEmpty()))) {
 
                     Location = cityName + ", " + adminAreaName;
                 }
@@ -303,4 +509,30 @@ public class ProfileFragment extends Fragment {
 
         return Location;
     }
+
+    public void getUserInfo(){
+        AccountCall.me(new ApiCallback() {
+            @Override
+            public void onResponseSuccess(Response response) {
+                MeResponse res = (MeResponse)response.body();
+                tvUsername.setText(res.getUsername());
+                tvEmail.setText(res.getEmail());
+            }
+
+            @Override
+            public void onResponseFailure(Response response) {
+                Log.e(this.getClass().getName(), "Erreur récupération données utilisisateur pour affichage");
+                if ( response.code() == ApiService.ERROR_TOKEN_EXPIRE ){
+                    Intent intent = new Intent(getActivity(), SignInActivity.class);
+                    getActivity().startActivity(intent);
+                }
+            }
+
+            @Override
+            public void onCallFailure(Throwable t) {
+                Log.e(this.getClass().getName(), "Erreur Call API pour données utilisisateur pour affichage");
+            }
+        }, this.getContext());
+    }
+
 }

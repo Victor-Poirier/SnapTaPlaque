@@ -7,13 +7,16 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.ImageView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 import androidx.lifecycle.ViewModelProvider;
 import com.example.snaptaplaque.R;
 import com.example.snaptaplaque.models.Vehicle;
+import com.example.snaptaplaque.utils.BrandLogoHelper;
 import com.example.snaptaplaque.viewmodels.SharedViewModel;
+import com.bumptech.glide.Glide;
 
 /**
  * DialogFragment pour afficher les détails d'un véhicule
@@ -60,7 +63,30 @@ public class VehicleDetailDialogFragment extends DialogFragment {
         viewModel.getVehicleList().observe(getViewLifecycleOwner(), vehicles -> {
             for(Vehicle v : vehicles) {
                 if(v.getImmatriculation().equals(immatriculation)) {
-                    ((TextView) view.findViewById(R.id.tvDetail)).setText(v.getImmatriculation() + "\n" + v.getBrand() + " " + v.getModel() + " " + v.getInfo() + "\n" + v.getEnergy());
+                    // Liaison des vues
+                    TextView tvPlate = view.findViewById(R.id.tvPlate);
+                    TextView tvBrandModel = view.findViewById(R.id.tvBrandModel);
+                    TextView tvEnergy = view.findViewById(R.id.tvEnergy);
+                    ImageView imageViewLogo = view.findViewById(R.id.imageViewLogo);
+
+                    // Attribution des valeurs
+                    tvPlate.setText(v.getImmatriculation());
+                    tvBrandModel.setText(String.format("%s %s", v.getBrand(), v.getModel()));
+
+                    // Formatage optionnel pour les infos et l'énergie
+                    String details = v.getEnergy() + (v.getInfo().isEmpty() ? "" : " • " + v.getInfo());
+                    tvEnergy.setText(details);
+
+                    // Chargement de l'image du logo du constructeur
+                    String logoUrl = BrandLogoHelper.getLogoUrl(v.getBrand());
+
+                    Glide.with(this)
+                            .load(logoUrl)
+                            .centerInside() // Pour que le logo ne soit pas déformé
+                            .placeholder(R.drawable.logo) // Image par défaut pendant le chargement
+                            .error(R.drawable.logo)       // Image si le logo n'est pas trouvé
+                            .into(imageViewLogo);
+
                     break;
                 }
             }

@@ -16,9 +16,11 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.snaptaplaque.R;
+import com.example.snaptaplaque.activities.SignInActivity;
 import com.example.snaptaplaque.models.Vehicle;
 import com.example.snaptaplaque.models.api.vehicles.InfoRequest;
 import com.example.snaptaplaque.models.api.vehicles.InfoResponse;
+import com.example.snaptaplaque.network.ApiService;
 import com.example.snaptaplaque.network.apicall.ApiCallback;
 import com.example.snaptaplaque.network.apicall.VehiclesCall;
 import com.example.snaptaplaque.viewmodels.SharedViewModel;
@@ -52,7 +54,9 @@ public class VocalFragment extends Fragment {
         btnSearch = view.findViewById(R.id.btnSearch);
 
         btnVocal.setEndIconOnClickListener(v -> askSpeechInput());
-        btnSearch.setOnClickListener(v -> getInfo(numberPlate.getText().toString().trim()));
+        btnSearch.setOnClickListener(v -> {
+            getInfoVehicle(new InfoRequest(numberPlate.getText().toString()));
+        });
 
         return view;
     }
@@ -107,25 +111,22 @@ public class VocalFragment extends Fragment {
         }
     }
 
-    /**
-     * Réalise un appel à l'API pour obtenir les informations du véhicule à partir de la plaque d'immatriculation.
-     * @param plate la plaque d'immatriculation à rechercher
-     */
-    private void getInfo(String plate) {
-        if (plate == null || plate.isEmpty()) {
-            Toast.makeText(getContext(), R.string.hint_immatriculation, Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        VehiclesCall.vehicleInfo(new InfoRequest(plate), new ApiCallback() {
+    private void getInfoVehicle(InfoRequest infoRequest){
+        VehiclesCall.vehicleInfo(infoRequest, new ApiCallback() {
             @Override
             public void onResponseSuccess(Response response) {
+                InfoResponse res = (InfoResponse) response.body();
+                Vehicle vehicle = res.createVehicles(false);
 
+                sharedViewModel.addVehicle(vehicle);
             }
 
             @Override
             public void onResponseFailure(Response response) {
-
+                if ( response.code() == ApiService.ERROR_TOKEN_EXPIRE ){
+                    Intent intent = new Intent(getActivity(), SignInActivity.class);
+                    getActivity().startActivity(intent);
+                }
             }
 
             @Override

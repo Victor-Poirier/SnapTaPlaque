@@ -124,10 +124,13 @@ public class LaunchActivity extends AppCompatActivity {
                     intent = new Intent(LaunchActivity.this, SignInActivity.class);
                     startActivity(intent);
                     finish();
+
                 } else {
                     Log.e(TAG, "API error code: " + response.message());
                     showApiUnavailableDialog();
                 }
+
+
             }
 
             @Override

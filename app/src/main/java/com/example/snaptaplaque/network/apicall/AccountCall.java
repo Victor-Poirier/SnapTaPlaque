@@ -1,6 +1,7 @@
 package com.example.snaptaplaque.network.apicall;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Handler;
 import android.util.Log;
@@ -32,7 +33,7 @@ import retrofit2.Response;
  */
 public class AccountCall {
     private static ApiService apiService = ApiClient.getRetrofit().create(ApiService.class);
-
+    protected static SessionManager sessionManager;
 
     /**
      * Effectue l'appel API d'inscription d'un nouvel utilisateur.
@@ -101,7 +102,8 @@ public class AccountCall {
     }
 
     public static void exportData(ApiCallback apiCallback){
-        apiService.data_export()
+        String token = sessionManager.getToken();
+        apiService.data_export("Bearer " + token)
                 .enqueue(new Callback<DataExportResponse>() {
                     @Override
                     public void onResponse(Call<DataExportResponse> call, Response<DataExportResponse> response) {
@@ -119,9 +121,11 @@ public class AccountCall {
                     }
                 });
     }
-    public static void me (ApiCallback apiCallback, Activity activity){
+    public static void me (ApiCallback apiCallback, Context context){
 
-        String token = new SessionManager(activity).getToken();
+        sessionManager = new SessionManager(context);
+        String token = sessionManager.getToken();
+
         apiService.me("Bearer " + token)
                 .enqueue(new Callback<MeResponse>() {
                     @Override
@@ -141,7 +145,8 @@ public class AccountCall {
                 });
     }
     public static void deleteAccount(ApiCallback apiCallback){
-        apiService.delete_account()
+        String token = sessionManager.getToken();
+        apiService.delete_account("Bearer " + token)
                 .enqueue(new Callback<DeleteAccountResponse>() {
                     @Override
                     public void onResponse(Call<DeleteAccountResponse> call, Response<DeleteAccountResponse> response) {

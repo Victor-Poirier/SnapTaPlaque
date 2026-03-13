@@ -1,5 +1,7 @@
 package com.example.snaptaplaque.models.api.model;
 
+import com.example.snaptaplaque.R;
+
 public class ModelInfoResponse {
     private boolean loaded;
     private String model_type;
@@ -9,6 +11,12 @@ public class ModelInfoResponse {
         this.loaded = loaded;
         this.pipeline = pipeline;
         this.model_type = model_type;
+    }
+
+    public String createString(){
+        return  R.string.model_type + model_type + "\n" +
+                R.string.pipeline   +  pipeline  + "\n" +
+                R.string.is_loaded  + loaded + "\n" ;
     }
 
     public boolean isLoaded() {

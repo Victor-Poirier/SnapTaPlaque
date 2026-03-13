@@ -1,5 +1,9 @@
 package com.example.snaptaplaque.adapters;
 
+import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,10 +14,11 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.snaptaplaque.R;
-import com.example.snaptaplaque.fragments.HistoryFragment;
+import com.example.snaptaplaque.activities.SignInActivity;
 import com.example.snaptaplaque.models.Vehicle;
 import com.example.snaptaplaque.models.api.favorites.FavoritesAddRequest;
 import com.example.snaptaplaque.models.api.favorites.FavoritesRemoveRequest;
+import com.example.snaptaplaque.network.ApiService;
 import com.example.snaptaplaque.network.apicall.ApiCallback;
 import com.example.snaptaplaque.network.apicall.FavoritesCall;
 
@@ -29,8 +34,7 @@ import retrofit2.Response;
  * et affiche les informations suivantes :
  * <ul>
  *     <li>Le numéro d'immatriculation du véhicule ({@link Vehicle#getImmatriculation()})</li>
- *     <li>Les détails descriptifs du véhicule — marque, modèle, motorisation, etc.
- *         ({@link Vehicle#getDetails()})</li>
+ *     <li>Les détails descriptifs du véhicule — marque, modèle, motorisation, etc.</li>
  *     <li>Une icône étoile indiquant le statut favori du véhicule
  *         ({@code ic_star} si {@link Vehicle#isFavorite()} vaut {@code true},
  *         {@code ic_star_outline} sinon)</li>
@@ -82,6 +86,8 @@ public class VehicleAdapter extends RecyclerView.Adapter<VehicleAdapter.VehicleV
     private List<Vehicle> vehicleList;
 
     private OnVehicleClickListener vehicleClickListener;
+
+    private Activity activity;
 
     public interface OnVehicleClickListener {
         void onVehicleClick(Vehicle vehicle);
@@ -140,10 +146,11 @@ public class VehicleAdapter extends RecyclerView.Adapter<VehicleAdapter.VehicleV
      * @param favoriteListener    le {@link OnFavoriteClickListener} à notifier lors du clic
      *                    sur l'icône favori ; peut être {@code null}
      */
-    public VehicleAdapter(List<Vehicle> vehicleList, OnVehicleClickListener vehicleListener, OnFavoriteClickListener favoriteListener) {
+    public VehicleAdapter(List<Vehicle> vehicleList, OnVehicleClickListener vehicleListener, OnFavoriteClickListener favoriteListener, Activity activity) {
         this.vehicleList = vehicleList;
         this.vehicleClickListener = vehicleListener;
         this.favoriteClickListener = favoriteListener;
+        this.activity = activity;
     }
 
     /**
@@ -239,23 +246,25 @@ public class VehicleAdapter extends RecyclerView.Adapter<VehicleAdapter.VehicleV
 
         holder.ivFavorite.setOnClickListener(v -> {
             if (favoriteClickListener != null) {
-                favoriteClickListener.onFavoriteClick(vehicle);
-            } else {
-                // QUAND ON CLIQUE SUR L'ETOILE, soit cà l'ajoute
-                // dans les favoris si il n'y est pas. Soit ça le
-                // supprime
-                if ( vehicle.isFavorite() ){
-                    addFavorite();
-                }
-                else {
-                    removeFavorite();
+                String license_plate = vehicle.getImmatriculation();
+
+                if (!vehicle.isFavorite()) {
+                    Log.e("Favorites", "Adding: " + license_plate);
+                    addFavorite(license_plate);
+                } else {
+                    Log.e("Favorites", "Removing: " + license_plate);
+                    removeFavorite(license_plate);
                 }
 
+                favoriteClickListener.onFavoriteClick(vehicle);
+
+                holder.ivFavorite.setImageResource(
+                        vehicle.isFavorite() ? R.drawable.ic_star : R.drawable.ic_star_outline
+                );
             }
-            holder.ivFavorite.setImageResource(
-                    vehicle.isFavorite() ? R.drawable.ic_star : R.drawable.ic_star_outline
-            );
         });
+
+
     }
 
     /**
@@ -363,42 +372,51 @@ public class VehicleAdapter extends RecyclerView.Adapter<VehicleAdapter.VehicleV
 
 
     // Endpoint : /v1/favorites/add
-    public void addFavorite(){
-        FavoritesCall.addFavorite(new FavoritesAddRequest(""), new ApiCallback() {
+    public void addFavorite(String license_plate){
+        FavoritesCall.addFavorite(new FavoritesAddRequest(license_plate), new ApiCallback() {
             @Override
             public void onResponseSuccess(Response response) {
                 // Mettre à jour l'UI : afficher succès
+                Log.e("Favorites", response.message());
             }
 
             @Override
             public void onResponseFailure(Response response) {
                 // Mettre à jour l'UI : afficher erreur
+                if ( response.code() == ApiService.ERROR_TOKEN_EXPIRE ){
+                    Intent intent = new Intent(activity, SignInActivity.class);
+                    activity.startActivity(intent);
+                }
             }
 
             @Override
             public void onCallFailure(Throwable t) {
-                // Mettre à jour l'UI : afficher erreur
+                Log.e("Favorites", t.getMessage());
             }
         });
 
     }
 
     // Endpoint : /v1/favorites/remove
-    public void removeFavorite(){
-        FavoritesCall.removeFavorite(new FavoritesRemoveRequest(""), new ApiCallback() {
+    public void removeFavorite(String license_plate){
+        FavoritesCall.removeFavorite(new FavoritesRemoveRequest(license_plate), new ApiCallback() {
             @Override
             public void onResponseSuccess(Response response) {
                 // Mettre à jour l'UI : afficher succès
+                Log.e("Favorites", response.message());
             }
 
             @Override
             public void onResponseFailure(Response response) {
-                // Mettre à jour l'UI : afficher erreur
+                if ( response.code() == ApiService.ERROR_TOKEN_EXPIRE ){
+                    Intent intent = new Intent(activity, SignInActivity.class);
+                    activity.startActivity(intent);
+                }
             }
 
             @Override
             public void onCallFailure(Throwable t) {
-                // Mettre à jour l'UI : afficher erreur
+                Log.e("Favorites", t.getMessage());
             }
         });
     }
