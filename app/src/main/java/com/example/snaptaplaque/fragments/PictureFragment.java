@@ -115,7 +115,7 @@ public class PictureFragment extends Fragment {
         btnPicture.setOnClickListener(v -> {
             photo.showChoice();
             picturePredict(photo);
-            getInfoVehicle(new InfoRequest((String)showPlate.getText()));
+            getInfoVehicle(new InfoRequest(showPlate.getText().toString()));
         });
 
         btnSearch.setOnClickListener(v -> {
