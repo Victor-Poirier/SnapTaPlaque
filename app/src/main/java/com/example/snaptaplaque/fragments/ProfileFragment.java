@@ -2,6 +2,7 @@ package com.example.snaptaplaque.fragments;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,6 +24,9 @@ import com.example.snaptaplaque.R;
 import com.example.snaptaplaque.activities.SignInActivity;
 import com.example.snaptaplaque.models.Photo;
 import com.example.snaptaplaque.adapters.VehicleAdapter;
+import com.example.snaptaplaque.models.api.account.MeResponse;
+import com.example.snaptaplaque.network.apicall.AccountCall;
+import com.example.snaptaplaque.network.apicall.ApiCallback;
 import com.example.snaptaplaque.utils.SessionManager;
 import com.example.snaptaplaque.viewmodels.SharedViewModel;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -32,6 +36,8 @@ import android.location.Geocoder;
 import java.util.List;
 import java.util.Locale;
 import java.util.ArrayList;
+
+import retrofit2.Response;
 
 /**
  * Fragment responsable de l'affichage et de la gestion du profil utilisateur.
@@ -363,11 +369,12 @@ public class ProfileFragment extends Fragment {
         });
 
         tvUsername = view.findViewById(R.id.tvUsername);
-        tvUsername.setText("Username");
+        tvUsername.setText("Default Username");
         tvEmail = view.findViewById(R.id.tvEmail);
-        tvEmail.setText("email@example.com");
+        tvEmail.setText("Default email@example.com");
         tvCountry = view.findViewById(R.id.tvCountry);
 
+        getUserInfo();
         getLastLocation();
 
         recyclerView = view.findViewById(R.id.rvVehicles);
@@ -498,4 +505,26 @@ public class ProfileFragment extends Fragment {
 
         return Location;
     }
+
+    public void getUserInfo(){
+        AccountCall.me(new ApiCallback() {
+            @Override
+            public void onResponseSuccess(Response response) {
+                MeResponse res = (MeResponse)response.body();
+                tvUsername.setText(res.getUsername());
+                tvEmail.setText(res.getEmail());
+            }
+
+            @Override
+            public void onResponseFailure(Response response) {
+                Log.e(this.getClass().getName(), "Erreur récupération données utilisisateur pour affichage");
+            }
+
+            @Override
+            public void onCallFailure(Throwable t) {
+                Log.e(this.getClass().getName(), "Erreur Call API pour données utilisisateur pour affichage");
+            }
+        }, this.getContext());
+    }
+
 }

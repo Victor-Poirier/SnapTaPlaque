@@ -1,6 +1,7 @@
 package com.example.snaptaplaque.network.apicall;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Handler;
 import android.util.Log;
@@ -120,9 +121,9 @@ public class AccountCall {
                     }
                 });
     }
-    public static void me (ApiCallback apiCallback, Activity activity){
+    public static void me (ApiCallback apiCallback, Context context){
 
-        sessionManager = new SessionManager(activity);
+        sessionManager = new SessionManager(context);
         String token = sessionManager.getToken();
 
         apiService.me("Bearer " + token)

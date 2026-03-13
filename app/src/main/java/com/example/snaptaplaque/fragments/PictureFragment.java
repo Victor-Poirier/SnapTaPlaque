@@ -115,6 +115,7 @@ public class PictureFragment extends Fragment {
         btnPicture.setOnClickListener(v -> {
             photo.showChoice();
             picturePredict(photo);
+            getInfoVehicle(new InfoRequest((String)showPlate.getText()));
         });
 
         btnSearch.setOnClickListener(v -> {
@@ -170,6 +171,28 @@ public class PictureFragment extends Fragment {
             @Override
             public void onResponseSuccess(Response response) {
                 showPlate.setText(response.toString());
+            }
+
+            @Override
+            public void onResponseFailure(Response response) {
+
+            }
+
+            @Override
+            public void onCallFailure(Throwable t) {
+
+            }
+        });
+    }
+
+    private void getInfoVehicle(InfoRequest infoRequest){
+        VehiclesCall.vehicleInfo(infoRequest, new ApiCallback() {
+            @Override
+            public void onResponseSuccess(Response response) {
+                InfoResponse res = (InfoResponse) response.body();
+                Vehicle vehicle = res.createVehicles(false);
+
+                sharedViewModel.addVehicle(vehicle);
             }
 
             @Override

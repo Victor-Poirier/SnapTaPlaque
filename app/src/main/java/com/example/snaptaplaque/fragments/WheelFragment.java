@@ -20,7 +20,14 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.snaptaplaque.R;
 import com.example.snaptaplaque.adapters.SlotAdapter;
+import com.example.snaptaplaque.models.Vehicle;
+import com.example.snaptaplaque.models.api.vehicles.InfoRequest;
+import com.example.snaptaplaque.models.api.vehicles.InfoResponse;
+import com.example.snaptaplaque.network.apicall.ApiCallback;
+import com.example.snaptaplaque.network.apicall.VehiclesCall;
 import com.example.snaptaplaque.viewmodels.SharedViewModel;
+
+import retrofit2.Response;
 
 public class WheelFragment extends Fragment {
 
@@ -67,7 +74,10 @@ public class WheelFragment extends Fragment {
         };
 
         btnSearch = view.findViewById(R.id.btnSearch);
-        btnSearch.setOnClickListener(v -> showToast(getPlateString()));
+        btnSearch.setOnClickListener(v -> {
+            showToast(getPlateString());
+            getInfoVehicle(new InfoRequest(getPlateString()));
+        });
 
         return view;
     }
@@ -205,5 +215,29 @@ public class WheelFragment extends Fragment {
             Toast.makeText(getContext(), "La plaque d'immatriculation n'est pas valide ❌", Toast.LENGTH_SHORT).show();
         }
     }
+
+    private void getInfoVehicle(InfoRequest infoRequest){
+        VehiclesCall.vehicleInfo(infoRequest, new ApiCallback() {
+            @Override
+            public void onResponseSuccess(Response response) {
+                InfoResponse res = (InfoResponse) response.body();
+                Vehicle vehicle = res.createVehicles(false);
+
+                sharedViewModel.addVehicle(vehicle);
+            }
+
+            @Override
+            public void onResponseFailure(Response response) {
+
+            }
+
+            @Override
+            public void onCallFailure(Throwable t) {
+
+            }
+        });
+    }
+
+
 }
 

@@ -97,7 +97,7 @@ public interface ApiService {
     /*********************/
     /* VEHICLES ENDPOINT */
     /*********************/
-    @GET("v1/vehicles/info")
+    @POST("v1/vehicles/info")
     Call<InfoResponse> vehicleInfo(
             @Header("Authorization") String token,
             @Query("license_plate") String licensePlate
