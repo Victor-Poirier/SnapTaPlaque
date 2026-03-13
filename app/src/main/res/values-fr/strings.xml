@@ -57,9 +57,9 @@
     <string name="logout_success">Déconnexion réussie</string>
     <string name="registration_success">L\'inscription a réussi</string>
     <string name="registration_failed">L\'inscription a échoué</string>
-    <string name="model_type">type de modèle</string>
-    <string name="pipeline">"pipeline"</string>
-    <string name="is_loaded">est chargé</string>
+    <string name="model_type">Type de modèle</string>
+    <string name="pipeline">Pipeline</string>
+    <string name="is_loaded">Modèle chargé</string>
     <string name="rgpd_controller">"Responsable : "</string>
     <string name="rgpd_contact">"Contact : "</string>
     <string name="rgpd_purpose">"Finalité : "</string>

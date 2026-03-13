@@ -42,8 +42,6 @@ public class SignUpActivity extends Activity {
             startActivity(intent);
         });
 
-        sessionManager = new SessionManager(this);
-
     }
 
     private void register() {
@@ -63,6 +61,6 @@ public class SignUpActivity extends Activity {
 
         RegisterRequest registerRequest = new RegisterRequest(_email, _identifiant, _motDePasse, _fullName, admin, _consent);
 
-        AccountCall.register(this, registerRequest, sessionManager);
+        AccountCall.register(this, registerRequest);
     }
 }

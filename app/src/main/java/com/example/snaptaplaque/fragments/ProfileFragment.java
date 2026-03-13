@@ -392,7 +392,8 @@ public class ProfileFragment extends Fragment {
                     dialog.show(getChildFragmentManager(), "detail");
                 },
 
-                vehicle -> sharedViewModel.toggleFavorite(vehicle)
+                vehicle -> sharedViewModel.toggleFavorite(vehicle),
+                this.getActivity()
         );
         recyclerView.setAdapter(adapter);
 
