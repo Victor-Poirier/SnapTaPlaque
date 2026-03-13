@@ -397,7 +397,6 @@ public class ProfileFragment extends Fragment {
         );
         recyclerView.setAdapter(adapter);
 
-        // Se met à jour automatiquement quand les favoris changent
         sharedViewModel.getFavoriteList().observe(getViewLifecycleOwner(), favorites -> {
             adapter.updateList(favorites);
         });
