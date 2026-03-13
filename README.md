@@ -46,7 +46,7 @@ SnapTaPlaque permet à tout utilisateur de **scanner, saisir ou dicter** une pla
 - Détection automatique d'une plaque depuis une photo (YOLOv8 + EasyOCR)
 - Saisie manuelle (clavier, tactile, roulette)
 - Reconnaissance vocale de la plaque
-- Consultation des informations véhicule (marque, modèle, année, couleur, motorisation)
+- Consultation des informations véhicule (marque, modèle, motorisation, énergie, informations complémentaires)
 - Gestion de véhicules favoris par utilisateur
 - Historique des recherches
 - Profil utilisateur avec authentification JWT
