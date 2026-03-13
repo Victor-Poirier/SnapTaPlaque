@@ -29,6 +29,7 @@ import com.example.snaptaplaque.network.apicall.VehiclesCall;
 import com.example.snaptaplaque.viewmodels.SharedViewModel;
 
 import retrofit2.Response;
+import retrofit2.http.HTTP;
 
 public class PictureFragment extends Fragment {
 
@@ -115,42 +116,10 @@ public class PictureFragment extends Fragment {
         btnPicture.setOnClickListener(v -> {
             photo.showChoice();
             picturePredict(photo);
-            getInfoVehicle(new InfoRequest(showPlate.getText().toString()));
         });
 
         btnSearch.setOnClickListener(v -> {
-            String plate = showPlate.getText().toString().trim();
-            if (!plate.isEmpty()) {
-                VehiclesCall.vehicleInfo(new InfoRequest(plate), new ApiCallback() {
-                    @Override
-                    public void onResponseSuccess(Response response) {
-                        InfoResponse info = (InfoResponse) response.body();
-                        if (info != null) {
-                            Vehicle vehicle = new Vehicle(
-                                    info.getLicensePlate(),
-                                    info.getBrand(),
-                                    info.getModel(),
-                                    info.getInfo(),
-                                    info.getEnergy(),
-                                    false
-                            );
-                            sharedViewModel.addVehicle(vehicle);
-                        }
-                    }
-
-                    @Override
-                    public void onResponseFailure(Response response) {
-                        Toast.makeText(getContext(), "Véhicule non trouvé", Toast.LENGTH_SHORT).show();
-                    }
-
-                    @Override
-                    public void onCallFailure(Throwable t) {
-
-                    }
-                });
-            } else {
-                Toast.makeText(getContext(), "Aucune plaque détectée", Toast.LENGTH_SHORT).show();
-            }
+            getInfoVehicle(new InfoRequest(showPlate.getText().toString().trim()));
         });
 
         return view;
@@ -166,7 +135,7 @@ public class PictureFragment extends Fragment {
     }
 
     // Endpoint : /v1/predictions/predict
-    public void picturePredict(Photo photo){
+    private void picturePredict(Photo photo){
         PredictionsCall.picturePredict(new PredictionRequest(photo.getTempImageUri()), new ApiCallback() {
             @Override
             public void onResponseSuccess(Response response) {
@@ -175,36 +144,41 @@ public class PictureFragment extends Fragment {
 
             @Override
             public void onResponseFailure(Response response) {
-
+                Integer errorCode = response.code();
+                Toast.makeText(getContext(), "Erreur lors de la recherche de la plaque dans l'image : code "+ errorCode, Toast.LENGTH_SHORT).show();
             }
 
             @Override
             public void onCallFailure(Throwable t) {
-
+                Toast.makeText(getContext(), "Erreur lors de l'envoie de l'image à l'API : " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
 
     private void getInfoVehicle(InfoRequest infoRequest){
-        VehiclesCall.vehicleInfo(infoRequest, new ApiCallback() {
-            @Override
-            public void onResponseSuccess(Response response) {
-                InfoResponse res = (InfoResponse) response.body();
-                Vehicle vehicle = res.createVehicles(false);
+        if (!infoRequest.getLicense_plate().isEmpty()) {
+            VehiclesCall.vehicleInfo(infoRequest, new ApiCallback() {
+                @Override
+                public void onResponseSuccess(Response response) {
+                    InfoResponse res = (InfoResponse) response.body();
 
-                sharedViewModel.addVehicle(vehicle);
-            }
+                    Vehicle vehicle = res.createVehicles(false);
+                    sharedViewModel.addVehicle(vehicle);
+                }
 
-            @Override
-            public void onResponseFailure(Response response) {
+                @Override
+                public void onResponseFailure(Response response) {
+                    Integer errorCode = response.code();
+                    Toast.makeText(getContext(), "Véhicule non trouvé : code "+ errorCode, Toast.LENGTH_SHORT).show();
+                }
 
-            }
-
-            @Override
-            public void onCallFailure(Throwable t) {
-
-            }
-        });
+                @Override
+                public void onCallFailure(Throwable t) {
+                    Toast.makeText(getContext(), "Erreur lors de l'envoie de la requête : "+ t.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            });
+        } else {
+            Toast.makeText(getContext(), "Aucune plaque détectée", Toast.LENGTH_SHORT).show();
+        }
     }
-
 }

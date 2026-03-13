@@ -1,5 +1,7 @@
 package com.example.snaptaplaque.models.api.root;
 
+import com.example.snaptaplaque.R;
+
 import java.util.List;
 
 public class RgpdResponse {
@@ -24,6 +26,20 @@ public class RgpdResponse {
         this.data_sharing = data_sharing;
         this.security_measures = security_measures;
     }
+
+    public String createString() {
+        return  R.string.rgpd_controller + controller + "\n" +
+                R.string.rgpd_contact + contact + "\n" +
+                R.string.rgpd_purpose + purpose + "\n" +
+                R.string.rgpd_legal_basis + legal_basis + "\n" +
+                R.string.rgpd_data_collected + data_collected + "\n" +
+                R.string.rgpd_retention_period + retention_period + "\n" +
+                R.string.rgpd_user_rights + user_rights + "\n" +
+                R.string.rgpd_data_sharing + data_sharing + "\n" +
+                R.string.rgpd_security_measures + security_measures + "\n";
+    }
+
+
 
     public String getController() {
         return controller;
