@@ -44,7 +44,7 @@ public class SignInActivity extends Activity {
         LoginRequest loginRequest = new LoginRequest(_username, _password);
 
         if (_username.isEmpty() || _password.isEmpty()) {
-            FeedbackManager.showError(this, String.valueOf(R.string.field_required), null);
+            FeedbackManager.showError(this, getString(R.string.field_required), null);
             return;
         }
 

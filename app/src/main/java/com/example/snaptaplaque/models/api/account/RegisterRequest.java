@@ -1,5 +1,7 @@
 package com.example.snaptaplaque.models.api.account;
 
+import com.google.gson.annotations.SerializedName;
+
 /**
  * Représente une requête d'inscription d'utilisateur.
  */
@@ -8,55 +10,85 @@ public class RegisterRequest {
     /**
      * Adresse email de l'utilisateur.
      */
+    @SerializedName("email")
     private String email;
 
     /**
      * Nom d'utilisateur choisi par l'utilisateur.
      */
+    @SerializedName("username")
     private String username;
 
     /**
      * Mot de passe choisi par l'utilisateur.
      */
+    @SerializedName("password")
     private String password;
 
     /**
      * Nom complet de l'utilisateur (prénom + nom).
      */
-    private String fullName;
+    @SerializedName("full_name")
+    private String full_name;
 
     /**
      * Indique si l'utilisateur est un administrateur (true) ou un utilisateur standard (false).
      */
-    private Boolean isAdmin;
+    @SerializedName("is_admin")
+    private boolean is_admin;
 
     /**
      * Indique si l'utilisateur à donner son consentement au RGPD (true) ou non (false).
      */
-    private Boolean consent_rgpd;
+    @SerializedName("gdpr_consent")
+    private boolean gdpr_consent;
 
     /**
      * Constructeur de la classe RegisterRequest.
      *
-     * @param username Nom d'utilisateur choisi par l'utilisateur.
-     * @param email    Adresse email de l'utilisateur.
-     * @param password Mot de passe choisi par l'utilisateur.
-     * @param nom      Nom complet de l'utilisateur (prénom + nom).
-     * @param admin    Indique si l'utilisateur est un administrateur (true) ou un utilisateur standard (false).
+     * @param email L'adresse email de l'utilisateur.
+     * @param username Le nom d'utilisateur choisi par l'utilisateur.
+     * @param password Le mot de passe choisi par l'utilisateur.
+     * @param full_name Le nom complet de l'utilisateur (prénom + nom).
+     * @param is_admin Indique si l'utilisateur est un administrateur (true) ou un utilisateur standard (false).
+     * @param gdpr_consent Indique si l'utilisateur à donner son consentement au RGPD (true) ou non (false).
      */
-    public RegisterRequest(String username,
-                            String email,
-                            String password,
-                            String nom,
-                            Boolean admin,
-                            Boolean consent) {
+    public RegisterRequest(String email,
+                           String username,
+                           String password,
+                           String full_name,
+                           boolean is_admin,
+                           boolean gdpr_consent) {
         this.email = email;
         this.username = username;
         this.password = password;
-        this.fullName = nom;
-        this.isAdmin = false; // Par défaut, les utilisateurs ne sont pas des administrateurs
-        this.consent_rgpd = consent;
+        this.full_name = full_name;
+        this.is_admin = is_admin;
+        this.gdpr_consent = gdpr_consent;
     }
 
+    public String getEmail() {
+        return email;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public String getFull_name() {
+        return full_name;
+    }
+
+    public boolean is_admin() {
+        return is_admin;
+    }
+
+    public boolean is_gdpr_consent() {
+        return gdpr_consent;
+    }
 
 }

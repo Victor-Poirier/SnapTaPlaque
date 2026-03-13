@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.os.Handler;
 import android.util.Log;
 
+import com.example.snaptaplaque.R;
 import com.example.snaptaplaque.activities.MainActivity;
 import com.example.snaptaplaque.activities.SignInActivity;
 import com.example.snaptaplaque.models.api.account.*;
@@ -47,18 +48,19 @@ public class AccountCall {
                     @Override
                     public void onResponse(@NonNull Call<RegisterResponse> call, @NonNull Response<RegisterResponse> response) {
                         if (response.isSuccessful() && response.body() != null) {
-                            FeedbackManager.showSuccess(activity, "Registration successful");
-                            Intent intent = new Intent(activity, SignInActivity.class);
-                            activity.startActivity(intent);
-                            activity.finish();
+                            FeedbackManager.showSuccess(activity, activity.getString(R.string.registration_success));
+
+                            LoginRequest loginRequest = new LoginRequest(registerRequest.getUsername(), registerRequest.getPassword());
+
+                            AccountCall.login(activity, loginRequest, sessionManager);
                         } else {
-                            FeedbackManager.showError(activity, "Registration failed: " + response.message(), null);
+                            FeedbackManager.showError(activity, activity.getString(R.string.registration_failed) + " " + response.message(), null);
                         }
                     }
 
                     @Override
                     public void onFailure(@NonNull Call<RegisterResponse> call, @NonNull Throwable t) {
-                        FeedbackManager.showError(activity, "Network error: " + t.getMessage(), null);
+                        FeedbackManager.showError(activity, R.string.service_unavailable + t.getMessage(), null);
                     }
                 });
     }
@@ -82,6 +84,7 @@ public class AccountCall {
                             Log.d("LOGIN", "Login successful, token: " + token);
 
                             new Handler().postDelayed(() -> {
+                                sessionManager.logout();
                                 sessionManager.saveSession(token, request.getUsername(), request.getPassword());
 
                                 Intent intent = new Intent(activity, MainActivity.class);

@@ -47,7 +47,7 @@
     <string name="tiret">-</string>
     <string name="searchInputHistory" type="id">Rechercher une plaque ou un modèle...</string>
     <string name="enter_plate_number">Veuillez entrer un numéro d\'immatriculation</string>
-    <string name="field_required">Tous les champs sont requis</string>
+    <string name="field_required">Tous les champs sont requis.</string>
     <string name="validate_plate">La plaque est valide</string>
     <string name="unvalidate_plate">La plaque n\'est pas valide</string>
     <string name="launch_error_title">Service indisponible</string>
@@ -55,6 +55,8 @@
     <string name="launch_error_retry">Réessayer</string>
     <string name="launch_error_exit">Quitter</string>
     <string name="logout_success">Déconnexion réussie</string>
+    <string name="registration_success">L\'inscription a réussi</string>
+    <string name="registration_failed">L\'inscription a échoué</string>
     <string name="model_type">type de modèle</string>
     <string name="pipeline">"pipeline"</string>
     <string name="is_loaded">est chargé</string>

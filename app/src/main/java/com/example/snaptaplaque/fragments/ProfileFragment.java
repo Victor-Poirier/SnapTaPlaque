@@ -391,11 +391,12 @@ public class ProfileFragment extends Fragment {
                     VehicleDetailDialogFragment dialog = VehicleDetailDialogFragment.createFrag(vehicle.getImmatriculation());
                     dialog.show(getChildFragmentManager(), "detail");
                 },
-                vehicle -> sharedViewModel.toggleFavorite(vehicle),
-                this.getActivity()
+
+                vehicle -> sharedViewModel.toggleFavorite(vehicle)
         );
         recyclerView.setAdapter(adapter);
 
+        // Se met à jour automatiquement quand les favoris changent
         sharedViewModel.getFavoriteList().observe(getViewLifecycleOwner(), favorites -> {
             adapter.updateList(favorites);
         });

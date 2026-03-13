@@ -54,9 +54,11 @@
     <string name="launch_error_retry">Retry</string>
     <string name="launch_error_exit">Exit</string>
     <string name="logout_success">"Log out successfully "</string>
-    <string name="model_type">"model type"</string>
-    <string name="pipeline">"pipeline"</string>
-    <string name="is_loaded">modèle chargé</string>
+    <string name="registration_success">Registration successful</string>
+    <string name="registration_failed">Registration failed</string>
+    <string name="model_type">"Model type"</string>
+    <string name="pipeline">"Pipeline"</string>
+    <string name="is_loaded">Model loaded</string>
     <string name="rgpd_controller">"Controller : "</string>
     <string name="rgpd_contact">"Contact : "</string>
     <string name="rgpd_purpose">"Purpose : "</string>
