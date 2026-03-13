@@ -20,7 +20,8 @@ import androidx.lifecycle.ViewModelProvider;
 import com.example.snaptaplaque.R;
 import com.example.snaptaplaque.models.Photo;
 import com.example.snaptaplaque.models.Vehicle;
-import com.example.snaptaplaque.models.api.predictions.PredictionRequest;
+import com.example.snaptaplaque.models.api.predictions.PredictionDetectionResult;
+import com.example.snaptaplaque.models.api.predictions.PredictionResponse;
 import com.example.snaptaplaque.models.api.vehicles.InfoRequest;
 import com.example.snaptaplaque.models.api.vehicles.InfoResponse;
 import com.example.snaptaplaque.network.apicall.ApiCallback;
@@ -28,6 +29,14 @@ import com.example.snaptaplaque.network.apicall.PredictionsCall;
 import com.example.snaptaplaque.network.apicall.VehiclesCall;
 import com.example.snaptaplaque.viewmodels.SharedViewModel;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
 import retrofit2.Response;
 
 public class PictureFragment extends Fragment {
@@ -41,8 +50,6 @@ public class PictureFragment extends Fragment {
     private ActivityResultLauncher<String> requestPermissionLauncher;
     private ActivityResultLauncher<Uri> cameraLauncher;
     private ActivityResultLauncher<String> galleryLauncher;
-
-    public PictureFragment() { }
 
     /**
      * Called when the fragment is first created.
@@ -66,7 +73,7 @@ public class PictureFragment extends Fragment {
         cameraLauncher = registerForActivityResult(
                 new ActivityResultContracts.TakePicture(),
                 success -> {
-                    if (success && photo.getTempImageUri() != null) {
+                    if(success && photo.getTempImageUri() != null) {
                         ivLicencePlate.setImageURI(null);
                         ivLicencePlate.setImageURI(photo.getTempImageUri());
                         showUI();
@@ -77,8 +84,12 @@ public class PictureFragment extends Fragment {
         galleryLauncher = registerForActivityResult(
                 new ActivityResultContracts.GetContent(),
                 uri -> {
-                    if (uri != null) ivLicencePlate.setImageURI(uri);
-                    showUI();
+                    if(uri != null) {
+                        photo.setTempImageUri(uri);
+                        ivLicencePlate.setImageURI(null);
+                        ivLicencePlate.setImageURI(photo.getTempImageUri());
+                        showUI();
+                    }
                 }
         );
 
@@ -102,7 +113,6 @@ public class PictureFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        // Assure-toi d'avoir un layout nommé fragment_picture.xml avec les bons IDs
         View view = inflater.inflate(R.layout.fragment_picture, container, false);
 
         sharedViewModel = new ViewModelProvider(requireActivity()).get(SharedViewModel.class);
@@ -114,43 +124,10 @@ public class PictureFragment extends Fragment {
 
         btnPicture.setOnClickListener(v -> {
             photo.showChoice();
-            picturePredict(photo);
-            getInfoVehicle(new InfoRequest(showPlate.getText().toString()));
         });
 
         btnSearch.setOnClickListener(v -> {
-            String plate = showPlate.getText().toString().trim();
-            if (!plate.isEmpty()) {
-                VehiclesCall.vehicleInfo(new InfoRequest(plate), new ApiCallback() {
-                    @Override
-                    public void onResponseSuccess(Response response) {
-                        InfoResponse info = (InfoResponse) response.body();
-                        if (info != null) {
-                            Vehicle vehicle = new Vehicle(
-                                    info.getLicensePlate(),
-                                    info.getBrand(),
-                                    info.getModel(),
-                                    info.getInfo(),
-                                    info.getEnergy(),
-                                    false
-                            );
-                            sharedViewModel.addVehicle(vehicle);
-                        }
-                    }
-
-                    @Override
-                    public void onResponseFailure(Response response) {
-                        Toast.makeText(getContext(), "Véhicule non trouvé", Toast.LENGTH_SHORT).show();
-                    }
-
-                    @Override
-                    public void onCallFailure(Throwable t) {
-
-                    }
-                });
-            } else {
-                Toast.makeText(getContext(), "Aucune plaque détectée", Toast.LENGTH_SHORT).show();
-            }
+            picturePredict(photo);
         });
 
         return view;
@@ -165,17 +142,42 @@ public class PictureFragment extends Fragment {
         btnSearch.setVisibility(View.VISIBLE);
     }
 
-    // Endpoint : /v1/predictions/predict
     public void picturePredict(Photo photo){
-        PredictionsCall.picturePredict(new PredictionRequest(photo.getTempImageUri()), new ApiCallback() {
+        File file = getFileFromUri(photo.getTempImageUri());
+
+        if(file == null) {
+            return;
+        }
+
+        MultipartBody.Part body = MultipartBody.Part.createFormData(
+                "file",
+                file.getName(),
+                RequestBody.create(MediaType.parse("image/jpeg"), file)
+        );
+
+        PredictionsCall.picturePredict(body, new ApiCallback() {
             @Override
             public void onResponseSuccess(Response response) {
-                showPlate.setText(response.toString());
+                PredictionResponse predictionResponse = (PredictionResponse) response.body();
+
+                if((predictionResponse != null) && (predictionResponse.getResults() != null) && (!predictionResponse.getResults().isEmpty())) {
+                    PredictionDetectionResult firstResult = predictionResponse.getResults().get(0);
+
+                    String detectedPlate = firstResult.getPlaque_number();
+
+                    showPlate.setText(detectedPlate);
+
+                    if(plateComplianceVerification(showPlate.getText().toString())) {
+                        getInfoVehicle(new InfoRequest(showPlate.getText().toString()));
+                    }
+                } else {
+                    Toast.makeText(getContext(), R.string.detection_plate, Toast.LENGTH_SHORT).show();
+                }
             }
 
             @Override
             public void onResponseFailure(Response response) {
-
+                Toast.makeText(getContext(), R.string.detection_plate, Toast.LENGTH_SHORT).show();
             }
 
             @Override
@@ -183,6 +185,19 @@ public class PictureFragment extends Fragment {
 
             }
         });
+    }
+
+    private boolean plateComplianceVerification(String plate) {
+
+        String regex_1 = "(?i)((?!SS|WW|W)[A-HJ-NP-TV-Z]{2})-((?!000)[0-9]{3})-((?!SS|WW)[A-HJ-NP-TV-Z]{2})";
+        String regex_2 = "(?i)((?!SS|WW|W)[A-HJ-NP-TV-Z]{2})((?!000)[0-9]{3})((?!SS|WW)[A-HJ-NP-TV-Z]{2})";
+
+        if((!plate.matches(regex_1)) && (!plate.matches(regex_2))) {
+            Toast.makeText(getContext(), R.string.compliance_plate, Toast.LENGTH_SHORT).show();
+            return false;
+        }
+
+        return true;
     }
 
     private void getInfoVehicle(InfoRequest infoRequest){
@@ -193,11 +208,14 @@ public class PictureFragment extends Fragment {
                 Vehicle vehicle = res.createVehicles(false);
 
                 sharedViewModel.addVehicle(vehicle);
+
+                VehicleDetailDialogFragment dialog = VehicleDetailDialogFragment.createFrag(vehicle.getImmatriculation());
+                dialog.show(getChildFragmentManager(), "detail");
             }
 
             @Override
             public void onResponseFailure(Response response) {
-
+                Toast.makeText(getContext(), R.string.existence_plate, Toast.LENGTH_SHORT).show();
             }
 
             @Override
@@ -207,4 +225,29 @@ public class PictureFragment extends Fragment {
         });
     }
 
+    private File getFileFromUri(Uri uri) {
+        try {
+            File tempFile = new File(requireContext().getCacheDir(), "image.jpg");
+
+            InputStream inputStream = requireContext().getContentResolver().openInputStream(uri);
+            FileOutputStream outputStream = new FileOutputStream(tempFile);
+
+            byte[] buffer = new byte[8192];
+            int read;
+
+            while((read = inputStream.read(buffer)) != -1) {
+                outputStream.write(buffer, 0, read);
+            }
+
+            outputStream.flush();
+            outputStream.close();
+            inputStream.close();
+
+            return tempFile;
+        }
+        catch(IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 }

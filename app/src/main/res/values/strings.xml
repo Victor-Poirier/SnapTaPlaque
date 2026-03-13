@@ -55,4 +55,7 @@
     <string name="launch_error_retry">Retry</string>
     <string name="launch_error_exit">Exit</string>
     <string name="logout_success">"Log out successfully "</string>
+    <string name="compliance_plate">The license plate is not compliant ❌</string>
+    <string name="existence_plate">The license plate does not exist</string>
+    <string name="detection_plate">No license plate detected</string>
 </resources>

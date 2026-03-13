@@ -2,22 +2,19 @@ package com.example.snaptaplaque.network;
 
 import com.example.snaptaplaque.models.api.account.*;
 import com.example.snaptaplaque.models.api.favorites.FavoriteAllResponse;
-import com.example.snaptaplaque.models.api.favorites.FavoritesAddRequest;
 import com.example.snaptaplaque.models.api.favorites.FavoritesAddResponse;
-import com.example.snaptaplaque.models.api.favorites.FavoritesRemoveRequest;
 import com.example.snaptaplaque.models.api.favorites.FavoritesRemoveResponse;
 import com.example.snaptaplaque.models.api.model.ModelInfoResponse;
 import com.example.snaptaplaque.models.api.predictions.HistoryResponse;
-import com.example.snaptaplaque.models.api.predictions.PredictionRequest;
 import com.example.snaptaplaque.models.api.predictions.PredictionResponse;
 import com.example.snaptaplaque.models.api.predictions.StatsResponse;
 import com.example.snaptaplaque.models.api.root.ApiVersionResponse;
 import com.example.snaptaplaque.models.api.root.RgpdResponse;
 import com.example.snaptaplaque.models.api.root.HealthResponse;
 import com.example.snaptaplaque.models.api.vehicles.HistoryVehiclesResponse;
-import com.example.snaptaplaque.models.api.vehicles.InfoRequest;
 import com.example.snaptaplaque.models.api.vehicles.InfoResponse;
 
+import okhttp3.MultipartBody;
 import retrofit2.http.Field;
 import retrofit2.Call;
 import retrofit2.http.*;
@@ -78,10 +75,11 @@ public interface ApiService {
      * Endpoint pour la prédiction de la plaque d'immatriculation à partir d'une image.
      *
      */
+    @Multipart
     @POST("v1/predictions/predict")
     Call<PredictionResponse> predict(
             @Header("Authorization") String token,
-            @Body PredictionRequest predictionRequest
+            @Part MultipartBody.Part filePart
     );
 
     @GET("v1/predictions/history")

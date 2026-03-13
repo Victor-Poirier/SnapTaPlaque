@@ -53,7 +53,9 @@ public class VocalFragment extends Fragment {
 
         btnVocal.setEndIconOnClickListener(v -> askSpeechInput());
         btnSearch.setOnClickListener(v -> {
-            getInfoVehicle(new InfoRequest(numberPlate.getText().toString()));
+            if(plateComplianceVerification(numberPlate.getText().toString())) {
+                getInfoVehicle(new InfoRequest(numberPlate.getText().toString()));
+            }
         });
 
         return view;
@@ -95,18 +97,17 @@ public class VocalFragment extends Fragment {
         }
     }
 
-    private void showToast() {
-        String plate = numberPlate.getText().toString().trim();
+    private boolean plateComplianceVerification(String plate) {
 
         String regex_1 = "(?i)((?!SS|WW|W)[A-HJ-NP-TV-Z]{2})-((?!000)[0-9]{3})-((?!SS|WW)[A-HJ-NP-TV-Z]{2})";
         String regex_2 = "(?i)((?!SS|WW|W)[A-HJ-NP-TV-Z]{2})((?!000)[0-9]{3})((?!SS|WW)[A-HJ-NP-TV-Z]{2})";
 
-        if(plate.matches(regex_1) || plate.matches(regex_2)) {
-            Toast.makeText(getContext(), R.string.validate_plate + " ✅", Toast.LENGTH_SHORT).show();
+        if((!plate.matches(regex_1)) && (!plate.matches(regex_2))) {
+            Toast.makeText(getContext(), R.string.compliance_plate, Toast.LENGTH_SHORT).show();
+            return false;
         }
-        else {
-            Toast.makeText(getContext(), R.string.unvalidate_plate + " ❌", Toast.LENGTH_SHORT).show();
-        }
+
+        return true;
     }
 
     private void getInfoVehicle(InfoRequest infoRequest){
@@ -117,11 +118,14 @@ public class VocalFragment extends Fragment {
                 Vehicle vehicle = res.createVehicles(false);
 
                 sharedViewModel.addVehicle(vehicle);
+
+                VehicleDetailDialogFragment dialog = VehicleDetailDialogFragment.createFrag(vehicle.getImmatriculation());
+                dialog.show(getChildFragmentManager(), "detail");
             }
 
             @Override
             public void onResponseFailure(Response response) {
-
+                Toast.makeText(getContext(), R.string.existence_plate, Toast.LENGTH_SHORT).show();
             }
 
             @Override

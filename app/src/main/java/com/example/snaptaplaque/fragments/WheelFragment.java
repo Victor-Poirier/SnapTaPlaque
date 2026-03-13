@@ -6,7 +6,6 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.NumberPicker;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -52,7 +51,7 @@ public class WheelFragment extends Fragment {
         sharedViewModel = new ViewModelProvider(requireActivity()).get(SharedViewModel.class);
 
         // Définition des données
-        String[] letters = {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"};
+        String[] letters = {"A", "B", "C", "D", "E", "F", "G", "H", "J", "K", "L", "M", "N", "P", "Q", "R", "S", "T", "V", "W", "X", "Y", "Z"};
         String[] numbers = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"};
 
         // Initialisation des slots
@@ -75,8 +74,9 @@ public class WheelFragment extends Fragment {
 
         btnSearch = view.findViewById(R.id.btnSearch);
         btnSearch.setOnClickListener(v -> {
-            showToast(getPlateString());
-            getInfoVehicle(new InfoRequest(getPlateString()));
+            if(plateComplianceVerification(getPlateString())) {
+                getInfoVehicle(new InfoRequest(getPlateString()));
+            }
         });
 
         return view;
@@ -204,16 +204,17 @@ public class WheelFragment extends Fragment {
     /**
      *
      */
-    private void showToast(String plate) {
+    private boolean plateComplianceVerification(String plate) {
 
         String regex_1 = "(?i)((?!SS|WW|W)[A-HJ-NP-TV-Z]{2})-((?!000)[0-9]{3})-((?!SS|WW)[A-HJ-NP-TV-Z]{2})";
         String regex_2 = "(?i)((?!SS|WW|W)[A-HJ-NP-TV-Z]{2})((?!000)[0-9]{3})((?!SS|WW)[A-HJ-NP-TV-Z]{2})";
 
-        if (plate.matches(regex_1) || plate.matches(regex_2)) {
-            Toast.makeText(getContext(), "La plaque d'immatriculation est valide ✅", Toast.LENGTH_SHORT).show();
-        } else {
-            Toast.makeText(getContext(), "La plaque d'immatriculation n'est pas valide ❌", Toast.LENGTH_SHORT).show();
+        if((!plate.matches(regex_1)) && (!plate.matches(regex_2))) {
+            Toast.makeText(getContext(), R.string.compliance_plate, Toast.LENGTH_SHORT).show();
+            return false;
         }
+
+        return true;
     }
 
     private void getInfoVehicle(InfoRequest infoRequest){
@@ -224,11 +225,14 @@ public class WheelFragment extends Fragment {
                 Vehicle vehicle = res.createVehicles(false);
 
                 sharedViewModel.addVehicle(vehicle);
+
+                VehicleDetailDialogFragment dialog = VehicleDetailDialogFragment.createFrag(vehicle.getImmatriculation());
+                dialog.show(getChildFragmentManager(), "detail");
             }
 
             @Override
             public void onResponseFailure(Response response) {
-
+                Toast.makeText(getContext(), R.string.existence_plate, Toast.LENGTH_SHORT).show();
             }
 
             @Override
@@ -237,7 +241,5 @@ public class WheelFragment extends Fragment {
             }
         });
     }
-
-
 }
 

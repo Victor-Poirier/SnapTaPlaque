@@ -1,10 +1,14 @@
 package com.example.snaptaplaque.models.api.predictions;
 
+import com.google.gson.annotations.SerializedName;
+
 /**
  * Représente un résultat de détection retourné par l'API de prédiction, contenant le numéro de plaque détecté et la confiance associée.
  */
 public class PredictionDetectionResult {
+    @SerializedName("plate_text")
     private String plaque_number;
+    @SerializedName("confidence")
     private double confidence;
 
     public PredictionDetectionResult(String plaque_number, double confidence) {

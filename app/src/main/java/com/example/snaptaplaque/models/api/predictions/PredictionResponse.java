@@ -1,6 +1,6 @@
 package com.example.snaptaplaque.models.api.predictions;
 
-
+import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
 
@@ -12,6 +12,7 @@ public class PredictionResponse {
     /**
      * Liste des résultats de détection retournés par l'API.
      */
+    @SerializedName("results")
     private List<PredictionDetectionResult> result;
 
     public PredictionResponse(List<PredictionDetectionResult> result) {

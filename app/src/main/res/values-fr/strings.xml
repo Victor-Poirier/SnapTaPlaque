@@ -56,4 +56,7 @@
     <string name="launch_error_retry">Réessayer</string>
     <string name="launch_error_exit">Quitter</string>
     <string name="logout_success">Déconnexion réussie</string>
+    <string name="compliance_plate">La plaque d\'immatriculation n\'est pas conforme ❌</string>
+    <string name="existence_plate">La plaque d\'immatriculation n\'existe pas</string>
+    <string name="detection_plate">Aucune plaque d\'immatriculation détectée</string>
 </resources>

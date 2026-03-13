@@ -1,6 +1,5 @@
 package com.example.snaptaplaque.fragments;
 
-import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,15 +14,7 @@ import androidx.viewpager2.widget.ViewPager2;
 
 import com.example.snaptaplaque.R;
 import com.example.snaptaplaque.adapters.InputSectionAdapter;
-import com.example.snaptaplaque.models.api.predictions.PredictionRequest;
-import com.example.snaptaplaque.models.api.vehicles.InfoRequest;
-import com.example.snaptaplaque.models.api.vehicles.InfoResponse;
-import com.example.snaptaplaque.network.apicall.ApiCallback;
-import com.example.snaptaplaque.network.apicall.PredictionsCall;
-import com.example.snaptaplaque.network.apicall.VehiclesCall;
 import com.example.snaptaplaque.viewmodels.SharedViewModel;
-
-import retrofit2.Response;
 
 /**
  * Fragment dédié à la recherche et au scan de plaques d'immatriculation.
