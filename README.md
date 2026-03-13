@@ -48,6 +48,7 @@ SnapTaPlaque permet à tout utilisateur de **scanner, saisir ou dicter** une pla
 - Reconnaissance vocale de la plaque
 - Consultation des informations véhicule (marque, modèle, motorisation, énergie, informations complémentaires)
 - Gestion de véhicules favoris par utilisateur
+- Affichage de la localisation de l'utilisateur
 - Historique des recherches
 - Profil utilisateur avec authentification JWT
 
