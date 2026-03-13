@@ -205,7 +205,8 @@ public class SharedViewModel extends ViewModel {
                 .filter(vehicle -> vehicle.getImmatriculation().toLowerCase().contains(query) ||
                         vehicle.getBrand().toLowerCase().contains(query) ||
                         vehicle.getModel().toLowerCase().contains(query) ||
-                        vehicle.getInfo().toLowerCase().contains(query)
+                        vehicle.getInfo().toLowerCase().contains(query) ||
+                        vehicle.getEnergy().toLowerCase().contains(query)
                 )
                 .collect(Collectors.toList());
     }

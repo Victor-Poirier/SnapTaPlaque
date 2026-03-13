@@ -88,4 +88,8 @@ public class Photo {
     public Uri getTempImageUri() {
         return tempImageUri;
     }
+
+    public void setTempImageUri(Uri uri) {
+        this.tempImageUri = uri;
+    }
 }

@@ -3,13 +3,13 @@ package com.example.snaptaplaque.network.apicall;
 import android.util.Log;
 
 import com.example.snaptaplaque.models.api.predictions.HistoryResponse;
-import com.example.snaptaplaque.models.api.predictions.PredictionRequest;
 import com.example.snaptaplaque.models.api.predictions.PredictionResponse;
 import com.example.snaptaplaque.models.api.predictions.StatsResponse;
 import com.example.snaptaplaque.network.ApiClient;
 import com.example.snaptaplaque.network.ApiService;
 import com.example.snaptaplaque.utils.SessionManager;
 
+import okhttp3.MultipartBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -63,9 +63,9 @@ public class PredictionsCall {
     }
 
     // Endpoint : /v1/predictions/predict
-    public static void picturePredict(PredictionRequest predictionRequest, ApiCallback apiCallback){
+    public static void picturePredict(MultipartBody.Part filePart, ApiCallback apiCallback){
         String token = sessionManager.getToken();
-        apiService.predict("Bearer " + token, predictionRequest)
+        apiService.predict("Bearer " + token, filePart)
                 .enqueue(new Callback<PredictionResponse>() {
                     @Override
                     public void onResponse(Call<PredictionResponse> call, Response<PredictionResponse> response) {

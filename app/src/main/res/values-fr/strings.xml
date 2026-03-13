@@ -69,5 +69,7 @@
     <string name="rgpd_user_rights">"Droits des utilisateurs : "</string>
     <string name="rgpd_data_sharing">"Partage des données : "</string>
     <string name="rgpd_security_measures">"Mesures de sécurité : "</string>
-
+    <string name="compliance_plate">La plaque d\'immatriculation n\'est pas conforme ❌</string>
+    <string name="existence_plate">La plaque d\'immatriculation n\'existe pas</string>
+    <string name="detection_plate">Aucune plaque d\'immatriculation détectée</string>
 </resources>

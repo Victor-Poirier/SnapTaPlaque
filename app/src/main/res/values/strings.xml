@@ -68,5 +68,8 @@
     <string name="rgpd_user_rights">"User rights : "</string>
     <string name="rgpd_data_sharing">"Data sharing : "</string>
     <string name="rgpd_security_measures">"Security measures : "</string>
+    <string name="compliance_plate">The license plate is not compliant ❌</string>
+    <string name="existence_plate">The license plate does not exist</string>
+    <string name="detection_plate">No license plate detected</string>
 
 </resources>
