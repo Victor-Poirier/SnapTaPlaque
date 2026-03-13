@@ -91,7 +91,7 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
 
     # Durée de validité des tokens d'accès, en minutes.
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 10
 
     # ================== API ==================
 
