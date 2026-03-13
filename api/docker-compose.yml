@@ -102,6 +102,8 @@ services:
       - SECRET_KEY=${SECRET_KEY:-dev-secret-key-change-in-production}
       # Disable debug mode (set to True for verbose SQLAlchemy query logging)
       - DEBUG=False
+      # Prevent runtime pip installs by Ultralytics inside the container
+      - YOLO_AUTOINSTALL=False
     depends_on:
       db:
         # Wait until the db health check reports healthy before starting

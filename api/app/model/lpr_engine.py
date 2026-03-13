@@ -1,144 +1,126 @@
 """
-Offre une implémentation d'un pipeline de reconnaissance de plaques d'immatriculation (LPR) utilisant les
-modèles YOLO pour la détection de véhicules et de plaques, ainsi que EasyOCR pour l'extraction du texte des plaques.
-Le pipeline est conçu avec une approche en deux étapes (détection de véhicules puis détection de
-plaques) et un fallback pour détecter les plaques directement sur l'image si aucune n'est trouvée dans les véhicules
-détectés. Les résultats incluent les plaques trouvées et leurs confiances.
+Pipeline LPR base sur YOLO ONNX (HuggingFace) + EasyOCR.
 
-Date de création : 25 février 2026
-Version : 1.0
+Le moteur detecte directement les plaques dans l'image complete,
+puis applique OCR sur chaque zone detectee.
 """
+
+from pathlib import Path
+import warnings
 
 import cv2
 import numpy as np
-import pandas as pd
 import easyocr
 from ultralytics import YOLO
-import torch
 
 
 class CFG:
-    """
-    Configuration pour le pipeline de reconnaissance de plaques d'immatriculation (LPR).
+    """Configuration du moteur LPR HuggingFace."""
 
-    Explication des paramètres :
-        weights: chemin vers les poids du modèle de détection de véhicules (YOLO).
-        plate_weights: chemin vers les poids du modèle de détection de plaques (YOLO).
-        vehicles_class: liste des classes de véhicules à détecter (car, motorcycle, bus, truck).
-        vehicle_conf: seuil de confiance pour la détection de véhicules.
-        plate_conf: seuil de confiance pour la détection de plaques.
-        ocr_conf: seuil de confiance pour l'extraction de texte via OCR.
-    """
-    # Ces chemins relatifs sont résolus depuis le répertoire de travail (WORKDIR /app)
-    weights = 'app/model/vehicule_model.pt'
-    plate_weights = 'app/model/plate_model.pt'
-    vehicles_class = [2, 3, 5, 7]
-    vehicle_conf = 0.5
-    plate_conf = 0.3
+    hf_repo_id = "0xnu/european-license-plate-recognition"
+    hf_model_filename = "model.onnx"
+    hf_config_filename = "config.json"
+    hf_local_dir = "/models/hf"
+
+    plate_conf = 0.5
     ocr_conf = 0.1
+    ocr_languages = ["en", "de", "fr", "es", "it", "nl"]
+    ocr_allowlist = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 
 class LPRPipeline:
     def __init__(self):
-        """
-        Initialise le pipeline de reconnaissance de plaques d'immatriculation en chargeant les modèles et en configurant les paramètres nécessaires.
-        """
-        self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
-        # Chargement des modèles
-        self.vehicle_model = YOLO(CFG.weights).to(self.device)
-        self.plate_model = YOLO(CFG.plate_weights).to(self.device)
-        self.reader = easyocr.Reader(['en'], gpu=(self.device != 'cpu'))
+        """Initialise YOLO ONNX + EasyOCR avec fallback offline."""
+        warnings.filterwarnings("ignore")
 
-        # Mapping des classes
-        self.dict_classes = {i: self.vehicle_model.model.names[i] for i in CFG.vehicles_class}
+        model_path = self._resolve_model_file(CFG.hf_model_filename)
+        # Recupere aussi config.json pour prechauffer le cache HF.
+        self._resolve_model_file(CFG.hf_config_filename)
 
-    def extract_roi(self, image : np.ndarray, bbox : list) -> np.ndarray:
+        self.plate_model = YOLO(model_path, task="detect")
+        self.reader = easyocr.Reader(
+            CFG.ocr_languages,
+            gpu=False,
+            verbose=False,
+        )
+
+    def _resolve_model_file(self, filename: str) -> str:
         """
-        Extrait la région d'intérêt (ROI) de l'image en fonction de la bounding box.
+        Resout un artefact modele strictement en local.
 
-        Args:
-            image: l'image d'entrée
-            bbox: la bounding box au format [x_min, y_min, x_max, y_max]
-
-        Returns:
-            Le sous-image correspondant à la bounding box.
+        En mode "zero telechargement runtime", les fichiers doivent
+        avoir ete precharges pendant le build Docker.
         """
+        local_dir = Path(CFG.hf_local_dir)
+        local_dir.mkdir(parents=True, exist_ok=True)
+        local_file_path = local_dir / filename
+
+        if local_file_path.exists():
+            return str(local_file_path)
+
+        raise RuntimeError(
+            f"Artefact modele absent: {local_file_path}. "
+            "Rebuild l'image Docker pour precharger le modele."
+        )
+
+    def extract_roi(self, image: np.ndarray, bbox: list) -> np.ndarray:
+        """Extrait une ROI en bornant les coordonnees a l'image."""
         x_min, y_min, x_max, y_max = map(int, bbox)
+
+        h, w = image.shape[:2]
+        x_min = max(0, min(x_min, w))
+        x_max = max(0, min(x_max, w))
+        y_min = max(0, min(y_min, h))
+        y_max = max(0, min(y_max, h))
+
         return image[y_min:y_max, x_min:x_max]
 
-    def extract_ocr(self, roi_img : np.ndarray) -> tuple:
-        """
-        Effectue l'OCR sur la région d'intérêt (ROI) pour extraire le texte de la plaque d'immatriculation.
+    def extract_ocr(self, roi_img: np.ndarray) -> tuple:
+        """Retourne (texte_plaque, confiance_max) pour un crop de plaque."""
+        if roi_img.size == 0:
+            return "", 0.0
 
-        Args:
-            roi_img: L'image de la plaque d'immatriculation extraite
+        results = self.reader.readtext(
+            np.asarray(roi_img),
+            allowlist=CFG.ocr_allowlist,
+        )
 
-        Returns:
-            Le texte extrait de la plaque d'immatriculation et la confiance maximale associée.
-        """
-
-        # Les caractères possibles pour les plaques d'immatriculation sont limités à des chiffres et des lettres majuscules
-        results = self.reader.readtext(np.asarray(roi_img), allowlist='0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ')
         text_plate = ""
-        max_conf = 0
+        max_conf = 0.0
 
-        for (bbox, text, conf) in results:
+        for _, text, conf in results:
             if conf > CFG.ocr_conf:
                 text_plate += text
                 max_conf = max(max_conf, conf)
 
-        return text_plate.upper(), max_conf
+        return text_plate.upper().replace(" ", ""), float(max_conf)
 
-    def run(self, image_np : np.ndarray) -> list:
+    def run(self, image_np: np.ndarray) -> list:
         """
-        Execute le pipeline de reconnaissance de plaques d'immatriculation sur une image donnée.
-
-        Args:
-            image_np: L'image d'entrée prise depuis un téléphone portable.
-
-        Returns:
-            Le résultat de la reconnaissance de plaques d'immatriculation, incluant les plaques trouvées et leurs confiances.
+        Execute la detection et retourne une liste de:
+        {"plate": <str>, "confidence": <float>}.
         """
-
-        # Détection des véhicules dans l'image
-        vehicle_results = self.vehicle_model.predict(
-            image_np, conf=CFG.vehicle_conf, classes=CFG.vehicles_class, verbose=False
-        )
-
-        df_vehicles = pd.DataFrame(
-            vehicle_results[0].cpu().numpy().boxes.data,
-            columns=['xmin', 'ymin', 'xmax', 'ymax', 'conf', 'class']
-        )
-
         plates_found = []
 
-        if not df_vehicles.empty:
-            for _, v_row in df_vehicles.iterrows():
-                vehicle_img = self.extract_roi(image_np, [v_row['xmin'], v_row['ymin'], v_row['xmax'], v_row['ymax']])
+        image_rgb = cv2.cvtColor(image_np, cv2.COLOR_BGR2RGB)
+        detection_results = self.plate_model(image_rgb, conf=CFG.plate_conf, verbose=False)
 
-                # Détection de plaque dans le véhicule
-                plate_results = self.plate_model.predict(vehicle_img, conf=CFG.plate_conf, verbose=False)
-                df_p = pd.DataFrame(plate_results[0].cpu().numpy().boxes.data,
-                                    columns=['xmin', 'ymin', 'xmax', 'ymax', 'conf', 'class'])
+        for result in detection_results:
+            boxes = result.boxes
+            if boxes is None:
+                continue
 
-                if not df_p.empty:
-                    # On prend la meilleure plaque si plusieurs sont détectées
-                    best_p = df_p.loc[df_p['conf'].idxmax()]
-                    plate_img = self.extract_roi(vehicle_img,
-                                                 [best_p['xmin'], best_p['ymin'], best_p['xmax'], best_p['ymax']])
-
-                    # OCR pour extraire le texte de la plaque
-                    text, conf = self.extract_ocr(plate_img)
-                    plates_found.append({"plate": text, "confidence": float(conf)})
-
-        # Fallback = recherche sur toute l'image si rien n'est trouvé
-        if not plates_found:
-            plate_results = self.plate_model.predict(image_np, conf=CFG.plate_conf, verbose=False)
-            for result in plate_results[0].boxes.data:
-                p_bbox = result[:4].cpu().numpy()
-                plate_img = self.extract_roi(image_np, p_bbox)
+            for box in boxes:
+                x1, y1, x2, y2 = box.xyxy[0].cpu().numpy()
+                plate_img = self.extract_roi(image_rgb, [x1, y1, x2, y2])
                 text, conf = self.extract_ocr(plate_img)
                 if text:
-                    plates_found.append({"plate": text, "confidence": float(conf)})
+                    plates_found.append(
+                        {
+                            "plate": text,
+                            "confidence": float(conf),
+                        }
+                    )
 
         return plates_found
+
