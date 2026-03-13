@@ -237,9 +237,7 @@ public class PictureFragment extends Fragment {
                     Toast.makeText(getContext(), "Erreur lors de l'envoie de la requête : "+ t.getMessage(), Toast.LENGTH_SHORT).show();
                 }
             });
-        }
     }
-
     private File getFileFromUri(Uri uri) {
         try {
             File tempFile = new File(requireContext().getCacheDir(), "image.jpg");
