@@ -1,5 +1,6 @@
 package com.example.snaptaplaque.fragments;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -25,6 +26,7 @@ import com.example.snaptaplaque.activities.SignInActivity;
 import com.example.snaptaplaque.models.Photo;
 import com.example.snaptaplaque.adapters.VehicleAdapter;
 import com.example.snaptaplaque.models.api.account.MeResponse;
+import com.example.snaptaplaque.network.ApiService;
 import com.example.snaptaplaque.network.apicall.AccountCall;
 import com.example.snaptaplaque.network.apicall.ApiCallback;
 import com.example.snaptaplaque.utils.SessionManager;
@@ -241,6 +243,7 @@ public class ProfileFragment extends Fragment {
      */
     private SessionManager sessionManager;
 
+
     /**
      * Initialise les lanceurs de permissions et les utilitaires nécessaires au fragment.
      *
@@ -388,7 +391,8 @@ public class ProfileFragment extends Fragment {
                     VehicleDetailDialogFragment dialog = VehicleDetailDialogFragment.createFrag(vehicle.getImmatriculation());
                     dialog.show(getChildFragmentManager(), "detail");
                 },
-                vehicle -> sharedViewModel.toggleFavorite(vehicle)
+                vehicle -> sharedViewModel.toggleFavorite(vehicle),
+                this.getActivity()
         );
         recyclerView.setAdapter(adapter);
 
@@ -518,6 +522,10 @@ public class ProfileFragment extends Fragment {
             @Override
             public void onResponseFailure(Response response) {
                 Log.e(this.getClass().getName(), "Erreur récupération données utilisisateur pour affichage");
+                if ( response.code() == ApiService.ERROR_TOKEN_EXPIRE ){
+                    Intent intent = new Intent(getActivity(), SignInActivity.class);
+                    getActivity().startActivity(intent);
+                }
             }
 
             @Override
