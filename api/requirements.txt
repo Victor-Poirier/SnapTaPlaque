@@ -73,6 +73,9 @@ bcrypt==4.1.2
 # easyocr            — Optical character recognition for plate text extraction
 # torch              — PyTorch deep learning runtime (YOLO & EasyOCR backend)
 # torchvision        — Image transforms and pre-trained model utilities
+# onnxruntime        — Runtime for executing ONNX detection models
+# onnx               — ONNX model parser required by Ultralytics ONNX backend
+# huggingface-hub    — Download and cache model artifacts from Hugging Face
 # pillow             — Python Imaging Library fork (image loading/saving)
 # pyyaml             — YAML parser (used by Ultralytics config files)
 # scipy              — Scientific computing (image filtering, optimisation)
@@ -87,6 +90,9 @@ ultralytics==8.4.14
 easyocr==1.7.0
 torch==2.4.1
 torchvision==0.19.1
+onnxruntime==1.22.1
+onnx==1.20.1
+huggingface-hub==0.34.4
 pillow==9.5.0
 pyyaml==6.0.3
 scipy==1.15.3

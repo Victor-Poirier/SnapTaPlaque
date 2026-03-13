@@ -38,9 +38,22 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Configure Ultralytics (YOLO) to store its config/cache in /tmp so that
 # the directory is writable at runtime without extra permissions
 ENV YOLO_CONFIG_DIR=/tmp/Ultralytics
+ENV HF_HOME=/models/hf-cache
 
+# Pre-download OCR models and HuggingFace ONNX assets at build time.
+RUN python - <<'PY'
+import easyocr
+from huggingface_hub import hf_hub_download
 
-RUN python -c "import easyocr; easyocr.Reader(['fr', 'en'], gpu=False)"
+easyocr.Reader(['fr'], gpu=False, verbose=False)
+
+for filename in ("model.onnx", "config.json"):
+    hf_hub_download(
+        repo_id="0xnu/european-license-plate-recognition",
+        filename=filename,
+        local_dir="/models/hf",
+    )
+PY
 
 # Copy the entire API source code into the container
 COPY . .

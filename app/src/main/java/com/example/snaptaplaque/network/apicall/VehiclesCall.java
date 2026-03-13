@@ -38,7 +38,7 @@ public class VehiclesCall {
                         }
                         else {
                             Log.e("Favorites", String.valueOf(response.code()));
-                            if (response.code() == apiService.ERROR_TOKEN_EXPIRE){
+                            if (response.code() == ApiService.ERROR_TOKEN_EXPIRE){
                                 sessionManager.logout();
                             }
                             apiCallback.onResponseFailure(response);
