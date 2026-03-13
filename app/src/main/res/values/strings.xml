@@ -55,4 +55,6 @@
     <string name="launch_error_retry">Retry</string>
     <string name="launch_error_exit">Exit</string>
     <string name="logout_success">"Log out successfully "</string>
+    <string name="registration_success">Registration successful</string>
+    <string name="registration_failed">Registration failed</string>
 </resources>

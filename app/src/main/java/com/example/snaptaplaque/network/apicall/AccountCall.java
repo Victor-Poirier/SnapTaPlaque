@@ -1,10 +1,12 @@
 package com.example.snaptaplaque.network.apicall;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Handler;
 import android.util.Log;
 
+import com.example.snaptaplaque.R;
 import com.example.snaptaplaque.activities.MainActivity;
 import com.example.snaptaplaque.activities.SignInActivity;
 import com.example.snaptaplaque.models.api.account.*;
@@ -40,24 +42,26 @@ public class AccountCall {
      * @param activity     L'activité appelante (pour le contexte UI).
      * @param registerRequest Les données d'inscription.
      */
-    public static void register(Activity activity, RegisterRequest registerRequest) {
+    public static void register(Activity activity, RegisterRequest registerRequest, SessionManager sessionManager) {
+        Log.d("REGISTER", "Appel à register");
         apiService.register(registerRequest)
                 .enqueue(new Callback<RegisterResponse>() {
                     @Override
                     public void onResponse(@NonNull Call<RegisterResponse> call, @NonNull Response<RegisterResponse> response) {
                         if (response.isSuccessful() && response.body() != null) {
-                            FeedbackManager.showSuccess(activity, "Registration successful");
-                            Intent intent = new Intent(activity, SignInActivity.class);
-                            activity.startActivity(intent);
-                            activity.finish();
+                            FeedbackManager.showSuccess(activity, activity.getString(R.string.registration_success));
+
+                            LoginRequest loginRequest = new LoginRequest(registerRequest.getUsername(), registerRequest.getPassword());
+
+                            AccountCall.login(activity, loginRequest, sessionManager);
                         } else {
-                            FeedbackManager.showError(activity, "Registration failed: " + response.message(), null);
+                            FeedbackManager.showError(activity, activity.getString(R.string.registration_failed) + " " + response.message(), null);
                         }
                     }
 
                     @Override
                     public void onFailure(@NonNull Call<RegisterResponse> call, @NonNull Throwable t) {
-                        FeedbackManager.showError(activity, "Network error: " + t.getMessage(), null);
+                        FeedbackManager.showError(activity, R.string.service_unavailable + t.getMessage(), null);
                     }
                 });
     }
@@ -81,6 +85,7 @@ public class AccountCall {
                             Log.d("LOGIN", "Login successful, token: " + token);
 
                             new Handler().postDelayed(() -> {
+                                sessionManager.logout();
                                 sessionManager.saveSession(token, request.getUsername(), request.getPassword());
 
                                 Intent intent = new Intent(activity, MainActivity.class);
@@ -119,9 +124,9 @@ public class AccountCall {
                     }
                 });
     }
-    public static void me (ApiCallback apiCallback, Activity activity){
+    public static void me (ApiCallback apiCallback, Context context){
 
-        String token = new SessionManager(activity).getToken();
+        String token = new SessionManager(context).getToken();
         apiService.me("Bearer " + token)
                 .enqueue(new Callback<MeResponse>() {
                     @Override

@@ -25,6 +25,8 @@ import retrofit2.http.*;
  */
 public interface ApiService {
 
+    public static int ERROR_TOKEN_EXPIRE = 401;
+
     /********************/
     /* ACCOUNT ENDPOINT */
     /********************/
