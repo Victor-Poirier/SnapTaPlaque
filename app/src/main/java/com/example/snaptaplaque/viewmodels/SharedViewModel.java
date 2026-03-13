@@ -158,7 +158,7 @@ public class SharedViewModel extends ViewModel {
                     .anyMatch(v -> v.getImmatriculation().equals(vehicle.getImmatriculation()));
 
             if (!exists) {
-                current.add(vehicle);
+                current.add(0, vehicle);
                 vehicleList.setValue(current);
                 refreshFavoriteList();
             }
