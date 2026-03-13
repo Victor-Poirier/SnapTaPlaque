@@ -16,9 +16,11 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.snaptaplaque.R;
+import com.example.snaptaplaque.activities.SignInActivity;
 import com.example.snaptaplaque.models.Vehicle;
 import com.example.snaptaplaque.models.api.vehicles.InfoRequest;
 import com.example.snaptaplaque.models.api.vehicles.InfoResponse;
+import com.example.snaptaplaque.network.ApiService;
 import com.example.snaptaplaque.network.apicall.ApiCallback;
 import com.example.snaptaplaque.network.apicall.VehiclesCall;
 import com.example.snaptaplaque.viewmodels.SharedViewModel;
@@ -121,7 +123,10 @@ public class VocalFragment extends Fragment {
 
             @Override
             public void onResponseFailure(Response response) {
-
+                if ( response.code() == ApiService.ERROR_TOKEN_EXPIRE ){
+                    Intent intent = new Intent(getActivity(), SignInActivity.class);
+                    getActivity().startActivity(intent);
+                }
             }
 
             @Override

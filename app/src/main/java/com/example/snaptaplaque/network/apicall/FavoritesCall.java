@@ -1,7 +1,11 @@
 package com.example.snaptaplaque.network.apicall;
 
+import static androidx.core.content.ContextCompat.startActivity;
+
+import android.content.Intent;
 import android.util.Log;
 
+import com.example.snaptaplaque.activities.SignInActivity;
 import com.example.snaptaplaque.models.api.favorites.FavoriteAllResponse;
 import com.example.snaptaplaque.models.api.favorites.FavoritesAddRequest;
 import com.example.snaptaplaque.models.api.favorites.FavoritesAddResponse;

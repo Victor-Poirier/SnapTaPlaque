@@ -1,5 +1,6 @@
 package com.example.snaptaplaque.fragments;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,6 +14,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.snaptaplaque.R;
+import com.example.snaptaplaque.activities.SignInActivity;
 import com.example.snaptaplaque.adapters.VehicleAdapter;
 import com.example.snaptaplaque.utils.SessionManager;
 import com.example.snaptaplaque.viewmodels.SharedViewModel;
@@ -184,7 +186,8 @@ public class HistoryFragment extends Fragment {
                     VehicleDetailDialogFragment dialog = VehicleDetailDialogFragment.createFrag(vehicle.getImmatriculation());
                     dialog.show(getChildFragmentManager(), "detail");
                 },
-                vehicle -> sharedViewModel.toggleFavorite(vehicle)
+                vehicle -> sharedViewModel.toggleFavorite(vehicle),
+                this.getActivity()
         );
         recyclerView.setAdapter(adapter);
 
@@ -215,5 +218,10 @@ public class HistoryFragment extends Fragment {
         sharedViewModel.loadDataIfNeeded();
 
         return view;
+    }
+
+    public void comeBackLogin(){
+        Intent intent = new Intent(this.getContext(), SignInActivity.class);
+        startActivity(intent);
     }
 }

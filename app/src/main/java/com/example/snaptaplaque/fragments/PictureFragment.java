@@ -1,5 +1,6 @@
 package com.example.snaptaplaque.fragments;
 
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -18,11 +19,13 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.snaptaplaque.R;
+import com.example.snaptaplaque.activities.SignInActivity;
 import com.example.snaptaplaque.models.Photo;
 import com.example.snaptaplaque.models.Vehicle;
 import com.example.snaptaplaque.models.api.predictions.PredictionRequest;
 import com.example.snaptaplaque.models.api.vehicles.InfoRequest;
 import com.example.snaptaplaque.models.api.vehicles.InfoResponse;
+import com.example.snaptaplaque.network.ApiService;
 import com.example.snaptaplaque.network.apicall.ApiCallback;
 import com.example.snaptaplaque.network.apicall.PredictionsCall;
 import com.example.snaptaplaque.network.apicall.VehiclesCall;
@@ -146,6 +149,10 @@ public class PictureFragment extends Fragment {
             public void onResponseFailure(Response response) {
                 Integer errorCode = response.code();
                 Toast.makeText(getContext(), "Erreur lors de la recherche de la plaque dans l'image : code "+ errorCode, Toast.LENGTH_SHORT).show();
+                if ( response.code() == ApiService.ERROR_TOKEN_EXPIRE ){
+                    Intent intent = new Intent(getActivity(), SignInActivity.class);
+                    getActivity().startActivity(intent);
+                }
             }
 
             @Override
@@ -170,6 +177,10 @@ public class PictureFragment extends Fragment {
                 public void onResponseFailure(Response response) {
                     Integer errorCode = response.code();
                     Toast.makeText(getContext(), "Véhicule non trouvé : code "+ errorCode, Toast.LENGTH_SHORT).show();
+                    if ( response.code() == ApiService.ERROR_TOKEN_EXPIRE ){
+                        Intent intent = new Intent(getActivity(), SignInActivity.class);
+                        getActivity().startActivity(intent);
+                    }
                 }
 
                 @Override

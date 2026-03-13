@@ -1,5 +1,6 @@
 package com.example.snaptaplaque.fragments;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,6 +12,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 
 import com.example.snaptaplaque.R;
+import com.example.snaptaplaque.activities.SignInActivity;
 import com.example.snaptaplaque.models.api.model.ModelInfoResponse;
 import com.example.snaptaplaque.models.api.root.RgpdResponse;
 import com.example.snaptaplaque.network.ApiClient;
@@ -55,7 +57,10 @@ public class ProfileAdditionalInformationFragment extends DialogFragment {
 
             @Override
             public void onResponseFailure(Response response) {
-
+                if ( response.code() == ApiService.ERROR_TOKEN_EXPIRE ){
+                    Intent intent = new Intent(getActivity(), SignInActivity.class);
+                    getActivity().startActivity(intent);
+                }
             }
 
             @Override
@@ -74,7 +79,10 @@ public class ProfileAdditionalInformationFragment extends DialogFragment {
 
             @Override
             public void onResponseFailure(Response response) {
-
+                if ( response.code() == ApiService.ERROR_TOKEN_EXPIRE ){
+                    Intent intent = new Intent(getActivity(), SignInActivity.class);
+                    getActivity().startActivity(intent);
+                }
             }
 
             @Override
@@ -108,7 +116,7 @@ public class ProfileAdditionalInformationFragment extends DialogFragment {
             @Override
             public void onResponseSuccess(Response response) {
                 RgpdResponse res = (RgpdResponse) response.body();
-                privacyPolicy.setText(res.);
+                privacyPolicy.setText(res.createString());
             }
 
             @Override

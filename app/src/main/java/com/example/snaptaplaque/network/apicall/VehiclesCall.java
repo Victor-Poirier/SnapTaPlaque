@@ -1,5 +1,7 @@
 package com.example.snaptaplaque.network.apicall;
 
+import android.util.Log;
+
 import com.example.snaptaplaque.models.api.predictions.HistoryResponse;
 import com.example.snaptaplaque.models.api.vehicles.HistoryVehiclesResponse;
 import com.example.snaptaplaque.models.api.vehicles.InfoRequest;
@@ -35,6 +37,10 @@ public class VehiclesCall {
                             apiCallback.onResponseSuccess(response);
                         }
                         else {
+                            Log.e("Favorites", String.valueOf(response.code()));
+                            if (response.code() == apiService.ERROR_TOKEN_EXPIRE){
+                                sessionManager.logout();
+                            }
                             apiCallback.onResponseFailure(response);
                         }
                     }

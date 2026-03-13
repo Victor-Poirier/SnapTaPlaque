@@ -1,5 +1,8 @@
 package com.example.snaptaplaque.adapters;
 
+import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,10 +14,11 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.snaptaplaque.R;
-import com.example.snaptaplaque.fragments.HistoryFragment;
+import com.example.snaptaplaque.activities.SignInActivity;
 import com.example.snaptaplaque.models.Vehicle;
 import com.example.snaptaplaque.models.api.favorites.FavoritesAddRequest;
 import com.example.snaptaplaque.models.api.favorites.FavoritesRemoveRequest;
+import com.example.snaptaplaque.network.ApiService;
 import com.example.snaptaplaque.network.apicall.ApiCallback;
 import com.example.snaptaplaque.network.apicall.FavoritesCall;
 
@@ -83,6 +87,8 @@ public class VehicleAdapter extends RecyclerView.Adapter<VehicleAdapter.VehicleV
 
     private OnVehicleClickListener vehicleClickListener;
 
+    private Activity activity;
+
     public interface OnVehicleClickListener {
         void onVehicleClick(Vehicle vehicle);
     }
@@ -140,10 +146,11 @@ public class VehicleAdapter extends RecyclerView.Adapter<VehicleAdapter.VehicleV
      * @param favoriteListener    le {@link OnFavoriteClickListener} à notifier lors du clic
      *                    sur l'icône favori ; peut être {@code null}
      */
-    public VehicleAdapter(List<Vehicle> vehicleList, OnVehicleClickListener vehicleListener, OnFavoriteClickListener favoriteListener) {
+    public VehicleAdapter(List<Vehicle> vehicleList, OnVehicleClickListener vehicleListener, OnFavoriteClickListener favoriteListener, Activity activity) {
         this.vehicleList = vehicleList;
         this.vehicleClickListener = vehicleListener;
         this.favoriteClickListener = favoriteListener;
+        this.activity = activity;
     }
 
     /**
@@ -376,7 +383,10 @@ public class VehicleAdapter extends RecyclerView.Adapter<VehicleAdapter.VehicleV
             @Override
             public void onResponseFailure(Response response) {
                 // Mettre à jour l'UI : afficher erreur
-                Log.e("Favorites", response.message());
+                if ( response.code() == ApiService.ERROR_TOKEN_EXPIRE ){
+                    Intent intent = new Intent(activity, SignInActivity.class);
+                    activity.startActivity(intent);
+                }
             }
 
             @Override
@@ -398,7 +408,10 @@ public class VehicleAdapter extends RecyclerView.Adapter<VehicleAdapter.VehicleV
 
             @Override
             public void onResponseFailure(Response response) {
-                Log.e("Favorites", response.message());
+                if ( response.code() == ApiService.ERROR_TOKEN_EXPIRE ){
+                    Intent intent = new Intent(activity, SignInActivity.class);
+                    activity.startActivity(intent);
+                }
             }
 
             @Override
