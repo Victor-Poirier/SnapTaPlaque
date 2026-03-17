@@ -58,6 +58,7 @@ class PlatePredictor:
         de l'application FastAPI.
         """
         self.pipeline = None
+        self._is_loading = False
 
     def load_model(self) -> bool:
         """
@@ -77,14 +78,25 @@ class PlatePredictor:
 
         logger = logging.getLogger(__name__)
 
+        if self.pipeline is not None:
+            logger.info("Modele deja charge, aucun rechargement necessaire")
+            return True
+
+        if self._is_loading:
+            logger.info("Chargement du modele deja en cours")
+            return True
+
         def _load():
             try:
+                self._is_loading = True
                 logger.info("⏳ Chargement du modèle en arrière-plan...")
                 self.pipeline = LPRPipeline()
                 logger.info("✅ Modèle chargé avec succès en arrière-plan")
             except Exception as e:
                 logger.error(f"❌ Erreur chargement modèle: {e}")
                 self.pipeline = None
+            finally:
+                self._is_loading = False
 
         thread = threading.Thread(target=_load, daemon=True)
         thread.start()

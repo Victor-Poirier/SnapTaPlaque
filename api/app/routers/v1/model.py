@@ -48,7 +48,7 @@ async def get_model_info():
             - ``loaded`` (bool) : ``True`` si le modèle est chargé en
               mémoire et prêt à effectuer des prédictions.
             - ``model_type`` (str) : Description du pipeline utilisé
-              (``"YOLOv8 + EasyOCR"``).
+              (``"YOLO ONNX (HuggingFace) + EasyOCR"``).
             - ``pipeline`` (str) : Nom interne du pipeline
               (``"LPRPipeline"``).
 
@@ -60,7 +60,7 @@ async def get_model_info():
     try:
         return {
             "loaded": plate_predictor.is_loaded(),
-            "model_type": "YOLOv8 + EasyOCR",
+            "model_type": "YOLO ONNX (HuggingFace) + EasyOCR",
             "pipeline": "LPRPipeline"
         }
     except Exception as e:

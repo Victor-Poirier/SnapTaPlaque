@@ -116,7 +116,7 @@ class Settings(BaseSettings):
     # par les endpoints d'information sur le modèle.
     MODEL_CONFIG: dict = {
         "name": "snapTaPlaque LPR Model",
-        "algorithm": "YOLO + OCR",
+        "algorithm": "YOLO ONNX (HuggingFace) + EasyOCR",
         "version": "1.0",
     }
 

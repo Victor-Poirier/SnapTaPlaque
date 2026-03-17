@@ -34,12 +34,16 @@ from app.crud import create_prediction, get_user_predictions, get_user_predictio
 from app.predictor import plate_predictor
 from app.schemas import PlateHistory, PlateStats, PredictionHistory
 from app.limiter import limiter
+import logging
 
 # Instance du routeur FastAPI pour les endpoints de prédiction.
 # Ce routeur est ensuite inclus dans l'application principale avec
 # le préfixe "/predictions" et le tag "Predictions" pour la documentation
 # OpenAPI.
 router = APIRouter()
+
+# Configuration du logger
+logger = logging.getLogger(__name__)
 
 # ================== PREDICT ==================
 
@@ -96,13 +100,15 @@ async def predict_plate(
 
     if not plate_predictor.is_loaded():
         raise HTTPException(status_code=503, detail="Modèle non chargé")
-
     try:
+        logger.info("Prédiction en cours...")
         result = plate_predictor.predict(contents)
     except ValueError:
         raise HTTPException(status_code=400, detail="Image invalide")
 
+
     results = [result] if result["plate_text"] else []
+    logger.info(result["plate_text"])
 
     prediction = create_prediction(
         db=db,
