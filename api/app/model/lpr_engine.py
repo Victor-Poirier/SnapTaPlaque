@@ -24,7 +24,7 @@ class CFG:
 
     plate_conf = 0.5
     ocr_conf = 0.1
-    ocr_languages = ["en", "de", "fr", "es", "it", "nl"]
+    ocr_languages = ["en"]
     ocr_allowlist = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 
@@ -80,8 +80,14 @@ class LPRPipeline:
         if roi_img.size == 0:
             return "", 0.0
 
+        # Pre-traitement: conversion N&B + upscale si petite taille
+        gray = cv2.cvtColor(roi_img, cv2.COLOR_RGB2GRAY)
+        if gray.shape[0] < 64:
+            scale = 64 / gray.shape[0]
+            gray = cv2.resize(gray, None, fx=scale, fy=scale, interpolation=cv2.INTER_CUBIC)
+
         results = self.reader.readtext(
-            np.asarray(roi_img),
+            gray,
             allowlist=CFG.ocr_allowlist,
         )
 

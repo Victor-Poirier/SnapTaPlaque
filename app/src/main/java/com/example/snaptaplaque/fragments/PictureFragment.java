@@ -53,8 +53,8 @@ import retrofit2.Response;
 public class PictureFragment extends Fragment {
 
     private static final String TAG = "PictureFragment";
-    private static final int UPLOAD_MAX_DIMENSION = 1280;
-    private static final int UPLOAD_JPEG_QUALITY = 90;
+    private static final int UPLOAD_MAX_DIMENSION = 800;
+    private static final int UPLOAD_JPEG_QUALITY = 80;
 
     private ImageView ivLicencePlate;
     private Button btnPicture;
