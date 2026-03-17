@@ -1,5 +1,7 @@
 package com.example.snaptaplaque.fragments;
 
+import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -143,7 +145,13 @@ public class PictureFragment extends Fragment {
         });
 
         btnSearch.setOnClickListener(v -> {
-            picturePredict(photo);
+            ProgressDialog dialog = ProgressDialog.show(getContext(), "", getString(R.string.research_in_progress), true);
+
+            picturePredict(photo, () -> {
+                if((dialog != null) && (dialog.isShowing())) {
+                    dialog.dismiss();
+                }
+            });
         });
 
         return view;
@@ -158,11 +166,12 @@ public class PictureFragment extends Fragment {
         btnSearch.setVisibility(View.VISIBLE);
     }
 
-    public void picturePredict(Photo photo){
+    public void picturePredict(Photo photo, Runnable callback){
         Uri imageUri = photo.getTempImageUri();
 
         if (imageUri == null) {
             Toast.makeText(getContext(), R.string.detection_plate, Toast.LENGTH_SHORT).show();
+            callback.run();
             return;
         }
 
@@ -175,6 +184,7 @@ public class PictureFragment extends Fragment {
                 runOnMainThread(() -> {
                     setLoading(false);
                     Toast.makeText(getContext(), R.string.detection_plate, Toast.LENGTH_SHORT).show();
+                    callback.run();
                 });
                 return;
             }
@@ -209,6 +219,8 @@ public class PictureFragment extends Fragment {
                         } else {
                             Toast.makeText(getContext(), R.string.detection_plate, Toast.LENGTH_SHORT).show();
                         }
+
+                        callback.run();
                     });
                 }
 
@@ -217,10 +229,13 @@ public class PictureFragment extends Fragment {
                     runOnMainThread(() -> {
                         setLoading(false);
                         Toast.makeText(getContext(), R.string.detection_plate, Toast.LENGTH_SHORT).show();
+
                         if (response.code() == ApiService.ERROR_TOKEN_EXPIRE) {
                             Intent intent = new Intent(requireActivity(), SignInActivity.class);
                             requireActivity().startActivity(intent);
                         }
+
+                        callback.run();
                     });
                 }
 
@@ -229,6 +244,7 @@ public class PictureFragment extends Fragment {
                     runOnMainThread(() -> {
                         setLoading(false);
                         Toast.makeText(getContext(), "Erreur lors de l'envoie de l'image à l'API : " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                        callback.run();
                     });
                 }
             });

@@ -71,5 +71,5 @@
     <string name="compliance_plate">The license plate is not compliant ❌</string>
     <string name="existence_plate">The license plate does not exist</string>
     <string name="detection_plate">No license plate detected</string>
-
+    <string name="research_in_progress">Research in progress...</string>
 </resources>

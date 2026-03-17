@@ -72,4 +72,5 @@
     <string name="compliance_plate">La plaque d\'immatriculation n\'est pas conforme ❌</string>
     <string name="existence_plate">La plaque d\'immatriculation n\'existe pas</string>
     <string name="detection_plate">Aucune plaque d\'immatriculation détectée</string>
+    <string name="research_in_progress">Recherche en cours...</string>
 </resources>
