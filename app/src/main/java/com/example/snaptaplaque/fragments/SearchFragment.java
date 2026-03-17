@@ -40,9 +40,10 @@ public class SearchFragment extends Fragment {
     private ViewPager2 viewPagerSearch;
 
     // Les indicateurs
-    private ImageView indicatorScan;
     private ImageView indicatorWheel;
     private ImageView indicatorVocal;
+
+    private ImageView indicatorScan;
 
     /**
      * Initialise la vue du fragment et configure le {@link SharedViewModel}.
@@ -63,10 +64,9 @@ public class SearchFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_search, container, false);
 
         viewPagerSearch = view.findViewById(R.id.viewPagerSearch);
-        indicatorScan = view.findViewById(R.id.indicatorScan);
         indicatorWheel = view.findViewById(R.id.indicatorWheel);
         indicatorVocal = view.findViewById(R.id.indicatorVocal);
-
+        indicatorScan = view.findViewById(R.id.indicatorScan);
 
 
         // Configuration du ViewPager
@@ -85,18 +85,16 @@ public class SearchFragment extends Fragment {
                 }
             });
         }
-
         // Synchronisation : Clic sur cercle -> Changement de page
-        if (indicatorScan != null) {
-            indicatorScan.setOnClickListener(v -> selectPage(0));
-        }
         if (indicatorWheel != null) {
-            indicatorWheel.setOnClickListener(v -> selectPage(1));
+            indicatorWheel.setOnClickListener(v -> selectPage(0));
         }
         if (indicatorVocal != null) {
-            indicatorVocal.setOnClickListener(v -> selectPage(2));
+            indicatorVocal.setOnClickListener(v -> selectPage(1));
         }
-
+        if (indicatorScan != null) {
+            indicatorScan.setOnClickListener(v -> selectPage(2));
+        }
         return view;
     }
 
@@ -114,16 +112,16 @@ public class SearchFragment extends Fragment {
      */
     private void updateIndicators(int position) {
         if (indicatorScan != null && indicatorWheel != null && indicatorVocal != null) {
-            indicatorScan.setSelected(position == 0);
-            indicatorWheel.setSelected(position == 1);
-            indicatorVocal.setSelected(position == 2);
+            indicatorWheel.setSelected(position == 0);
+            indicatorVocal.setSelected(position == 1);
+            indicatorScan.setSelected(position == 2);
 
             View movingBar = getView().findViewById(R.id.movingBar);
             ImageView targetIcon;
 
-            if (position == 0) targetIcon = indicatorScan;
-            else if (position == 1) targetIcon = indicatorWheel;
-            else targetIcon = indicatorVocal;
+            if (position == 0) targetIcon = indicatorWheel;
+            else if (position == 1) targetIcon = indicatorVocal;
+            else targetIcon = indicatorScan;
 
             if (movingBar != null) {
                 targetIcon.post(() -> {

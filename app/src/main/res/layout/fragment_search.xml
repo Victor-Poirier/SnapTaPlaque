@@ -60,13 +60,6 @@
             app:layout_constraintEnd_toStartOf="@id/guidelineNav"
             app:layout_constraintTop_toTopOf="@id/viewPagerSearch">
 
-            <ImageView
-                android:id="@+id/indicatorScan"
-                android:layout_width="30dp"
-                android:layout_height="30dp"
-                android:layout_marginBottom="25dp"
-                android:src="@drawable/baseline_camera"
-                android:contentDescription="@string/description_indicator_scan"/>
 
             <ImageView
                 android:id="@+id/indicatorWheel"
@@ -79,7 +72,15 @@
                 android:id="@+id/indicatorVocal"
                 android:layout_width="30dp"
                 android:layout_height="30dp"
+                android:layout_marginBottom="25dp"
                 android:src="@drawable/baseline_mic" />
+
+            <ImageView
+                android:id="@+id/indicatorScan"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:src="@drawable/baseline_camera"
+                android:contentDescription="@string/description_indicator_scan"/>
 
         </LinearLayout>
 

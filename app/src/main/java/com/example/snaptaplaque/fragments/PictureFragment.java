@@ -42,6 +42,8 @@ import java.io.InputStream;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
@@ -52,7 +54,7 @@ public class PictureFragment extends Fragment {
 
     private static final String TAG = "PictureFragment";
     private static final int UPLOAD_MAX_DIMENSION = 1280;
-    private static final int UPLOAD_JPEG_QUALITY = 82;
+    private static final int UPLOAD_JPEG_QUALITY = 90;
 
     private ImageView ivLicencePlate;
     private Button btnPicture;
@@ -169,7 +171,7 @@ public class PictureFragment extends Fragment {
         imageExecutor.execute(() -> {
             File file = getOptimizedJpegFromUri(imageUri);
 
-            if(file == null) {
+            if (file == null) {
                 runOnMainThread(() -> {
                     setLoading(false);
                     Toast.makeText(getContext(), R.string.detection_plate, Toast.LENGTH_SHORT).show();
@@ -190,15 +192,19 @@ public class PictureFragment extends Fragment {
                         setLoading(false);
                         PredictionResponse predictionResponse = (PredictionResponse) response.body();
 
-                        if((predictionResponse != null) && (predictionResponse.getResults() != null) && (!predictionResponse.getResults().isEmpty())) {
+                        if ((predictionResponse != null) && (predictionResponse.getResults() != null) && (!predictionResponse.getResults().isEmpty())) {
                             PredictionDetectionResult firstResult = predictionResponse.getResults().get(0);
 
-                            String detectedPlate = firstResult.getPlaque_number();
+                            String detectedPlate = extractPlate(firstResult.getPlaque_number());
 
-                            showPlate.setText(detectedPlate);
+                            if (detectedPlate != null) {
+                                showPlate.setText(detectedPlate);
 
-                            if(plateComplianceVerification(showPlate.getText().toString())) {
-                                getInfoVehicle(new InfoRequest(showPlate.getText().toString()));
+                                if (plateComplianceVerification(showPlate.getText().toString())) {
+                                    getInfoVehicle(new InfoRequest(showPlate.getText().toString()));
+                                }
+                            } else {
+                                Toast.makeText(getContext(), R.string.detection_plate, Toast.LENGTH_SHORT).show();
                             }
                         } else {
                             Toast.makeText(getContext(), R.string.detection_plate, Toast.LENGTH_SHORT).show();
@@ -211,7 +217,7 @@ public class PictureFragment extends Fragment {
                     runOnMainThread(() -> {
                         setLoading(false);
                         Toast.makeText(getContext(), R.string.detection_plate, Toast.LENGTH_SHORT).show();
-                        if ( response.code() == ApiService.ERROR_TOKEN_EXPIRE ){
+                        if (response.code() == ApiService.ERROR_TOKEN_EXPIRE) {
                             Intent intent = new Intent(requireActivity(), SignInActivity.class);
                             requireActivity().startActivity(intent);
                         }
@@ -255,21 +261,21 @@ public class PictureFragment extends Fragment {
                 dialog.show(getChildFragmentManager(), "detail");
             }
 
-                @Override
-                public void onResponseFailure(Response response) {
-                    Toast.makeText(getContext(), R.string.existence_plate, Toast.LENGTH_SHORT).show();
-                    if ( response.code() == ApiService.ERROR_TOKEN_EXPIRE ){
-                        Intent intent = new Intent(requireActivity(), SignInActivity.class);
-                        requireActivity().startActivity(intent);
-                    }
+            @Override
+            public void onResponseFailure(Response response) {
+                Toast.makeText(getContext(), R.string.existence_plate, Toast.LENGTH_SHORT).show();
+                if ( response.code() == ApiService.ERROR_TOKEN_EXPIRE ){
+                    Intent intent = new Intent(requireActivity(), SignInActivity.class);
+                    requireActivity().startActivity(intent);
                 }
+            }
 
-                @Override
-                public void onCallFailure(Throwable t) {
-                    Toast.makeText(getContext(), "Erreur lors de l'envoie de la requête : "+ t.getMessage(), Toast.LENGTH_SHORT).show();
-                }
-            });
-        }
+            @Override
+            public void onCallFailure(Throwable t) {
+                Toast.makeText(getContext(), "Erreur lors de l'envoie de la requête : "+ t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
     private File getOptimizedJpegFromUri(Uri uri) {
         try {
             BitmapFactory.Options boundsOptions = new BitmapFactory.Options();
@@ -366,5 +372,21 @@ public class PictureFragment extends Fragment {
     public void onDestroy() {
         imageExecutor.shutdown();
         super.onDestroy();
+    }
+
+    private String extractPlate(String noisyText) {
+        if (noisyText == null) return null;
+
+        // Nettoyage : majuscules + suppression des caractères non alphanumériques
+        String cleaned = noisyText.toUpperCase().replaceAll("[^A-Z0-9]", "");
+
+        // Regex plaque française : 2 lettres + 3 chiffres + 2 lettres (ex: AB123CD)
+        Pattern pattern = Pattern.compile("[A-Z]{2}\\d{3}[A-Z]{2}");
+        Matcher matcher = pattern.matcher(cleaned);
+
+        if (matcher.find()) {
+            return matcher.group();
+        }
+        return null;
     }
 }

@@ -62,7 +62,7 @@ public class SharedViewModel extends ViewModel {
 
                 List<Vehicle> vehicles = new ArrayList<>();
                 for(InfoResponse v : list) {
-                    vehicles.add(v.createVehicles(false)); // Par défaut pas favoris
+                    vehicles.add(0, v.createVehicles(false)); // Par défaut pas favoris
                 }
 
                 vehicleList.setValue(vehicles);
@@ -158,7 +158,7 @@ public class SharedViewModel extends ViewModel {
                     .anyMatch(v -> v.getImmatriculation().equals(vehicle.getImmatriculation()));
 
             if (!exists) {
-                current.add(vehicle);
+                current.add(0, vehicle);
                 vehicleList.setValue(current);
                 refreshFavoriteList();
             }
