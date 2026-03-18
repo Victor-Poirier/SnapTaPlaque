@@ -210,6 +210,7 @@ public class PictureFragment extends Fragment {
                             Toast.makeText(getContext(), R.string.detection_plate, Toast.LENGTH_SHORT).show();
                         }
                     });
+                    callback.run();
                     return; // Succès local, on arrête là
                 }
             }
