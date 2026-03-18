@@ -192,102 +192,30 @@ public class PictureFragment extends Fragment {
         setLoading(true);
 
         imageExecutor.execute(() -> {
-            // Tenter une detection locale
-            Bitmap bitmap = getOptimizedBitmapFromUri(imageUri);
-            if (bitmap != null) {
-                List<LicensePlateRecognizer.PlateResult> results = licensePlateRecognizer.processImage(bitmap);
-                if (!results.isEmpty()) {
-                    LicensePlateRecognizer.PlateResult best = results.get(0);
-                    runOnMainThread(() -> {
-                        setLoading(false);
-                        String detectedPlate = extractPlate(best.text);
-                        if (detectedPlate != null) {
-                            showPlate.setText(detectedPlate);
-                            if (plateComplianceVerification(detectedPlate)) {
-                                getInfoVehicle(new InfoRequest(detectedPlate));
-                            }
-                        } else {
-                            Toast.makeText(getContext(), R.string.detection_plate, Toast.LENGTH_SHORT).show();
+                    // Tenter une detection locale
+                    Bitmap bitmap = getOptimizedBitmapFromUri(imageUri);
+                    if (bitmap != null) {
+                        List<LicensePlateRecognizer.PlateResult> results = licensePlateRecognizer.processImage(bitmap);
+                        if (!results.isEmpty()) {
+                            LicensePlateRecognizer.PlateResult best = results.get(0);
+                            runOnMainThread(() -> {
+                                setLoading(false);
+                                String detectedPlate = extractPlate(best.text);
+                                if (detectedPlate != null) {
+                                    showPlate.setText(detectedPlate);
+                                    if (plateComplianceVerification(detectedPlate)) {
+                                        getInfoVehicle(new InfoRequest(detectedPlate));
+                                    }
+                                } else {
+                                    Toast.makeText(getContext(), R.string.detection_plate, Toast.LENGTH_SHORT).show();
+                                }
+                            });
                         }
-                    });
-                    callback.run();
-                    return; // Succès local, on arrête là
-                }
-            }
-
-            // Si échec local, fallback sur l'API (optionnel, ou juste erreur)
-            // Pour l'instant on garde l'API en fallback
-            File file = getOptimizedJpegFromUri(imageUri);
-
-            if (file == null) {
-                runOnMainThread(() -> {
-                    setLoading(false);
-                    Toast.makeText(getContext(), R.string.detection_plate, Toast.LENGTH_SHORT).show();
+                    }
                     callback.run();
                 });
-                return;
-            }
 
-            MultipartBody.Part body = MultipartBody.Part.createFormData(
-                    "file",
-                    file.getName(),
-                    RequestBody.create(file, MediaType.parse("image/jpeg"))
-            );
 
-            PredictionsCall.picturePredict(body, new ApiCallback() {
-                @Override
-                public void onResponseSuccess(Response response) {
-                    runOnMainThread(() -> {
-                        setLoading(false);
-                        PredictionResponse predictionResponse = (PredictionResponse) response.body();
-
-                        if ((predictionResponse != null) && (predictionResponse.getResults() != null) && (!predictionResponse.getResults().isEmpty())) {
-                            PredictionDetectionResult firstResult = predictionResponse.getResults().get(0);
-
-                            String detectedPlate = extractPlate(firstResult.getPlaque_number());
-
-                            if (detectedPlate != null) {
-                                showPlate.setText(detectedPlate);
-
-                                if (plateComplianceVerification(showPlate.getText().toString())) {
-                                    getInfoVehicle(new InfoRequest(showPlate.getText().toString()));
-                                }
-                            } else {
-                                Toast.makeText(getContext(), R.string.detection_plate, Toast.LENGTH_SHORT).show();
-                            }
-                        } else {
-                            Toast.makeText(getContext(), R.string.detection_plate, Toast.LENGTH_SHORT).show();
-                        }
-
-                        callback.run();
-                    });
-                }
-
-                @Override
-                public void onResponseFailure(Response response) {
-                    runOnMainThread(() -> {
-                        setLoading(false);
-                        Toast.makeText(getContext(), R.string.detection_plate, Toast.LENGTH_SHORT).show();
-
-                        if (response.code() == ApiService.ERROR_TOKEN_EXPIRE) {
-                            Intent intent = new Intent(requireActivity(), SignInActivity.class);
-                            requireActivity().startActivity(intent);
-                        }
-
-                        callback.run();
-                    });
-                }
-
-                @Override
-                public void onCallFailure(Throwable t) {
-                    runOnMainThread(() -> {
-                        setLoading(false);
-                        Toast.makeText(getContext(), "Erreur lors de l'envoie de l'image à l'API : " + t.getMessage(), Toast.LENGTH_SHORT).show();
-                        callback.run();
-                    });
-                }
-            });
-        });
     }
 
     private boolean plateComplianceVerification(String plate) {
