@@ -15,7 +15,7 @@ ils sont tous accessibles publiquement sans token JWT.
 Version : 1.0.0
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter
 from app.config import settings
 
 router = APIRouter()

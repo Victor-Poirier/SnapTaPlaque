@@ -30,7 +30,6 @@ Version : 1.0.0
 
 from pathlib import Path
 from pydantic_settings import BaseSettings
-from typing import Optional
 
 
 class Settings(BaseSettings):

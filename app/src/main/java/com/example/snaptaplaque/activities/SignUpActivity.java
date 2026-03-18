@@ -3,7 +3,6 @@ package com.example.snaptaplaque.activities;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 
@@ -13,13 +12,11 @@ import com.example.snaptaplaque.R;
 import com.example.snaptaplaque.models.api.account.RegisterRequest;
 import com.example.snaptaplaque.network.apicall.AccountCall;
 import com.example.snaptaplaque.utils.FeedbackManager;
-import com.example.snaptaplaque.utils.SessionManager;
 
 public class SignUpActivity extends Activity {
 
     private EditText username, fullName, mail, password;
 
-    SessionManager sessionManager;
 
     private SwitchCompat rgpd;
 

@@ -99,10 +99,6 @@ import logging
 from app.database import create_tables
 from app.predictor import plate_predictor
 from app.routers.v1 import account, predictions, admin, model, vehicles, favorites
-from app.crud import (
-    get_user_by_email, get_user_by_username, create_user, authenticate_user,
-    create_prediction, get_user_predictions
-)
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from app.limiter import limiter
@@ -176,8 +172,8 @@ async def startup_event():
 
     create_tables()
 
-    # Charger le modèle au démarrage
-    if plate_predictor.load_model():
+    # Charger le modèle au démarrage (blocant pour eviter les 503 initiaux)
+    if plate_predictor.load_model(blocking=True):
         logger.info("✅ Modèle chargé avec succès")
     else:
         logger.error("❌ Modèle non chargé")

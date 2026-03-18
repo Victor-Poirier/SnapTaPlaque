@@ -8,8 +8,6 @@ import android.util.Log;
 
 import com.example.snaptaplaque.R;
 import com.example.snaptaplaque.activities.MainActivity;
-import com.example.snaptaplaque.activities.SignInActivity;
-import com.example.snaptaplaque.models.api.account.*;
 import com.example.snaptaplaque.models.api.account.DataExportResponse;
 import com.example.snaptaplaque.models.api.account.DeleteAccountResponse;
 import com.example.snaptaplaque.models.api.account.LoginRequest;

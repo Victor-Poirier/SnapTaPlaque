@@ -26,7 +26,6 @@ Version : 1.0.0
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Request
 from sqlalchemy.orm import Session
-from typing import List
 
 from app.database import get_db, User
 from app.auth import get_current_active_user

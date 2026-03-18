@@ -2,16 +2,12 @@ package com.example.snaptaplaque.network.apicall;
 
 import android.util.Log;
 
-import com.example.snaptaplaque.models.api.predictions.HistoryResponse;
 import com.example.snaptaplaque.models.api.vehicles.HistoryVehiclesResponse;
 import com.example.snaptaplaque.models.api.vehicles.InfoRequest;
 import com.example.snaptaplaque.models.api.vehicles.InfoResponse;
 import com.example.snaptaplaque.network.ApiClient;
 import com.example.snaptaplaque.network.ApiService;
 import com.example.snaptaplaque.utils.SessionManager;
-import com.example.snaptaplaque.viewmodels.SharedViewModel;
-
-import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;

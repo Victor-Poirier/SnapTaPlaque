@@ -48,9 +48,9 @@ from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 from fastapi.security import OAuth2PasswordRequestForm
 
-from app.database import get_db, User, Prediction, user_favorites
+from app.database import get_db, User, Prediction
 from app import crud, schemas
-from app.auth import create_access_token, verify_password, get_current_active_user, get_current_user
+from app.auth import create_access_token, verify_password, get_current_active_user
 from app.limiter import limiter
 
 # Instance du routeur FastAPI pour les endpoints d'authentification.
@@ -295,8 +295,7 @@ def delete_my_account(
 
     .. warning::
         Cette opération est **irréversible**. Aucune sauvegarde ni
-        anonymisation n'est effectuée. Pour une alternative conservant
-        les données statistiques agrégées, voir ``crud.anonymize_user``.
+        anonymisation n'est effectuée.
 
     Args:
         current_user (User): Utilisateur authentifié dont le compte

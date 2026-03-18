@@ -13,8 +13,6 @@ Fonctions exposées :
       d'utilisateur.
     - ``create_user``              — Crée un nouvel utilisateur en base
       de données avec hachage du mot de passe.
-    - ``authenticate_user``        — Vérifie les identifiants d'un
-      utilisateur (nom d'utilisateur + mot de passe).
     - ``create_prediction``        — Enregistre une nouvelle prédiction
       associée à un utilisateur.
     - ``get_user_predictions``     — Récupère la liste paginée des
@@ -35,14 +33,9 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func
 from app.database import User, Prediction, Vehicle, user_favorites
 from app.schemas import UserCreate
-from sqlalchemy.orm import Session
-
-
-from app import schemas
 from app.security import get_password_hash
 
 from datetime import datetime
-from typing import Optional
 
 
 def get_user_by_email(db: Session, email: str) -> User:
@@ -144,55 +137,6 @@ def create_user(db: Session, user: UserCreate) -> User:
     return db_user
 
 
-def anonymize_user(db: Session, user_id: int):
-    """
-    Anonymiser un utilisateur au lieu de le supprimer physiquement.
-
-    Alternative à la suppression totale : remplace les données
-    personnelles par des valeurs anonymisées tout en conservant
-    les données statistiques agrégées (prédictions anonymisées).
-    Utile si vous avez besoin de garder des métriques globales.
-
-    Args:
-        db (Session): Session SQLAlchemy active.
-        user_id (int): Identifiant de l'utilisateur à anonymiser.
-    """
-    user = db.query(User).filter(User.id == user_id).first()
-    if user:
-        user.email = f"deleted_{user_id}@anonymous.local"
-        user.username = f"deleted_user_{user_id}"
-        user.full_name = "Utilisateur supprimé"
-        user.hashed_password = "DELETED"
-        user.is_active = False
-        user.gdpr_consent_at = None
-        db.commit()
-
-
-def authenticate_user(db: Session, username: str, password: str):
-    """
-    Authentifier un utilisateur par nom d'utilisateur et mot de passe.
-
-    Recherche l'utilisateur en base de données par son nom d'utilisateur,
-    puis vérifie que le mot de passe en clair fourni correspond au hash
-    bcrypt stocké. L'import de ``verify_password`` est effectué localement
-    pour éviter les dépendances circulaires avec le module ``app.auth``.
-
-    Args:
-        db (Session): Session SQLAlchemy active.
-        username (str): Nom d'utilisateur à authentifier.
-        password (str): Mot de passe en clair soumis par l'utilisateur.
-
-    Returns:
-        User: Instance ORM de l'utilisateur authentifié si les
-            identifiants sont valides, ``None`` sinon.
-    """
-    user = get_user_by_username(db, username)
-    if not user:
-        return None
-    from app.auth import verify_password
-    if not verify_password(password, user.hashed_password):
-        return None
-    return user
 
 def create_prediction(
         db: Session,

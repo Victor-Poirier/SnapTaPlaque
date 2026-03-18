@@ -1,6 +1,5 @@
 package com.example.snaptaplaque.fragments;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,9 +13,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.snaptaplaque.R;
-import com.example.snaptaplaque.activities.SignInActivity;
 import com.example.snaptaplaque.adapters.VehicleAdapter;
-import com.example.snaptaplaque.utils.SessionManager;
 import com.example.snaptaplaque.viewmodels.SharedViewModel;
 
 import java.util.ArrayList;
@@ -114,20 +111,10 @@ public class HistoryFragment extends Fragment {
     private SharedViewModel sharedViewModel;
 
     /**
-     * Gestionnaire de session pour les opérations d'authentification.
-     *
-     * <p>Utilisé pour vérifier l'état de connexion de l'utilisateur et
-     * gérer les redirections si nécessaire. Actuellement initialisé mais
-     * peu utilisé dans ce fragment.</p>
-     */
-    private SessionManager sessionManager;
-
-    /**
      * Crée et configure la vue du fragment avec tous ses composants UI.
      *
      * <p>Cette méthode effectue les opérations suivantes dans l'ordre :
      * <ol>
-     *     <li><strong>Initialisation des utilitaires :</strong> {@link SessionManager}</li>
      *     <li><strong>Inflation du layout :</strong> charge {@code fragment_history.xml}</li>
      *     <li><strong>Configuration du RecyclerView :</strong> layout manager et adaptateur</li>
      *     <li><strong>Configuration de l'adaptateur :</strong> listeners pour les clics
@@ -171,8 +158,6 @@ public class HistoryFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        sessionManager = new SessionManager(this.getContext());
-
         View view = inflater.inflate(R.layout.fragment_history, container, false);
 
         recyclerView = view.findViewById(R.id.rvVehicles);
@@ -218,10 +203,5 @@ public class HistoryFragment extends Fragment {
         sharedViewModel.loadDataIfNeeded();
 
         return view;
-    }
-
-    public void comeBackLogin(){
-        Intent intent = new Intent(this.getContext(), SignInActivity.class);
-        startActivity(intent);
     }
 }

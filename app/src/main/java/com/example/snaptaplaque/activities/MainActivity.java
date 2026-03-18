@@ -12,10 +12,7 @@ import com.example.snaptaplaque.adapters.ViewPageAdapter;
 import com.example.snaptaplaque.models.Profil;
 import com.example.snaptaplaque.models.Vehicle;
 import com.example.snaptaplaque.viewmodels.SharedViewModel;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
 
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Activité principale de l'application SnapTaPlaque.
