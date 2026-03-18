@@ -180,7 +180,7 @@ public class PictureFragment extends Fragment {
         btnSearch.setVisibility(View.VISIBLE);
     }
 
-    public void picturePredict(Photo photo, Runnable callback){
+    public void picturePredict(Photo photo, Runnable callback) {
         Uri imageUri = photo.getTempImageUri();
 
         if (imageUri == null) {
@@ -192,30 +192,43 @@ public class PictureFragment extends Fragment {
         setLoading(true);
 
         imageExecutor.execute(() -> {
-                    // Tenter une detection locale
-                    Bitmap bitmap = getOptimizedBitmapFromUri(imageUri);
-                    if (bitmap != null) {
-                        List<LicensePlateRecognizer.PlateResult> results = licensePlateRecognizer.processImage(bitmap);
-                        if (!results.isEmpty()) {
-                            LicensePlateRecognizer.PlateResult best = results.get(0);
-                            runOnMainThread(() -> {
-                                setLoading(false);
-                                String detectedPlate = extractPlate(best.text);
-                                if (detectedPlate != null) {
-                                    showPlate.setText(detectedPlate);
-                                    if (plateComplianceVerification(detectedPlate)) {
-                                        getInfoVehicle(new InfoRequest(detectedPlate));
-                                    }
+            boolean predictionHandled = false;
+            try {
+                // Détection de la plaque d'immatriculation dans l'image (local, offline)
+                Bitmap bitmap = getOptimizedBitmapFromUri(imageUri);
+                if (bitmap != null) {
+                    List<LicensePlateRecognizer.PlateResult> results = licensePlateRecognizer.processImage(bitmap);
+                    if (!results.isEmpty()) {
+                        predictionHandled = true;
+                        LicensePlateRecognizer.PlateResult best = results.get(0);
+                        runOnMainThread(() -> {
+                            setLoading(false);
+                            String detectedPlate = extractPlate(best.text);
+                            if (detectedPlate != null) {
+                                showPlate.setText(detectedPlate);
+                                if (plateComplianceVerification(detectedPlate)) {
+                                    getInfoVehicle(new InfoRequest(detectedPlate));
                                 } else {
-                                    Toast.makeText(getContext(), R.string.detection_plate, Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(getContext(), R.string.compliance_plate, Toast.LENGTH_SHORT).show();
                                 }
-                            });
-                        }
+                            } else {
+                                Toast.makeText(getContext(), R.string.detection_plate, Toast.LENGTH_SHORT).show();
+                            }
+                        });
                     }
-                    callback.run();
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "Error in picturePredict", e);
+            }
+
+            if (!predictionHandled) {
+                runOnMainThread(() -> {
+                    setLoading(false);
+                    Toast.makeText(getContext(), R.string.detection_plate, Toast.LENGTH_SHORT).show();
                 });
-
-
+            }
+            runOnMainThread(callback);
+        });
     }
 
     private boolean plateComplianceVerification(String plate) {
