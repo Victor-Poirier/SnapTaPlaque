@@ -31,7 +31,6 @@ Version : 1.0.0
 """
 
 from datetime import datetime, timedelta
-from typing import Optional
 
 from jose import jwt, JWTError
 from fastapi import Depends, HTTPException, status
@@ -41,8 +40,7 @@ from passlib.context import CryptContext
 
 from app.database import get_db
 
-
-from app import crud, schemas, database
+from app import crud, database
 from app.config import settings
 
 # ================== CONFIG ==================

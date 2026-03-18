@@ -3,23 +3,16 @@ package com.example.snaptaplaque.activities;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
-
-import android.os.Looper;
 import android.util.Log;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.snaptaplaque.R;
-import com.example.snaptaplaque.models.api.account.MeResponse;
-import com.example.snaptaplaque.models.api.root.HealthResponse;
 
 import com.example.snaptaplaque.network.apicall.AccountCall;
 import com.example.snaptaplaque.network.apicall.ApiCallback;
 import com.example.snaptaplaque.network.apicall.RootCall;
-
-import com.example.snaptaplaque.utils.SessionManager;
 
 import retrofit2.Response;
 
@@ -36,15 +29,13 @@ import retrofit2.Response;
  * </ul>
  *
  * @see RootCall#health(ApiCallback)
- * @see AccountCall#me(ApiCallback, Activity)
+ * @see AccountCall#me(ApiCallback, android.content.Context)
  */
 public class LaunchActivity extends AppCompatActivity {
 
     /** Tag utilisé pour les messages de log liés aux tests de connexion API. */
     private static final String TAG = "API_TEST";
 
-    /** Gestionnaire de session utilisateur (token JWT, identifiants). */
-    private SessionManager sessionManager;
 
     /**
      * Initialise le layout de l'écran de lancement et déclenche
@@ -94,7 +85,7 @@ public class LaunchActivity extends AppCompatActivity {
 
     /**
      * Vérifie si l'utilisateur dispose d'une session valide en interrogeant
-     * l'endpoint protégé {@code /v1/account/me} via {@link AccountCall#me(ApiCallback, Activity)}.
+     * l'endpoint protégé {@code /v1/account/me} via {@link AccountCall#me(ApiCallback, android.content.Context)}.
      *
      * <p>Comportement selon la réponse :</p>
      * <ul>

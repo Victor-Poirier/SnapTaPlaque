@@ -1,20 +1,16 @@
 package com.example.snaptaplaque.viewmodels;
 
-import android.app.Activity;
-import android.content.Intent;
 import android.util.Log;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-import com.example.snaptaplaque.activities.SignInActivity;
 import com.example.snaptaplaque.models.Profil;
 import com.example.snaptaplaque.models.Vehicle;
 import com.example.snaptaplaque.models.api.favorites.FavoriteAllResponse;
 import com.example.snaptaplaque.models.api.vehicles.HistoryVehiclesResponse;
 import com.example.snaptaplaque.models.api.vehicles.InfoResponse;
-import com.example.snaptaplaque.network.ApiService;
 import com.example.snaptaplaque.network.apicall.ApiCallback;
 import com.example.snaptaplaque.network.apicall.FavoritesCall;
 import com.example.snaptaplaque.network.apicall.VehiclesCall;

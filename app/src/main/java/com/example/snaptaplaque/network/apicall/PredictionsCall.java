@@ -1,6 +1,5 @@
 package com.example.snaptaplaque.network.apicall;
 
-import android.util.Log;
 
 import com.example.snaptaplaque.models.api.predictions.HistoryResponse;
 import com.example.snaptaplaque.models.api.predictions.PredictionResponse;

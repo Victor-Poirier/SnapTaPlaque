@@ -36,7 +36,7 @@ Index :
 Version : 1.0.0
 """
 
-from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, Boolean, ForeignKey, Index, JSON, Table
+from sqlalchemy import create_engine, Column, Integer, String, DateTime, Boolean, ForeignKey, Index, JSON, Table
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 from datetime import datetime

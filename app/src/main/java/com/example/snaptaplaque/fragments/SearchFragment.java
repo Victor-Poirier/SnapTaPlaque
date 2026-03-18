@@ -9,12 +9,10 @@ import android.widget.ImageView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProvider;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.example.snaptaplaque.R;
 import com.example.snaptaplaque.adapters.InputSectionAdapter;
-import com.example.snaptaplaque.viewmodels.SharedViewModel;
 
 /**
  * Fragment dédié à la recherche et au scan de plaques d'immatriculation.
@@ -22,7 +20,7 @@ import com.example.snaptaplaque.viewmodels.SharedViewModel;
  * <p>Ce fragment permet à l'utilisateur de saisir ou scanner une plaque
  * d'immatriculation afin d'obtenir les informations associées au véhicule.
  * Chaque véhicule scanné est automatiquement ajouté à l'historique de recherche
- * via le {@link SharedViewModel} partagé au niveau de l'activité hôte.</p>
+ * via le {@link com.example.snaptaplaque.viewmodels.SharedViewModel} partagé au niveau de l'activité hôte.</p>
  *
  * <p>Le {@code SharedViewModel} assure la communication avec les autres fragments :
  * <ul>
@@ -31,7 +29,7 @@ import com.example.snaptaplaque.viewmodels.SharedViewModel;
  * </ul>
  * </p>
  *
- * @see SharedViewModel #addVehicle(Vehicle)
+ * @see com.example.snaptaplaque.viewmodels.SharedViewModel
  * @see HistoryFragment
  * @see ProfileFragment
  */
@@ -46,11 +44,11 @@ public class SearchFragment extends Fragment {
     private ImageView indicatorScan;
 
     /**
-     * Initialise la vue du fragment et configure le {@link SharedViewModel}.
+     * Initialise la vue du fragment et configure le {@link com.example.snaptaplaque.viewmodels.SharedViewModel}.
      *
      * <p>Gonfle le layout {@code fragment_search.xml} et récupère l'instance
-     * du {@link SharedViewModel} scopée à l'activité parente via
-     * {@link ViewModelProvider}. La logique de recherche (champ de saisie,
+     * du {@link com.example.snaptaplaque.viewmodels.SharedViewModel} scopée à l'activité parente.
+     * La logique de recherche (champ de saisie,
      * bouton, appel API) est à décommenter et adapter selon le layout utilisé.</p>
      *
      * @param inflater           le {@link LayoutInflater} utilisé pour gonfler la vue

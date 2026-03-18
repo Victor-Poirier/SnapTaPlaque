@@ -20,7 +20,7 @@ Catégories de schémas :
 Version : 1.0.0
 """
 from pydantic import BaseModel, EmailStr, Field, field_validator
-from typing import Optional, Dict, Any, List
+from typing import Optional, List
 from datetime import datetime
 
 

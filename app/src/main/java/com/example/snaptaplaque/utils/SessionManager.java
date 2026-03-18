@@ -106,12 +106,4 @@ public class SessionManager {
         editor.apply();
     }
 
-    /**
-     * Méthode statique pour effacer la session de manière globale, accessible depuis n'importe quel contexte.
-     */
-    public static void clearSession(Context context) {
-        SharedPreferences prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
-        prefs.edit().clear().apply();
-    }
-
 }

@@ -23,6 +23,7 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.example.snaptaplaque.R;
 import com.example.snaptaplaque.activities.SignInActivity;
+import com.example.snaptaplaque.ml.LicensePlateRecognizer;
 import com.example.snaptaplaque.models.Photo;
 import com.example.snaptaplaque.models.Vehicle;
 import com.example.snaptaplaque.models.api.predictions.PredictionDetectionResult;
@@ -39,6 +40,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -53,7 +55,7 @@ import retrofit2.Response;
 public class PictureFragment extends Fragment {
 
     private static final String TAG = "PictureFragment";
-    private static final int UPLOAD_MAX_DIMENSION = 800;
+    private static final int UPLOAD_MAX_DIMENSION = 1024;
     private static final int UPLOAD_JPEG_QUALITY = 80;
 
     private ImageView ivLicencePlate;
@@ -66,6 +68,8 @@ public class PictureFragment extends Fragment {
     private ActivityResultLauncher<Uri> cameraLauncher;
     private ActivityResultLauncher<String> galleryLauncher;
     private final ExecutorService imageExecutor = Executors.newSingleThreadExecutor();
+
+    private LicensePlateRecognizer licensePlateRecognizer;
 
     /**
      * Called when the fragment is first created.
@@ -111,6 +115,16 @@ public class PictureFragment extends Fragment {
 
         // Initialisation de l'outil Photo
         photo = new Photo(requireContext(), requestPermissionLauncher, cameraLauncher, galleryLauncher);
+
+        // Initialisation de la reconnaissance de plaque locale (offline)
+        licensePlateRecognizer = new LicensePlateRecognizer(requireContext());
+        imageExecutor.execute(() -> {
+            try {
+                licensePlateRecognizer.init();
+            } catch (Exception e) {
+                Log.e(TAG, "Failed to initialize LicensePlateRecognizer", e);
+            }
+        });
     }
 
     /**
@@ -169,6 +183,30 @@ public class PictureFragment extends Fragment {
         setLoading(true);
 
         imageExecutor.execute(() -> {
+            // Tenter une detection locale
+            Bitmap bitmap = getOptimizedBitmapFromUri(imageUri);
+            if (bitmap != null) {
+                List<LicensePlateRecognizer.PlateResult> results = licensePlateRecognizer.processImage(bitmap);
+                if (!results.isEmpty()) {
+                    LicensePlateRecognizer.PlateResult best = results.get(0);
+                    runOnMainThread(() -> {
+                        setLoading(false);
+                        String detectedPlate = extractPlate(best.text);
+                        if (detectedPlate != null) {
+                            showPlate.setText(detectedPlate);
+                            if (plateComplianceVerification(detectedPlate)) {
+                                getInfoVehicle(new InfoRequest(detectedPlate));
+                            }
+                        } else {
+                            Toast.makeText(getContext(), R.string.detection_plate, Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                    return; // Succès local, on arrête là
+                }
+            }
+
+            // Si échec local, fallback sur l'API (optionnel, ou juste erreur)
+            // Pour l'instant on garde l'API en fallback
             File file = getOptimizedJpegFromUri(imageUri);
 
             if (file == null) {
@@ -318,6 +356,32 @@ public class PictureFragment extends Fragment {
         }
         catch(IOException e) {
             Log.e(TAG, "Unable to optimize image before upload", e);
+            return null;
+        }
+    }
+
+    private Bitmap getOptimizedBitmapFromUri(Uri uri) {
+        try {
+            BitmapFactory.Options boundsOptions = new BitmapFactory.Options();
+            boundsOptions.inJustDecodeBounds = true;
+            try (InputStream boundsInputStream = requireContext().getContentResolver().openInputStream(uri)) {
+                if (boundsInputStream == null) return null;
+                BitmapFactory.decodeStream(boundsInputStream, null, boundsOptions);
+            }
+
+            BitmapFactory.Options decodeOptions = new BitmapFactory.Options();
+            decodeOptions.inSampleSize = calculateInSampleSize(boundsOptions, UPLOAD_MAX_DIMENSION, UPLOAD_MAX_DIMENSION);
+            Bitmap decodedBitmap;
+            try (InputStream decodeInputStream = requireContext().getContentResolver().openInputStream(uri)) {
+                if (decodeInputStream == null) return null;
+                decodedBitmap = BitmapFactory.decodeStream(decodeInputStream, null, decodeOptions);
+            }
+
+            if (decodedBitmap == null) return null;
+
+            return resizeBitmapIfNeeded(decodedBitmap, UPLOAD_MAX_DIMENSION);
+        } catch (IOException e) {
+            Log.e(TAG, "Unable to load bitmap", e);
             return null;
         }
     }

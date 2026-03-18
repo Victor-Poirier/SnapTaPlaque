@@ -18,6 +18,15 @@
 # Base image: Python 3.10 slim variant to minimise image size
 FROM python:3.10-slim
 
+ARG HF_REPO_ID=0xnu/european-license-plate-recognition
+ARG HF_MODEL_FILENAME=model.onnx
+ARG HF_CONFIG_FILENAME=config.json
+
+ENV LPR_HF_REPO_ID=${HF_REPO_ID}
+ENV LPR_HF_MODEL_FILENAME=${HF_MODEL_FILENAME}
+ENV LPR_HF_CONFIG_FILENAME=${HF_CONFIG_FILENAME}
+ENV LPR_HF_LOCAL_DIR=/models/hf
+
 # Set the working directory inside the container
 WORKDIR /app
 
@@ -42,16 +51,21 @@ ENV HF_HOME=/models/hf-cache
 
 # Pre-download OCR models and HuggingFace ONNX assets at build time.
 RUN python - <<'PY'
+import os
 import easyocr
 from huggingface_hub import hf_hub_download
 
-easyocr.Reader(['fr'], gpu=False, verbose=False)
+easyocr.Reader(['en', 'de', 'fr', 'es', 'it', 'nl'], gpu=False, verbose=False)
 
-for filename in ("model.onnx", "config.json"):
+repo_id = os.environ.get("LPR_HF_REPO_ID", "0xnu/european-license-plate-recognition")
+
+for filename in (
+    os.environ.get("LPR_HF_MODEL_FILENAME", "model.onnx"),
+    os.environ.get("LPR_HF_CONFIG_FILENAME", "config.json"),
+):
     hf_hub_download(
-        repo_id="0xnu/european-license-plate-recognition",
+        repo_id=repo_id,
         filename=filename,
-        local_dir="/models/hf",
     )
 PY
 
