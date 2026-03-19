@@ -190,8 +190,7 @@ public class ProfileAdditionalInformationFragment extends DialogFragment {
         RootCall.privacyPolicy(new ApiCallback() {
             @Override
             public void onResponseSuccess(Response response) {
-                RgpdResponse res = (RgpdResponse) response.body();
-                privacyPolicy.setText(res.createString(getContext()));
+
             }
 
             @Override

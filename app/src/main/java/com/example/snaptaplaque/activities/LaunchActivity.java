@@ -6,7 +6,6 @@ import android.os.Bundle;
 import android.util.Log;
 
 import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.snaptaplaque.R;
 
@@ -31,7 +30,7 @@ import retrofit2.Response;
  * @see RootCall#health(ApiCallback)
  * @see AccountCall#me(ApiCallback, android.content.Context)
  */
-public class LaunchActivity extends AppCompatActivity {
+public class LaunchActivity extends BaseActivity {
 
     /** Tag utilisé pour les messages de log liés aux tests de connexion API. */
     private static final String TAG = "API_TEST";
