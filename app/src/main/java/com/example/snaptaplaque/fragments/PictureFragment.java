@@ -233,8 +233,8 @@ public class PictureFragment extends Fragment {
 
     private boolean plateComplianceVerification(String plate) {
 
-        String regex_1 = "(?i)((?!SS|WW|W)[A-HJ-NP-TV-Z]{2})-((?!000)[0-9]{3})-((?!SS|WW)[A-HJ-NP-TV-Z]{2})";
-        String regex_2 = "(?i)((?!SS|WW|W)[A-HJ-NP-TV-Z]{2})((?!000)[0-9]{3})((?!SS|WW)[A-HJ-NP-TV-Z]{2})";
+        String regex_1 = "(?i)((?!SS|WW|W)[A-HJ-NP-TV-Z]{2})-((?!000)[0-9]{3})-((?!SS)[A-HJ-NP-TV-Z]{2})";
+        String regex_2 = "(?i)((?!SS|WW|W)[A-HJ-NP-TV-Z]{2})((?!000)[0-9]{3})((?!SS)[A-HJ-NP-TV-Z]{2})";
 
         if((!plate.matches(regex_1)) && (!plate.matches(regex_2))) {
             Toast.makeText(getContext(), R.string.compliance_plate, Toast.LENGTH_SHORT).show();
