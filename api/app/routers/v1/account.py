@@ -314,11 +314,16 @@ def delete_my_account(
         HTTPException (401): Si l'utilisateur n'est pas authentifié
             ou si son compte est désactivé (via ``get_current_active_user``).
     """
-    from app.database import user_favorites
-    db.execute(
-        user_favorites.delete().where(user_favorites.c.user_id == current_user.id)
-    )
+    from app.database import user_favorites, user_vehicle_history
+    
+    db.query(UserPicture).filter(UserPicture.user_id == current_user.id).delete()
+    
+    db.execute(user_favorites.delete().where(user_favorites.c.user_id == current_user.id))
+
+    db.execute(user_vehicle_history.delete().where(user_vehicle_history.c.user_id == current_user.id))
+
     db.query(Prediction).filter(Prediction.user_id == current_user.id).delete()
+    
     db.query(User).filter(User.id == current_user.id).delete()
     db.commit()
 
