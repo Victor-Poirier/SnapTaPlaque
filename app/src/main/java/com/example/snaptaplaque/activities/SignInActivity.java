@@ -1,6 +1,5 @@
 package com.example.snaptaplaque.activities;
 
-import androidx.appcompat.app.AppCompatActivity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
@@ -16,7 +15,7 @@ import com.example.snaptaplaque.utils.FeedbackManager;
 import com.example.snaptaplaque.utils.SessionManager;
 
 
-public class SignInActivity extends AppCompatActivity {
+public class SignInActivity extends BaseActivity {
 
     private EditText username, password;
     private SessionManager sessionManager;

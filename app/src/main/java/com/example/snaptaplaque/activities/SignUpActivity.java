@@ -7,7 +7,6 @@ import android.widget.EditText;
 
 
 import android.widget.TextView;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.fragment.app.DialogFragment;
 import com.example.snaptaplaque.R;
@@ -16,7 +15,7 @@ import com.example.snaptaplaque.models.api.account.RegisterRequest;
 import com.example.snaptaplaque.network.apicall.AccountCall;
 import com.example.snaptaplaque.utils.FeedbackManager;
 
-public class SignUpActivity extends AppCompatActivity {
+public class SignUpActivity extends BaseActivity {
 
     private EditText username, fullName, mail, password;
 
