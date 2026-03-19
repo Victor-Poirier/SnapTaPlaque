@@ -36,7 +36,7 @@ Index :
 Version : 1.0.0
 """
 
-from sqlalchemy import create_engine, Column, Integer, String, DateTime, Boolean, ForeignKey, Index, JSON, Table
+from sqlalchemy import create_engine, Column, Integer, String, DateTime, Boolean, ForeignKey, Index, JSON, Table, LargeBinary
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 from datetime import datetime
@@ -138,6 +138,9 @@ class User(Base):
     # confidentialité. Un utilisateur ne peut pas être créé sans consentement.
     gdpr_consent_at = Column(DateTime, nullable=True)
 
+    # L'image de profil de l'utilisateur
+
+
 
 class Prediction(Base):
     """
@@ -226,6 +229,21 @@ class Vehicle(Base):
     # assure la synchronisation automatique avec ``User.favorites``.
     favorited_by = relationship("User", secondary=user_favorites, back_populates="favorites")
     history_by = relationship("User", secondary=user_vehicle_history, back_populates="vehicles_info_history")
+
+class UserPicture(Base):
+    """
+    Modèle ORM représentant la photo de profil d'un utilisateur.
+    Stocke l'image sous forme de données binaires (LargeBinary).
+    """
+    __tablename__ = 'user_picture'
+
+    user_id = Column(Integer, ForeignKey('users.id'), primary_key=True)
+    
+    # LargeBinary est le type SQL standard pour stocker des BLOB / Bytea
+    picture = Column(LargeBinary, nullable=True)
+    
+    # Relation vers l'utilisateur
+    user = relationship('User')
 
 def create_tables():
     """
