@@ -1,5 +1,7 @@
 package com.example.snaptaplaque.models.api.model;
 
+import android.content.Context;
+
 import com.example.snaptaplaque.R;
 
 public class ModelInfoResponse {
@@ -13,10 +15,10 @@ public class ModelInfoResponse {
         this.model_type = model_type;
     }
 
-    public String createString(){
-        return  R.string.model_type + model_type + "\n" +
-                R.string.pipeline   +  pipeline  + "\n" +
-                R.string.is_loaded  + loaded + "\n" ;
+    public String createString(Context context){
+        return  context.getString(R.string.model_type) + model_type + "\n" +
+                context.getString(R.string.pipeline)   +  pipeline  + "\n" +
+                context.getString(R.string.is_loaded)  + loaded + "\n" ;
     }
 
     public boolean isLoaded() {

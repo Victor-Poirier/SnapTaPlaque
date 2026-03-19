@@ -50,6 +50,7 @@ public class ProfileFragment extends Fragment {
 
     private ImageView ivProfile;
     private ImageView ivLogout;
+    private ImageView ivApiInfo;
     private TextView tvUsername;
     private TextView tvEmail;
     private TextView tvCountry;
@@ -136,7 +137,6 @@ public class ProfileFragment extends Fragment {
 
         ivProfile = view.findViewById(R.id.ivProfilePicture);
         ivProfile.setOnClickListener(v -> {
-            // CORRECTION : On ouvre seulement le choix, l'upload se fera dans les callback (galleryLauncher/cameraLauncher)
             photo.showChoice();
         });
 
@@ -148,11 +148,18 @@ public class ProfileFragment extends Fragment {
             startActivity(intent);
         });
 
+        ivApiInfo = view.findViewById(R.id.ivComplementaryInfo);
+        ivApiInfo.setOnClickListener(v -> {
+            ProfileAdditionalInformationFragment frag = ProfileAdditionalInformationFragment.createFrag();
+            frag.show(getChildFragmentManager(), "Extension");
+        });
+
         tvUsername = view.findViewById(R.id.tvUsername);
         tvUsername.setText("Default Username");
         tvEmail = view.findViewById(R.id.tvEmail);
         tvEmail.setText("Default email@example.com");
         tvCountry = view.findViewById(R.id.tvCountry);
+
 
         getUserInfo();
         getLastLocation();
@@ -279,6 +286,10 @@ public class ProfileFragment extends Fragment {
 
             @Override
             public void onResponseFailure(Response response) {
+                if ( response.code() == ApiService.ERROR_TOKEN_EXPIRE ){
+                    Intent intent = new Intent(getActivity(), SignInActivity.class);
+                    getActivity().startActivity(intent);
+                }
             }
 
             @Override
@@ -339,17 +350,18 @@ public class ProfileFragment extends Fragment {
         AccountCall.changeProfilePicture(new ApiCallback() {
             @Override
             public void onResponseSuccess(Response response) {
-                Toast.makeText(getContext(), "Photo de profil mise à jour !", Toast.LENGTH_SHORT).show();
             }
 
             @Override
             public void onResponseFailure(Response response) {
-                Toast.makeText(getContext(), "Échec de l'envoi", Toast.LENGTH_SHORT).show();
+                if ( response.code() == ApiService.ERROR_TOKEN_EXPIRE ){
+                    Intent intent = new Intent(getActivity(), SignInActivity.class);
+                    getActivity().startActivity(intent);
+                }
             }
 
             @Override
             public void onCallFailure(Throwable t) {
-                Toast.makeText(getContext(), "Erreur réseau", Toast.LENGTH_SHORT).show();
             }
         }, body);
     }

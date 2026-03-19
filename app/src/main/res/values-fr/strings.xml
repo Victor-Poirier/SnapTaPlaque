@@ -57,9 +57,9 @@
     <string name="logout_success">Déconnexion réussie</string>
     <string name="registration_success">L\'inscription a réussi</string>
     <string name="registration_failed">L\'inscription a échoué</string>
-    <string name="model_type">Type de modèle</string>
+    <string name="model_type">Type :</string>
     <string name="pipeline">Pipeline</string>
-    <string name="is_loaded">Modèle chargé</string>
+    <string name="is_loaded">"Modèle chargé : "</string>
     <string name="rgpd_controller">"Responsable : "</string>
     <string name="rgpd_contact">"Contact : "</string>
     <string name="rgpd_purpose">"Finalité : "</string>
@@ -73,4 +73,15 @@
     <string name="existence_plate">La plaque d\'immatriculation n\'existe pas</string>
     <string name="detection_plate">Aucune plaque d\'immatriculation détectée</string>
     <string name="research_in_progress">Recherche en cours...</string>
+    <string name="delete_account">supprimer votre compte</string>
+    <string name="model_info">Information du modèle de l\'API :</string>
+    <string name="api_version">Informations globales sur l\'API :</string>
+    <string name="export_data">exporter vos données sur votre appareil</string>
+    <string name="data_export_info">Exporter toutes tes données connues de l\'API :</string>
+    <string name="delete_account_info">"Supprimer définitivement vos données de la base de données de l'API : "</string>
+    <string name="delete_account_successful">"suppression avec succès de votre compte "</string>
+    <string name="api_version_result_version">"Version : "</string>
+    <string name="api_version_result_statut">"Statut : "</string>
+    <string name="api_version_result_pipeline">"Version de la pipeline : "</string>
+    <string name="api_version_response_latest">"Version la plus récente : "</string>
 </resources>
