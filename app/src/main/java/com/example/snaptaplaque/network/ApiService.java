@@ -9,6 +9,7 @@ import com.example.snaptaplaque.models.api.predictions.HistoryResponse;
 import com.example.snaptaplaque.models.api.predictions.PredictionResponse;
 import com.example.snaptaplaque.models.api.predictions.StatsResponse;
 import com.example.snaptaplaque.models.api.root.ApiVersionResponse;
+import com.example.snaptaplaque.models.api.root.RgpdRequest;
 import com.example.snaptaplaque.models.api.root.RgpdResponse;
 import com.example.snaptaplaque.models.api.root.HealthResponse;
 import com.example.snaptaplaque.models.api.vehicles.HistoryVehiclesResponse;
@@ -139,8 +140,10 @@ public interface ApiService {
      * les données fournis et quelles sont les droits de l'utilisateur
      * (suppression, data-export, ...)
      */
-    @GET("privacy-policy")
-    Call<RgpdResponse> privacy_policy();
+    @POST("privacy-policy")
+    Call<RgpdResponse> privacy_policy(
+            @Body RgpdRequest rgpdRequest
+    );
 
     @GET("versions")
     Call<ApiVersionResponse> versions();

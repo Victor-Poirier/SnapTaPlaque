@@ -96,13 +96,13 @@ public class InputSectionAdapter extends FragmentStateAdapter {
         // Retourne le Fragment correspondant à la position
         switch (position) {
             case 0:
-                return new WheelFragment();  // Roulette
+                return new PictureFragment();  // Photo
             case 1:
-                return new VocalFragment(); // Vocal
+                return new WheelFragment(); // Roulette
             case 2:
-                return new PictureFragment(); // Photo
+                return new VocalFragment(); // Vocale
             default:
-                return new WheelFragment();  // Par défaut
+                return new PictureFragment();  // Par défaut
         }
     }
 

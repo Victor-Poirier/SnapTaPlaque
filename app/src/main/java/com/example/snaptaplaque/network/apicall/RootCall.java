@@ -6,6 +6,7 @@ import android.util.Log;
 
 import com.example.snaptaplaque.models.api.root.ApiVersionResponse;
 import com.example.snaptaplaque.models.api.root.HealthResponse;
+import com.example.snaptaplaque.models.api.root.RgpdRequest;
 import com.example.snaptaplaque.models.api.root.RgpdResponse;
 import com.example.snaptaplaque.network.ApiClient;
 import com.example.snaptaplaque.network.ApiService;
@@ -42,8 +43,9 @@ public class RootCall {
                 });
     }
 
-    public static void privacyPolicy(ApiCallback apiCallback){
-        apiService.privacy_policy()
+    public static void privacyPolicy(ApiCallback apiCallback, String language){
+        RgpdRequest request = new RgpdRequest(language);
+        apiService.privacy_policy(request)
                 .enqueue(new Callback<RgpdResponse>() {
                     @Override
                     public void onResponse(Call<RgpdResponse> call, Response<RgpdResponse> response) {

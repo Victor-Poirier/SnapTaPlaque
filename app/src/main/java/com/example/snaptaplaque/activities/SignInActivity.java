@@ -1,19 +1,22 @@
 package com.example.snaptaplaque.activities;
 
-import android.app.Activity;
+import androidx.appcompat.app.AppCompatActivity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
 
+import android.widget.TextView;
+import androidx.fragment.app.DialogFragment;
 import com.example.snaptaplaque.R;
+import com.example.snaptaplaque.fragments.PrivacyPolicyDialogFragment;
 import com.example.snaptaplaque.models.api.account.LoginRequest;
 import com.example.snaptaplaque.network.apicall.AccountCall;
 import com.example.snaptaplaque.utils.FeedbackManager;
 import com.example.snaptaplaque.utils.SessionManager;
 
 
-public class SignInActivity extends Activity {
+public class SignInActivity extends AppCompatActivity {
 
     private EditText username, password;
     private SessionManager sessionManager;
@@ -34,6 +37,12 @@ public class SignInActivity extends Activity {
         signUp.setOnClickListener(v -> {
             Intent intent = new Intent(this, SignUpActivity.class);
             startActivity(intent);
+        });
+
+        TextView privacyPolicyLink = findViewById(R.id.privacyPolicyLink);
+        privacyPolicyLink.setOnClickListener(v -> {
+            DialogFragment privacyDialog = new PrivacyPolicyDialogFragment();
+            privacyDialog.show(getSupportFragmentManager(), "PrivacyPolicyDialog");
         });
     }
 

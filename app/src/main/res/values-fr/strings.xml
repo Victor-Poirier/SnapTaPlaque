@@ -84,4 +84,7 @@
     <string name="api_version_result_statut">"Statut : "</string>
     <string name="api_version_result_pipeline">"Version de la pipeline : "</string>
     <string name="api_version_response_latest">"Version la plus récente : "</string>
+    <string name="description_indicator_wheel">Roulette</string>
+    <string name="description_indicator_vocal">Saisie vocal</string>
+    <string name="privacy_policy">Politique de confidentialité</string>
 </resources>

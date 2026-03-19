@@ -428,3 +428,19 @@ class VehicleInfoHistoryResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+class RGPDRequest(BaseModel):
+    """
+    Schéma de validation pour une requête de consentement RGPD.
+    Valide les données soumises par l'utilisateur pour donner son consentement explicite à la politique de confidentialité (RGPD) lors de l'inscription ou de la
+    modification de son compte. L'utilisateur doit accepter la politique pour pouvoir créer ou maintenir son compte actif.
+    Attributes:
+        language (str): Langue préférée de l'utilisateur pour la
+            communication de la politique de confidentialité. Permet
+            d'adapter le contenu de la politique en fonction de la
+            langue choisie par l'utilisateur.
+    """
+    language: str
+
+    class Config:
+        from_attributes = True
