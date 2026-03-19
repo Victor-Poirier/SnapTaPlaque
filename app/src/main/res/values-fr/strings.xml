@@ -73,4 +73,7 @@
     <string name="existence_plate">La plaque d\'immatriculation n\'existe pas</string>
     <string name="detection_plate">Aucune plaque d\'immatriculation détectée</string>
     <string name="research_in_progress">Recherche en cours...</string>
+    <string name="description_indicator_wheel">Roulette</string>
+    <string name="description_indicator_vocal">Saisie vocal</string>
+    <string name="privacy_policy">Politique de confidentialité</string>
 </resources>

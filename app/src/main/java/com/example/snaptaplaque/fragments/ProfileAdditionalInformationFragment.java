@@ -116,7 +116,7 @@ public class ProfileAdditionalInformationFragment extends DialogFragment {
             @Override
             public void onResponseSuccess(Response response) {
                 RgpdResponse res = (RgpdResponse) response.body();
-                privacyPolicy.setText(res.createString());
+                privacyPolicy.setText(res.createString(getContext()));
             }
 
             @Override
@@ -128,7 +128,7 @@ public class ProfileAdditionalInformationFragment extends DialogFragment {
             public void onCallFailure(Throwable t) {
 
             }
-        });
+        }, getContext().getResources().getConfiguration().locale.getLanguage());
     }
 
     public void modelInfo(){

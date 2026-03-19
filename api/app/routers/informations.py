@@ -17,6 +17,7 @@ Version : 1.0.0
 
 from fastapi import APIRouter
 from app.config import settings
+from app.schemas import RGPDRequest
 
 router = APIRouter()
 
@@ -103,7 +104,7 @@ async def list_versions():
                 - ``status`` (str) : Statut de la version parmi
                   "stable", "beta" ou "deprecated".
                 - ``pipeline`` (str) : Description du pipeline IA
-                  utilisé par cette version (ex. "YOLOv8 + EasyOCR").
+                  utilisé par cette version (ex. "YOLOv12 + EasyOCR").
             - ``latest`` (str) : Version sémantique de la dernière
               version stable, lue depuis settings.API_VERSION.
     """
@@ -111,7 +112,7 @@ async def list_versions():
         "versions": {
                 "version": "v1",
                 "status": "stable",
-                "pipeline": "YOLOv8 + EasyOCR",
+                "pipeline": "YOLOv12 + EasyOCR",
             },
         "latest": settings.API_VERSION,
     }
@@ -119,8 +120,10 @@ async def list_versions():
 
 # ==================== RGPD — Politique de confidentialité ====================
 
-@router.get("/privacy-policy")
-async def privacy_policy():
+@router.post("/privacy-policy")
+async def privacy_policy(
+        language:RGPDRequest
+):
     """
     Politique de confidentialité RGPD de l'API SnapTaPlaque.
 
@@ -178,31 +181,73 @@ async def privacy_policy():
             - ``security_measures`` (list[str]) : Liste des mesures
               de sécurité techniques implémentées (Art. 32 RGPD).
     """
-    return {
-        "controller": "Projet universitaire SnapTaPlaque",
-        "contact": "vincent.proudy.etu@univ-lemans.fr",
-        "purpose": "Reconnaissance de plaques d'immatriculation à des fins pédagogiques",
-        "legal_basis": "Consentement explicite de l'utilisateur (Art. 6.1.a RGPD)",
-        "data_collected": [
-            "Email, nom d'utilisateur, nom complet (inscription)",
-            "Images soumises pour détection (non conservées après traitement)",
-            "Résultats de détection (plaques reconnues, scores de confiance)",
-            "Adresse IP (rate limiting uniquement, non stockée en base)",
-        ],
-        "retention_period": "Données conservées jusqu'à suppression du compte par l'utilisateur",
-        "user_rights": {
-            "access": "GET /v1/auth/me/data-export",
-            "erasure": "DELETE /v1/auth/me/delete-account",
-            "rectification": "Contacter le responsable de traitement",
-        },
-        "data_sharing": "Aucun transfert à des tiers",
-        "security_measures": [
-            "Mots de passe hachés avec bcrypt",
-            "Authentification par token JWT",
-            "Rate limiting sur les endpoints sensibles",
-        ],
+    if language.language == "fr":
+        content = {
+            "controller": "Projet universitaire SnapTaPlaque",
+            "contact": [
+                "Guilian BOSSARD",
+                "Nathan PERRON",
+                "Victor POIRIER",
+                "Vincent PROUDY"
+                "Mail : [prenom].[nom].etu@univ-lemans.fr"
+            ],
+            "purpose": "Reconnaissance de plaques d'immatriculation à des fins pédagogiques",
+            "legal_basis": "Consentement explicite de l'utilisateur (Art. 6.1.a RGPD)",
+            "data_collected": [
+                "Email, nom d'utilisateur, nom complet (inscription)",
+                "Images soumises pour détection (non conservées après traitement)",
+                "Résultats de détection (plaques reconnues, scores de confiance)",
+                "Adresse IP (rate limiting uniquement, non stockée en base)",
+            ],
+            "retention_period": "Données conservées jusqu'à suppression du compte par l'utilisateur",
+            "user_rights": {
+                "access": "GET /v1/auth/me/data-export",
+                "erasure": "DELETE /v1/auth/me/delete-account",
+                "rectification": "Contacter le responsable de traitement",
+            },
+            "data_sharing": "Aucun transfert à des tiers",
+            "security_measures": [
+                "Mots de passe hachés avec bcrypt",
+                "Authentification par token JWT",
+                "Rate limiting sur les endpoints sensibles",
+            ],
 
-    }
+        }
+
+    elif language.language == "en":
+        content = {
+            "controller": "SnapTaPlaque University Project",
+            "contact": [
+                "Guilian BOSSARD",
+                "Nathan PERRON",
+                "Victor POIRIER",
+                "Vincent PROUDY",
+                "Mail : [firstname].[name].etu@univ-lemans.fr"
+            ],
+            "purpose": "Number plate recognition for educational purposes",
+            "legal_basis": "Explicit user consent (Art. 6.1.a GDPR)",
+            "data_collected": [
+                "Email, username, first name and name (register)",
+                "Images submitted for detection (not retained after processing)",
+                "Detection results (recognized plates, confidence scores)",
+                "IP address (rate limiting only, not stored in database)",
+            ],
+            "retention_period": "Data is retained until the user deletes their account",
+            "user_rights": {
+                "access": "GET /v1/auth/me/data-export",
+                "erasure": "DELETE /v1/auth/me/delete-account",
+                "rectification": "Contact the data controller",
+            },
+            "data_sharing": "No transfer to third parties",
+            "security_measures": [
+                "Passwords hashed with bcrypt",
+                "Authentication with JWT token",
+                "Rate limiting on sensitive endpoints",
+            ]
+        }
+    else :
+        raise ValueError("Unsupported language. Supported values are 'fr' and 'en'.")
+    return content
 
 @router.get("/health")
 async def health_check():

@@ -11,7 +11,7 @@ public class SessionManager {
     /**
      * Nom du fichier de préférences pour stocker les données de session.
      */
-    private static final String PREF_NAME = "snap_tap_plaque_session";
+    private static final String PREF_NAME = "snap_ta_plaque_session";
 
     /**
      * Clé pour stocker le token JWT dans les SharedPreferences.
