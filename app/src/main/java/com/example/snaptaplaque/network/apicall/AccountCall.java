@@ -8,8 +8,10 @@ import android.util.Log;
 
 import com.example.snaptaplaque.R;
 import com.example.snaptaplaque.activities.MainActivity;
+import com.example.snaptaplaque.models.api.account.ChangeProfilePictureResponse;
 import com.example.snaptaplaque.models.api.account.DataExportResponse;
 import com.example.snaptaplaque.models.api.account.DeleteAccountResponse;
+import com.example.snaptaplaque.models.api.account.DeleteProfilePictureResponse;
 import com.example.snaptaplaque.models.api.account.LoginRequest;
 import com.example.snaptaplaque.models.api.account.LoginResponse;
 import com.example.snaptaplaque.models.api.account.MeResponse;
@@ -22,6 +24,8 @@ import com.example.snaptaplaque.utils.SessionManager;
 
 import org.jspecify.annotations.NonNull;
 
+import okhttp3.MultipartBody;
+import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -161,6 +165,74 @@ public class AccountCall {
 
                     @Override
                     public void onFailure(Call<DeleteAccountResponse> call, Throwable t) {
+                        apiCallback.onCallFailure(t);
+                    }
+                });
+    }
+
+    /**
+     * Récupère la photo de profil.
+     * Note : ApiService.profile_picture doit retourner Call<ResponseBody> car c'est une image brute.
+     */
+    public static void profilePicture(ApiCallback apiCallback) {
+        String token = sessionManager.getToken();
+        apiService.profile_picture("Bearer " + token)
+                .enqueue(new Callback<ResponseBody>() {
+                    @Override
+                    public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                        if (response.isSuccessful() && response.body() != null) {
+                            apiCallback.onResponseSuccess(response);
+                        } else {
+                            apiCallback.onResponseFailure(response);
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<ResponseBody> call, Throwable t) {
+                        apiCallback.onCallFailure(t);
+                    }
+                });
+    }
+
+
+    public static void changeProfilePicture(ApiCallback apiCallback, MultipartBody.Part filePart) {
+        String token = sessionManager.getToken();
+        apiService.changeProfilePicture("Bearer " + token, filePart)
+                .enqueue(new Callback<ChangeProfilePictureResponse>() {
+                    @Override
+                    public void onResponse(Call<ChangeProfilePictureResponse> call, Response<ChangeProfilePictureResponse> response) {
+                        if (response.isSuccessful() && response.body() != null){
+                            apiCallback.onResponseSuccess(response);
+                        }
+                        else {
+                            apiCallback.onResponseFailure(response);
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<ChangeProfilePictureResponse> call, Throwable t) {
+                        apiCallback.onCallFailure(t);
+                    }
+                });
+
+    }
+
+    public static void deleteProfilePicture(ApiCallback apiCallback){
+        String token = sessionManager.getToken();
+        apiService.deleteProfilePicture("Bearer " + token)
+                .enqueue(new Callback<DeleteProfilePictureResponse>() {
+                    @Override
+                    public void onResponse(Call<DeleteProfilePictureResponse> call, Response<DeleteProfilePictureResponse> response) {
+                        if (response.isSuccessful() && response.body() != null){
+                            apiCallback.onResponseSuccess(response);
+                        }
+                        else {
+                            apiCallback.onResponseFailure(response);
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<DeleteProfilePictureResponse> call, Throwable t) {
                         apiCallback.onCallFailure(t);
                     }
                 });
