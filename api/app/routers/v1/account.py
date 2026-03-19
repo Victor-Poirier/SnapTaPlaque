@@ -44,11 +44,10 @@ Rate Limiting :
 Version : 1.0.0
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status, Request
+from fastapi import APIRouter, Depends, HTTPException, status, Request, File, UploadFile , Response
 from sqlalchemy.orm import Session
 from fastapi.security import OAuth2PasswordRequestForm
-
-from app.database import get_db, User, Prediction
+from app.database import get_db, User, Prediction, UserPicture
 from app import crud, schemas
 from app.auth import create_access_token, verify_password, get_current_active_user
 from app.limiter import limiter
@@ -325,3 +324,74 @@ def delete_my_account(
 
     return {"message": "Compte et données personnelles supprimés définitivement."}
 
+
+@router.get("/me/profile-picture")
+def get_profile_picture(
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Récupérer la photo de profil de l'utilisateur connecté.
+    Retourne directement le fichier image binaire.
+    """
+    user_picture = db.query(UserPicture).filter(UserPicture.user_id == current_user.id).first()
+
+    if not user_picture or not user_picture.picture:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, 
+            detail="Photo de profil non trouvée"
+        )
+
+    # On renvoie directement les octets binaires de l'image.
+    # Assure-toi de mettre le bon 'media_type' (ex: "image/jpeg" ou "image/png").
+    return Response(content=user_picture.picture, media_type="image/jpeg")
+
+@router.post("/me/change-profile-picture")
+async def change_profile_picture(
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db),
+    file: UploadFile = File(...),
+):
+    # Lecture des bytes de l'image
+    image_bytes = await file.read()
+    
+    user_picture = db.query(UserPicture).filter(UserPicture.user_id == current_user.id).first()
+
+    if not user_picture:
+        user_picture = UserPicture(user_id=current_user.id)
+        db.add(user_picture)
+
+    user_picture.picture = image_bytes
+    db.commit()
+    
+    return {"message": "Photo de profil modifiée avec succès."}
+
+@router.delete("/me/delete-profile-picture")
+def delete_profile_picture(
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Supprimer la photo de profil de l'utilisateur connecté.
+
+    Args:
+        current_user (User): Utilisateur authentifié dont la photo de
+            profil doit être supprimée, injecté par la dépendance
+            ``get_current_active_user``. Déclenche une erreur HTTP 401
+            si le token JWT est absent, expiré ou invalide.
+        db (Session): Session SQLAlchemy injectée automatiquement par
+            la dépendance ``get_db``. Utilisée pour supprimer le champ
+            ``picture`` du modèle ``UserPicture`` associé à
+            l'utilisateur.
+
+    Returns:
+        dict: Dictionnaire contenant la clé ``message`` avec un texte
+            de confirmation de la suppression de la photo de profil.
+    """
+    user_picture = db.query(UserPicture).filter(UserPicture.user_id == current_user.id).first()
+
+    if user_picture and user_picture.picture:
+        user_picture.picture = None
+        db.commit()
+    
+    return {"message": "Photo de profil supprimée avec succès."}
