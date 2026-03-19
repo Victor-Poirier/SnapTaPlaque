@@ -36,8 +36,6 @@ public class VehicleDetailDialogFragment extends DialogFragment {
         return fragment;
     }
 
-
-
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

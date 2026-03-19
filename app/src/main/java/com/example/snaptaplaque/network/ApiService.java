@@ -16,6 +16,7 @@ import com.example.snaptaplaque.models.api.vehicles.HistoryVehiclesResponse;
 import com.example.snaptaplaque.models.api.vehicles.InfoResponse;
 
 import okhttp3.MultipartBody;
+import okhttp3.ResponseBody;
 import retrofit2.http.Field;
 import retrofit2.Call;
 import retrofit2.http.*;
@@ -59,16 +60,32 @@ public interface ApiService {
             @Header("Authorization") String token
     );
 
-    @GET("v1/account/data-export")
+    @GET("v1/account/me/data-export")
     Call<DataExportResponse> data_export(
             @Header("Authorization") String token
     );
 
-    @DELETE("v1/account/delete-account")
+    @DELETE("v1/account/me/delete-account")
     Call<DeleteAccountResponse> delete_account(
             @Header("Authorization") String token
     );
 
+    @GET("v1/account/me/profile-picture")
+    Call<ResponseBody> profile_picture(
+            @Header("Authorization") String token
+    );
+
+    @Multipart
+    @POST("v1/account/me/change-profile-picture")
+    Call<ChangeProfilePictureResponse> changeProfilePicture(
+            @Header("Authorization") String token,
+            @Part MultipartBody.Part filePart
+    );
+
+    @DELETE("v1/account/me/delete-profile-picture")
+    Call<DeleteProfilePictureResponse> deleteProfilePicture(
+            @Header("Authorization") String token
+    );
 
     /************************/
     /* PREDICTIONS ENDPOINT */

@@ -83,6 +83,7 @@ public class Photo {
 
     /**
      * Retourne l'URI de l'image temporaire capturée par la caméra.
+     *
      * @return Uri de l'image
      */
     public Uri getTempImageUri() {

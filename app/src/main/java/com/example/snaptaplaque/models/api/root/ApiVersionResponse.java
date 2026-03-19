@@ -1,6 +1,8 @@
 package com.example.snaptaplaque.models.api.root;
 
-import java.util.List;
+import android.content.Context;
+
+import com.example.snaptaplaque.R;
 
 public class ApiVersionResponse {
     private ApiVersionResult versions;
@@ -18,5 +20,11 @@ public class ApiVersionResponse {
 
     public ApiVersionResult getVersions() {
         return versions;
+    }
+
+    public String createString(Context context){
+        return  getVersions().createString(context) + "\n" +
+                context.getString(R.string.api_version_response_latest) + getLatest();
+
     }
 }
