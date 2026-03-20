@@ -86,4 +86,7 @@
     <string name="description_indicator_wheel">Indicator Wheel</string>
     <string name="description_indicator_vocal">Indicator vocal</string>
     <string name="privacy_policy">Privacy policy</string>
+    <string name="rgpd_user_rights_access">Access</string>
+    <string name="rgpd_user_rights_erasure">Erasure</string>
+    <string name="rgpd_user_rights_rectification">Rectification</string>
 </resources>

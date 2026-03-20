@@ -87,4 +87,7 @@
     <string name="description_indicator_wheel">Roulette</string>
     <string name="description_indicator_vocal">Saisie vocal</string>
     <string name="privacy_policy">Politique de confidentialité</string>
+    <string name="rgpd_user_rights_access">Accès</string>
+    <string name="rgpd_user_rights_erasure">Suppression</string>
+    <string name="rgpd_user_rights_rectification">Modification</string>
 </resources>

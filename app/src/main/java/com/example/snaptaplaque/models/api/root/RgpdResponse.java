@@ -36,7 +36,7 @@ public class RgpdResponse {
                 context.getString(R.string.rgpd_legal_basis) + legal_basis + "\n\n" +
                 context.getString(R.string.rgpd_data_collected) + "\n" + printDataCollected() + "\n\n" +
                 context.getString(R.string.rgpd_retention_period) + retention_period + "\n\n" +
-                context.getString(R.string.rgpd_user_rights) + user_rights + "\n\n" +
+                context.getString(R.string.rgpd_user_rights) + printUserRights(context) + "\n\n" +
                 context.getString(R.string.rgpd_data_sharing) + data_sharing + "\n\n" +
                 context.getString(R.string.rgpd_security_measures) + "\n" + printSecurityMeasures() + "\n";
     }
@@ -65,6 +65,12 @@ public class RgpdResponse {
         return sb.toString();
     }
 
+
+    public String printUserRights(Context context) {
+        return "\n\t- " + context.getString(R.string.rgpd_user_rights_access) + ": " + user_rights.getAccess() + "\n" +
+                "\t- " + context.getString(R.string.rgpd_user_rights_erasure) + ": " + user_rights.getErasure() + "\n" +
+                "\t- " + context.getString(R.string.rgpd_user_rights_rectification) + ": " + user_rights.getRectification() + "\n";
+    }
 
 
     public String getController() {

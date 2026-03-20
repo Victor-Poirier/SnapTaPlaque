@@ -1,18 +1,18 @@
 package com.example.snaptaplaque.models.api.root;
 
 public class RgpdResultUserRight {
-    private String acces;
+    private String access;
     private String erasure;
     private String rectification;
 
-    public RgpdResultUserRight(String acces, String erasure, String rectification) {
-        this.acces = acces;
+    public RgpdResultUserRight(String access, String erasure, String rectification) {
+        this.access = access;
         this.erasure = erasure;
         this.rectification = rectification;
     }
 
-    public String getAcces() {
-        return acces;
+    public String getAccess() {
+        return access;
     }
 
     public String getErasure() {
