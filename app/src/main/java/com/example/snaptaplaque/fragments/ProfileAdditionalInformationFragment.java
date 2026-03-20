@@ -186,26 +186,6 @@ public class ProfileAdditionalInformationFragment extends DialogFragment {
         });
     }
 
-    public void privacyPolicy(){
-        RootCall.privacyPolicy(new ApiCallback() {
-            @Override
-            public void onResponseSuccess(Response response) {
-                RgpdResponse res = (RgpdResponse) response.body();
-                privacyPolicy.setText(res.createString(getContext()));
-            }
-
-            @Override
-            public void onResponseFailure(Response response) {
-
-            }
-
-            @Override
-            public void onCallFailure(Throwable t) {
-
-            }
-        }, getContext().getResources().getConfiguration().locale.getLanguage());
-    }
-
     public void modelInfo(){
         ModelCall.modelInfo(new ApiCallback() {
             @Override
