@@ -16,7 +16,7 @@ import com.example.snaptaplaque.utils.FeedbackManager;
 import com.example.snaptaplaque.utils.SessionManager;
 
 
-public class SignInActivity extends AppCompatActivity {
+public class SignInActivity extends BaseActivity {
 
     private EditText username, password;
     private SessionManager sessionManager;

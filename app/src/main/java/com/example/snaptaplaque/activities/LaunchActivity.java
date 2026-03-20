@@ -31,7 +31,7 @@ import retrofit2.Response;
  * @see RootCall#health(ApiCallback)
  * @see AccountCall#me(ApiCallback, android.content.Context)
  */
-public class LaunchActivity extends AppCompatActivity {
+public class LaunchActivity extends BaseActivity {
 
     /** Tag utilisé pour les messages de log liés aux tests de connexion API. */
     private static final String TAG = "API_TEST";

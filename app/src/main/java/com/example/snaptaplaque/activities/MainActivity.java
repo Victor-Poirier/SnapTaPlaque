@@ -52,7 +52,7 @@ import com.example.snaptaplaque.viewmodels.SharedViewModel;
  * @see com.example.snaptaplaque.fragments.SearchFragment
  * @see com.example.snaptaplaque.fragments.ProfileFragment
  */
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends BaseActivity {
 
     /**
      * Composant de pagination permettant le swipe entre les fragments.

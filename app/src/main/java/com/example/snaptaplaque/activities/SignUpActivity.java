@@ -16,7 +16,7 @@ import com.example.snaptaplaque.models.api.account.RegisterRequest;
 import com.example.snaptaplaque.network.apicall.AccountCall;
 import com.example.snaptaplaque.utils.FeedbackManager;
 
-public class SignUpActivity extends AppCompatActivity {
+public class SignUpActivity extends BaseActivity {
 
     private EditText username, fullName, mail, password;
 
