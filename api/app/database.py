@@ -205,7 +205,6 @@ class Vehicle(Base):
             (clé primaire). Indexée pour accélérer les recherches.
         brand (str): Marque du véhicule (ex. : Renault, Peugeot, BMW).
         model (str): Modèle du véhicule (ex. : Clio, 308, Série 3).
-        year (int): Année de mise en circulation du véhicule.
         color (str): Couleur principale du véhicule.
         engine (str): Type de motorisation du véhicule (ex. : 1.5 dCi,
             2.0 TDI, électrique).
