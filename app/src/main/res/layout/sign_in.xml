@@ -58,13 +58,15 @@
                 app:boxCornerRadiusBottomStart="10dp"
                 app:boxCornerRadiusTopEnd="10dp"
                 app:boxCornerRadiusTopStart="10dp"
-                app:boxStrokeColor="#3F51B5">
+                app:boxStrokeColor="@color/black"
+                app:hintTextColor="@color/black">
 
             <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/inputIdentifiant"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:textColor="@color/black"
+                    android:textColorHint="@color/black"
                     android:inputType="text"/>
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -76,11 +78,13 @@
                 android:hint="@string/password"
                 android:textColorHint="@color/black"
                 android:textColor="@color/black"
+                app:hintTextColor="@color/black"
                 app:boxBackgroundColor="#F2F2F2"
                 app:boxCornerRadiusBottomEnd="10dp"
                 app:boxCornerRadiusBottomStart="10dp"
                 app:boxCornerRadiusTopEnd="10dp"
                 app:boxCornerRadiusTopStart="10dp"
+                app:boxStrokeColor="@color/black"
                 app:endIconMode="password_toggle">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -88,6 +92,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:textColor="@color/black"
+                    android:textColorHint="@color/black"
                     android:inputType="textPassword"/>
         </com.google.android.material.textfield.TextInputLayout>
 

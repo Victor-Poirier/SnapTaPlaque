@@ -42,10 +42,12 @@ public class PrivacyPolicyDialogFragment extends DialogFragment {
             public void onResponseSuccess(Response response) {
                     if (response.isSuccessful() && response.body() != null) {
                         String privacyText = ((RgpdResponse) response.body()).createString(getContext());
-                        getActivity().runOnUiThread(() -> {
-                            TextView privacyPolicyRV = view.findViewById(R.id.tvPrivacyContent);
-                            privacyPolicyRV.setText(privacyText);
-                        });
+                        if (getActivity() != null) {
+                            getActivity().runOnUiThread(() -> {
+                                TextView privacyPolicyRV = view.findViewById(R.id.tvPrivacyContent);
+                                privacyPolicyRV.setText(privacyText);
+                            });
+                        }
                     }
             }
 
