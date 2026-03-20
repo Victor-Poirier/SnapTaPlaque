@@ -268,7 +268,8 @@ def export_my_data(
                 "license_plate": v.license_plate,
                 "brand": v.brand,
                 "model": v.model,
-                "year": v.year,
+                "info": v.info,
+                "energy": v.energy,
             }
             for v in favorites
         ],
