@@ -71,10 +71,10 @@ async def get_vehicle_info(
             else:
                 # Sauvegarde dans la base de données
                 crud.create_vehicle(db, vehicle)
-                # Enregistrement de l'historique de consultation pour l'utilisateur
-                crud.create_vehicle_info_history(db, current_user.id, license_plate=plate_formatted)
-                logger.info(f"Véhicule '{plate_formatted}' récupéré et sauvegardé en bdd.")
 
+        # Enregistrement de l'historique de consultation pour l'utilisateur
+        crud.create_vehicle_info_history(db, current_user.id, license_plate=plate_formatted)
+        logger.info(f"Véhicule '{plate_formatted}' récupéré et sauvegardé en bdd.")
 
         # 3. Retourne les données mappées sur le schéma Pydantic
         print(f"Véhicule trouvé: {vehicle}")
