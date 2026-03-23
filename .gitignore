@@ -18,3 +18,5 @@ local.properties
 
 .ipynb_checkpoints/
 .__pychache__/
+
+/scripts
