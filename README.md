@@ -8,7 +8,7 @@ Module 178UD10 — Bossard Guilian · Perron Nathan · Poirier Victor · Proudy 
 
 ![Android](https://img.shields.io/badge/Android-Java-3DDC84?logo=android&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/API-FastAPI-009688?logo=fastapi&logoColor=white)
-![YOLOv8](https://img.shields.io/badge/ML-YOLOv12%20%2B%20EasyOCR-00FFFF)
+![YOLOv12](https://img.shields.io/badge/ML-YOLOv12%20%2B%20EasyOCR-00FFFF)
 ![PostgreSQL](https://img.shields.io/badge/DB-PostgreSQL%2016-4169E1?logo=postgresql&logoColor=white)
 ![Docker](https://img.shields.io/badge/Infra-Docker%20Compose-2496ED?logo=docker&logoColor=white)
 

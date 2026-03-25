@@ -5,7 +5,7 @@
 ![Python 3.10](https://img.shields.io/badge/Python-3.10-blue?logo=python&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.104.1-009688?logo=fastapi&logoColor=white)
 ![PyTorch](https://img.shields.io/badge/PyTorch-2.4.1-EE4C2C?logo=pytorch&logoColor=white)
-![YOLOv8](https://img.shields.io/badge/YOLOv8-8.4.14-00FFFF?logo=ultralytics&logoColor=white)
+![YOLOv12](https://img.shields.io/badge/YOLOv12-8.4.14-00FFFF?logo=ultralytics&logoColor=white)
 ![EasyOCR](https://img.shields.io/badge/EasyOCR-1.7.0-green)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)
