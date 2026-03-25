@@ -7,12 +7,13 @@ Projet DevOps — Master 1 Informatique, parcours IA, Le Mans Université
 Module 178UD10 — Bossard Guilian · Perron Nathan · Poirier Victor · Proudy Vincent
 
 ![Android](https://img.shields.io/badge/Android-Java-3DDC84?logo=android&logoColor=white)
+![iOS](https://img.shields.io/badge/iOS-Swift-000000?logo=apple&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/API-FastAPI-009688?logo=fastapi&logoColor=white)
-![YOLOv8](https://img.shields.io/badge/ML-YOLOv8%20%2B%20EasyOCR-00FFFF)
+![YOLOv12](https://img.shields.io/badge/ML-YOLOv12%20%2B%20EasyOCR-00FFFF)
 ![PostgreSQL](https://img.shields.io/badge/DB-PostgreSQL%2016-4169E1?logo=postgresql&logoColor=white)
 ![Docker](https://img.shields.io/badge/Infra-Docker%20Compose-2496ED?logo=docker&logoColor=white)
 
-Application Android de **reconnaissance automatique de plaques d'immatriculation**, connectée à une API Python de machine learning exposant un pipeline **YOLOv8 + EasyOCR**.
+Application Android de **reconnaissance automatique de plaques d'immatriculation**, connectée à une API Python de machine learning exposant un pipeline **YOLOv12 + EasyOCR**.
 
 ---
 
@@ -23,8 +24,10 @@ Application Android de **reconnaissance automatique de plaques d'immatriculation
   - [Présentation](#présentation)
   - [Architecture globale](#architecture-globale)
   - [Application Android](#application-android)
-    - [Prérequis](#prérequis)
-    - [Installation](#installation)
+    - [Prérequis (Android)](#prérequis-android)
+  - [Application iOS](#application-ios)
+    - [Prérequis (iOS)](#prérequis-ios)
+  - [Installation](#installation)
   - [API Python](#api-python)
     - [Stack technique](#stack-technique)
     - [Endpoints principaux](#endpoints-principaux)
@@ -61,7 +64,7 @@ SnapTaPlaque permet à tout utilisateur de **scanner, saisir ou dicter** une pla
 │        Application Android          │        │           API Python (FastAPI)       │
 │                                     │        │                                      │
 │  ┌─────────┐ ┌──────────┐ ┌──────┐  │  HTTP  │  ┌──────────────┐  ┌─────────────┐   │
-│  │ Scanner │ │Historique│ │Profil│  │◄──────►│  │  YOLOv8      │  │  PostgreSQL │   │
+│  │ Scanner │ │Historique│ │Profil│  │◄──────►│  │  YOLOv12     │  │  PostgreSQL │   │
 │  │ plaque  │ │          │ │      │  │  REST  │  │  + EasyOCR   │  │  (Docker)   │   │
 │  └─────────┘ └──────────┘ └──────┘  │        │  └──────────────┘  └─────────────┘   │
 │          Architecture MVC           │        │       JWT · Rate limiting · RGPD     │
@@ -72,7 +75,8 @@ Le projet est découpé en deux dépôts :
 
 | Dépôt | Technologie | Description |
 |---|---|---|
-| [`SnapTaPlaque-Android`](./app) | Java / Android SDK | Application mobile cliente |
+| [`SnapTaPlaque-Android`](./Android/) | Java / Android SDK | Application mobile Android |*
+| [`SnapTaPlaque-IOS`](./iOS/) | Swift / UIKit | Application mobile iOS (projet secondaire) |
 | [`SnapTaPlaque-API`](./api) | Python / FastAPI | Backend ML et gestion des données |
 
 ---
@@ -83,17 +87,29 @@ Développée en **Java** selon le patron **MVC**, l'application propose trois on
 
 | Onglet | Description |
 |---|---|
-| **Centre** (accueil) | Recherche d'un véhicule — photo, clavier, tactile, roulette, voix |
+| **Centre** (accueil) | Recherche d'un véhicule — photo, roulette, voix (+ clavier) |
 | ◀️ **Gauche** | Historique des recherches (du plus au moins récent) |
 | ▶️ **Droite** | Profil utilisateur — infos personnelles, photo, véhicules favoris |
 
-### Prérequis
+### Prérequis (Android)
 
 - Android Studio Hedgehog ou supérieur
 - Android SDK 26+
 - Connexion à l'API (locale ou déployée)
 
-### Installation
+## Application iOS
+
+Développée en **Swift** avec **UIKit**, l'application iOS offre une expérience utilisateur fluide et intuitive, avec les mêmes fonctionnalités que la version Android. Néanmoins, elle ne reprend pas forcément toute la DA de l'application Android. C'est un projet secondaire qui a été développé en parallèle, mais qui n'est pas le focus principal de ce projet DevOps. Elle permet aux utilisateurs iOS de pouvoir essayer l'application SnapTaPlaque.
+
+### Prérequis (iOS)
+
+- Xcode
+- iOS 26+
+- Connexeion à l'API (locale ou déployée)
+
+---
+
+## Installation
 
 ```bash
 # Cloner le dépôt
@@ -116,7 +132,7 @@ Elle expose un pipeline de reconnaissance basé sur **YOLOv8** (détection) + **
 | Composant | Technologie |
 |---|---|
 | Framework | FastAPI 0.104.1 |
-| ML — Détection | YOLOv8 (Ultralytics 8.4.14) |
+| ML — Détection | YOLOv12 |
 | ML — OCR | EasyOCR 1.7.0 |
 | Runtime ML | PyTorch 2.4.1 |
 | Base de données | PostgreSQL 16 (prod) / SQLite (dev) |
@@ -135,6 +151,7 @@ Elle expose un pipeline de reconnaissance basé sur **YOLOv8** (détection) + **
 | Prédiction | POST | `/v1/predictions/predict` | ✅ |
 | Prédiction | GET | `/v1/predictions/history` | ✅ |
 | Véhicules | GET | `/v1/vehicles/info` | ✅ |
+| Véhicules | GET | `/v1/vehicles/history` | ✅ |
 | Favoris | POST/DELETE/GET | `/v1/favorites/*` | ✅ |
 | Admin | GET | `/v1/admin/users` | ✅ Admin |
 
