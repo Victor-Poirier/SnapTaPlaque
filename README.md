@@ -12,7 +12,7 @@ Module 178UD10 — Bossard Guilian · Perron Nathan · Poirier Victor · Proudy 
 ![PostgreSQL](https://img.shields.io/badge/DB-PostgreSQL%2016-4169E1?logo=postgresql&logoColor=white)
 ![Docker](https://img.shields.io/badge/Infra-Docker%20Compose-2496ED?logo=docker&logoColor=white)
 
-Application Android de **reconnaissance automatique de plaques d'immatriculation**, connectée à une API Python de machine learning exposant un pipeline **YOLOv8 + EasyOCR**.
+Application Android de **reconnaissance automatique de plaques d'immatriculation**, connectée à une API Python de machine learning exposant un pipeline **YOLOv12 + EasyOCR**.
 
 ---
 
@@ -143,6 +143,7 @@ Elle expose un pipeline de reconnaissance basé sur **YOLOv8** (détection) + **
 | Prédiction | POST | `/v1/predictions/predict` | ✅ |
 | Prédiction | GET | `/v1/predictions/history` | ✅ |
 | Véhicules | GET | `/v1/vehicles/info` | ✅ |
+| Véhicules | GET | `/v1/vehicles/history` | ✅ |
 | Favoris | POST/DELETE/GET | `/v1/favorites/*` | ✅ |
 | Admin | GET | `/v1/admin/users` | ✅ Admin |
 
