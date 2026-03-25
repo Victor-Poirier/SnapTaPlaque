@@ -24,7 +24,8 @@ Application Android de **reconnaissance automatique de plaques d'immatriculation
   - [Architecture globale](#architecture-globale)
   - [Application Android](#application-android)
     - [Prérequis](#prérequis)
-    - [Installation](#installation)
+  - [Application IOS](#application-ios)
+  - [Installation](#installation)
   - [API Python](#api-python)
     - [Stack technique](#stack-technique)
     - [Endpoints principaux](#endpoints-principaux)
@@ -61,7 +62,7 @@ SnapTaPlaque permet à tout utilisateur de **scanner, saisir ou dicter** une pla
 │        Application Android          │        │           API Python (FastAPI)       │
 │                                     │        │                                      │
 │  ┌─────────┐ ┌──────────┐ ┌──────┐  │  HTTP  │  ┌──────────────┐  ┌─────────────┐   │
-│  │ Scanner │ │Historique│ │Profil│  │◄──────►│  │  YOLOv8      │  │  PostgreSQL │   │
+│  │ Scanner │ │Historique│ │Profil│  │◄──────►│  │  YOLOv12     │  │  PostgreSQL │   │
 │  │ plaque  │ │          │ │      │  │  REST  │  │  + EasyOCR   │  │  (Docker)   │   │
 │  └─────────┘ └──────────┘ └──────┘  │        │  └──────────────┘  └─────────────┘   │
 │          Architecture MVC           │        │       JWT · Rate limiting · RGPD     │
@@ -72,7 +73,8 @@ Le projet est découpé en deux dépôts :
 
 | Dépôt | Technologie | Description |
 |---|---|---|
-| [`SnapTaPlaque-Android`](./app) | Java / Android SDK | Application mobile cliente |
+| [`SnapTaPlaque-Android`](./Android/) | Java / Android SDK | Application mobile Android |*
+| [`SnapTaPlaque-IOS`](./IOS/) | Swift / UIKit | Application mobile IOS (projet secondaire) |
 | [`SnapTaPlaque-API`](./api) | Python / FastAPI | Backend ML et gestion des données |
 
 ---
@@ -93,7 +95,13 @@ Développée en **Java** selon le patron **MVC**, l'application propose trois on
 - Android SDK 26+
 - Connexion à l'API (locale ou déployée)
 
-### Installation
+## Application IOS
+
+Développée en **Swift** avec **UIKit**, l'application IOS offre une expérience utilisateur fluide et intuitive, avec les mêmes fonctionnalités que la version Android. Néanmoins, elle ne reprend pas 
+forcément toutes la DA de l'application Android. C'est un projet secondaire qui a été développé en parallèle, mais qui n'est pas le focus principal de ce projet DevOps.
+
+
+## Installation
 
 ```bash
 # Cloner le dépôt
@@ -116,7 +124,7 @@ Elle expose un pipeline de reconnaissance basé sur **YOLOv8** (détection) + **
 | Composant | Technologie |
 |---|---|
 | Framework | FastAPI 0.104.1 |
-| ML — Détection | YOLOv8 (Ultralytics 8.4.14) |
+| ML — Détection | YOLOv12 |
 | ML — OCR | EasyOCR 1.7.0 |
 | Runtime ML | PyTorch 2.4.1 |
 | Base de données | PostgreSQL 16 (prod) / SQLite (dev) |
