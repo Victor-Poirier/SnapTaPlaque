@@ -1,6 +1,6 @@
 # SnapTaPlaque
 
-<Img src="./app/src/main/res/drawable/logo.png" alt="SnapTaPlaque Logo" width="200" align="center" />
+<Img src="./Android/app/src/main/res/drawable/logo.png" alt="SnapTaPlaque Logo" width="200" align="center" />
 
 
 Projet DevOps — Master 1 Informatique, parcours IA, Le Mans Université  
