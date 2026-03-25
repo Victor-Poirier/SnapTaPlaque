@@ -7,6 +7,7 @@ Projet DevOps — Master 1 Informatique, parcours IA, Le Mans Université
 Module 178UD10 — Bossard Guilian · Perron Nathan · Poirier Victor · Proudy Vincent
 
 ![Android](https://img.shields.io/badge/Android-Java-3DDC84?logo=android&logoColor=white)
+![iOS](https://img.shields.io/badge/iOS-Swift-000000?logo=apple&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/API-FastAPI-009688?logo=fastapi&logoColor=white)
 ![YOLOv12](https://img.shields.io/badge/ML-YOLOv12%20%2B%20EasyOCR-00FFFF)
 ![PostgreSQL](https://img.shields.io/badge/DB-PostgreSQL%2016-4169E1?logo=postgresql&logoColor=white)
@@ -23,8 +24,9 @@ Application Android de **reconnaissance automatique de plaques d'immatriculation
   - [Présentation](#présentation)
   - [Architecture globale](#architecture-globale)
   - [Application Android](#application-android)
-    - [Prérequis](#prérequis)
-  - [Application IOS](#application-ios)
+    - [Prérequis (Android)](#prérequis-android)
+  - [Application iOS](#application-ios)
+    - [Prérequis (iOS)](#prérequis-ios)
   - [Installation](#installation)
   - [API Python](#api-python)
     - [Stack technique](#stack-technique)
@@ -74,7 +76,7 @@ Le projet est découpé en deux dépôts :
 | Dépôt | Technologie | Description |
 |---|---|---|
 | [`SnapTaPlaque-Android`](./Android/) | Java / Android SDK | Application mobile Android |*
-| [`SnapTaPlaque-IOS`](./IOS/) | Swift / UIKit | Application mobile IOS (projet secondaire) |
+| [`SnapTaPlaque-IOS`](./iOS/) | Swift / UIKit | Application mobile iOS (projet secondaire) |
 | [`SnapTaPlaque-API`](./api) | Python / FastAPI | Backend ML et gestion des données |
 
 ---
@@ -85,21 +87,25 @@ Développée en **Java** selon le patron **MVC**, l'application propose trois on
 
 | Onglet | Description |
 |---|---|
-| **Centre** (accueil) | Recherche d'un véhicule — photo, clavier, tactile, roulette, voix |
+| **Centre** (accueil) | Recherche d'un véhicule — photo, roulette, voix (+ clavier) |
 | ◀️ **Gauche** | Historique des recherches (du plus au moins récent) |
 | ▶️ **Droite** | Profil utilisateur — infos personnelles, photo, véhicules favoris |
 
-### Prérequis
+### Prérequis (Android)
 
 - Android Studio Hedgehog ou supérieur
 - Android SDK 26+
 - Connexion à l'API (locale ou déployée)
 
-## Application IOS
+## Application iOS
 
-Développée en **Swift** avec **UIKit**, l'application IOS offre une expérience utilisateur fluide et intuitive, avec les mêmes fonctionnalités que la version Android. Néanmoins, elle ne reprend pas 
-forcément toutes la DA de l'application Android. C'est un projet secondaire qui a été développé en parallèle, mais qui n'est pas le focus principal de ce projet DevOps.
+Développée en **Swift** avec **UIKit**, l'application iOS offre une expérience utilisateur fluide et intuitive, avec les mêmes fonctionnalités que la version Android. Néanmoins, elle ne reprend pas forcément toute la DA de l'application Android. C'est un projet secondaire qui a été développé en parallèle, mais qui n'est pas le focus principal de ce projet DevOps. Elle permet aux utilisateurs iOS de pouvoir essayer l'application SnapTaPlaque.
 
+### Prérequis (iOS)
+
+- Xcode
+- iOS 26+
+- Connexeion à l'API (locale ou déployée)
 
 ## Installation
 
