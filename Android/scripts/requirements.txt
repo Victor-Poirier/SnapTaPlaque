@@ -1,0 +1,9 @@
+numpy<2.0
+coremltools==7.1
+onnx==1.15.0
+onnx2torch==1.5.13
+huggingface-hub==0.19.4
+torch==2.1.1
+torchvision==0.16.1
+onnx-simplifier==0.4.35
+onnxruntime==1.16.3

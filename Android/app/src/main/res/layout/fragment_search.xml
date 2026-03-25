@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp">
+
+<TextView
+    android:id="@+id/tvTitle"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="20dp"
+    android:padding="5dp"
+    android:text="@string/title_search"
+    android:textColor="@color/white"
+    android:textSize="30sp"
+    android:textStyle="bold"
+    app:layout_constraintEnd_toEndOf="parent"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintTop_toTopOf="parent"
+    />
+
+    <ImageView
+        android:id="@+id/ivTraceTitle"
+        android:layout_width="200dp"
+        android:layout_height="20dp"
+        android:layout_marginTop="-5dp"
+        android:scaleType="fitXY"
+        android:src="@drawable/trace"
+        android:contentDescription="@string/describe_trace_title"
+        app:layout_constraintEnd_toEndOf="@id/tvTitle"
+        app:layout_constraintStart_toStartOf="@id/tvTitle"
+        app:layout_constraintTop_toBottomOf="@id/tvTitle" />
+
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/viewPagerSearch"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="16dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/ivTraceTitle" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guidelineNav"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.97" />
+
+        <LinearLayout
+            android:id="@+id/indicatorContainer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center"
+            app:layout_constraintBottom_toBottomOf="@id/viewPagerSearch"
+            app:layout_constraintEnd_toStartOf="@id/guidelineNav"
+            app:layout_constraintTop_toTopOf="@id/viewPagerSearch">
+
+            <ImageView
+                    android:id="@+id/indicatorScan"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:layout_marginBottom="25dp"
+                    android:src="@drawable/baseline_camera"
+                    android:contentDescription="@string/description_indicator_scan"/>
+
+            <ImageView
+                android:id="@+id/indicatorWheel"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_marginBottom="25dp"
+                android:src="@drawable/baseline_hand_gesture"
+                android:contentDescription="@string/description_indicator_wheel"/>
+
+            <ImageView
+                android:id="@+id/indicatorVocal"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:src="@drawable/baseline_mic"
+                android:contentDescription="@string/description_indicator_vocal"/>
+
+
+        </LinearLayout>
+
+        <View
+            android:id="@+id/movingBar"
+            android:layout_width="4dp"
+            android:layout_height="25dp"
+            android:background="@drawable/moving_bar_shape"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@id/indicatorContainer"
+            app:layout_constraintBottom_toBottomOf="@id/indicatorContainer"
+            app:layout_constraintVertical_bias="0.0" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
