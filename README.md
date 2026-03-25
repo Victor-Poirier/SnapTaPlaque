@@ -107,6 +107,8 @@ Développée en **Swift** avec **UIKit**, l'application iOS offre une expérienc
 - iOS 26+
 - Connexeion à l'API (locale ou déployée)
 
+---
+
 ## Installation
 
 ```bash
