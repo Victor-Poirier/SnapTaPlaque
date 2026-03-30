@@ -7,6 +7,11 @@
 
 import SwiftUI
 
+/// La vue principale affichant le profil de l'utilisateur avec ses informations personnelles et ses paramètres.
+///
+/// `ProfileView` permet de visualiser et gérer les données du compte connecté (nom, email, photo, localisation),
+/// de consulter la liste des véhicules marqués en favoris et d'accéder aux réglages de compte.
+/// Elle interagit de manière asynchrone avec l'`AccountService`, le `FavoritesService`, et le `LocationManager`.
 struct ProfileView: View {
     // Services
     @StateObject private var locationManager = LocationManager()
@@ -28,9 +33,14 @@ struct ProfileView: View {
     @State private var showImagePicker = false
     @State private var imageSourceType: UIImagePickerController.SourceType = .photoLibrary
     
+    // Modales Paramètres & Alertes
+    @State private var showSettings = false
+    @State private var showAlert = false
+    @State private var alertMessage = ""
+    
+    /// Le contenu visuel (body) de la vue profil SwiftUI.
     var body: some View {
         NavigationView {
-            // NOUVEAU : On utilise une List au lieu d'une ScrollView pour le style "Grouped"
             List {
                 
                 // 1. L'en-tête (Photo et infos utilisateur)
@@ -44,14 +54,23 @@ struct ProfileView: View {
                 }
                 
             }
-            .listStyle(.insetGrouped) // C'est CA qui donne le même style que l'Historique !
+            .listStyle(.insetGrouped)
             .navigationTitle("Profil")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: logout) {
-                        Image(systemName: "rectangle.portrait.and.arrow.right")
-                            .foregroundColor(.red)
+                    HStack(spacing: 15) {
+                        // Le bouton "Engrenage"
+                        Button(action: { showSettings = true }) {
+                            Image(systemName: "gearshape.fill")
+                                .foregroundColor(.gray)
+                        }
+                        
+                        // Le bouton déconnexion
+                        Button(action: logout) {
+                            Image(systemName: "rectangle.portrait.and.arrow.right")
+                                .foregroundColor(.red)
+                        }
                     }
                 }
             }
@@ -84,6 +103,17 @@ struct ProfileView: View {
             await loadProfile()
             await loadFavorites()
         }
+        .sheet(isPresented: $showSettings) {
+            AccountSettingsView(
+                userEmail: self.email,
+                onExport: { exportUserData() },
+                onDelete: { deleteUserAccount() }
+            )
+        }
+        // 2. L'ALERTE DE RÉSULTAT (Pour dire "Export réussi" ou gérer les erreurs)
+        .alert(isPresented: $showAlert) {
+            Alert(title: Text("Information"), message: Text(alertMessage), dismissButton: .default(Text("OK")))
+        }
     }
     
     // MARK: - Sous-Vues
@@ -98,7 +128,7 @@ struct ProfileView: View {
                         .resizable().scaledToFit().foregroundColor(.gray.opacity(0.3))
                 }
             }
-            .frame(width: 80, height: 80) // Légèrement réduit pour bien rentrer dans la cellule de la List
+            .frame(width: 80, height: 80)
             .clipShape(Circle())
             .overlay(Circle().stroke(Color.blue, lineWidth: 3))
             .shadow(radius: 5)
@@ -135,13 +165,11 @@ struct ProfileView: View {
                 .foregroundColor(.gray)
         } else {
             ForEach(favorites) { vehicle in
-                // NOUVEAU : On rend la ligne cliquable
                 Button(action: {
                     self.selectedVehicle = vehicle
                 }) {
                     FavoriteRow(vehicle: vehicle)
                 }
-                // Pour que le bouton n'ait pas le style "texte bleu" par défaut
                 .buttonStyle(.plain)
             }
         }
@@ -149,6 +177,10 @@ struct ProfileView: View {
     
     // MARK: - Fonctions Métier
     
+    /// Charge les informations du profil utilisateur depuis l'API et rafraîchit l'interface.
+    ///
+    /// Cette méthode asynchrone utilise l'`AccountService` pour récupérer les données `getMe()`
+    /// et la photo de profil (si existante).
     private func loadProfile() async {
         do {
             let meInfo = try await accountService.getMe()
@@ -160,6 +192,7 @@ struct ProfileView: View {
         }
     }
     
+    /// Télécharge la liste globale et à jour des favoris de l'utilisateur actif.
     private func loadFavorites() async {
         isLoadingFavorites = true
         do {
@@ -170,6 +203,9 @@ struct ProfileView: View {
         isLoadingFavorites = false
     }
     
+    /// Compresse, met en forme et sauvegarde l'image de profil ciblée au niveau du serveur.
+    ///
+    /// - Parameter image: L'objet complexe de type `UIImage` fourni depuis la sélection de la galerie système.
     private func uploadPicture(_ image: UIImage) {
         Task {
             do {
@@ -179,6 +215,7 @@ struct ProfileView: View {
         }
     }
     
+    /// Sollicite le serveur de base de données pour détruire la photo de profil de l'utilisateur actif.
     private func deletePicture() {
         Task {
             do {
@@ -188,16 +225,80 @@ struct ProfileView: View {
         }
     }
     
+    /// Méthode d'appel local qui ferme brutalement la session et ramène l'utilisateur sur la vue des identifiants (Login).
     private func logout() {
         SessionManager.shared.logout()
     }
+    
+    // MARK: - Fonctions Paramètres
+    
+    /// Récupère l'intégralité de la base de données propre aux activités de cet utilisateur via `AccountService`
+    /// puis propose un conteneur système de partage de fichiers iOS (`UIActivityViewController`).
+    private func exportUserData() {
+        Task {
+            do {
+                // 1. On télécharge le JSON depuis l'API
+                let jsonData = try await accountService.exportData()
+                
+                // 2. On crée un fichier temporaire sur l'iPhone
+                let tempDirectory = FileManager.default.temporaryDirectory
+                let fileURL = tempDirectory.appendingPathComponent("SnapTaPlaque_Export_Donnees.json")
+                
+                // 3. On écrit les données dans ce fichier
+                try jsonData.write(to: fileURL)
+                
+                // 4. On ouvre le menu de partage natif d'iOS sur le Thread Principal
+                await MainActor.run {
+                    let activityVC = UIActivityViewController(activityItems: [fileURL], applicationActivities: nil)
+                    
+                    if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                       let rootVC = windowScene.windows.first(where: { $0.isKeyWindow })?.rootViewController {
+                    
+                        rootVC.present(activityVC, animated: true)
+                    }
+                }
+            } catch {
+                await MainActor.run {
+                    self.alertMessage = "Erreur lors du téléchargement de vos données."
+                    self.showAlert = true
+                }
+            }
+        }
+    }
+    
+    /// Engendre la suppression complète de l'utilisateur et de ses données associées avant de forcer une fermeture de session.
+    private func deleteUserAccount() {
+        Task {
+            do {
+                try await accountService.deleteAccount()
+                // Si la suppression marche, on déconnecte de force l'utilisateur !
+                await MainActor.run {
+                    logout()
+                }
+            } catch {
+                await MainActor.run {
+                    self.alertMessage = "Impossible de supprimer le compte pour le moment."
+                    self.showAlert = true
+                }
+            }
+        }
+    }
 }
 
-// MARK: - Le design d'une ligne de Favori (Identique à HistoryRow)
+// MARK: - Le design d'une ligne de Favori
+
+/// Un composant horizontal représentant une unique ligne au sein de la liste des favoris de l'utilisateur.
+///
+/// Fonctionnement pratiquement identique à `HistoryRow`,
+/// celui-ci s'appuie néanmoins sur un objet `Vehicle` natif complet.
 struct FavoriteRow: View {
+    
+    /// Le type générique formaté contenant l'info complète.
     let vehicle: Vehicle
     
-    // Logique du logo adaptée au modèle Vehicle
+    /// Construit l'URL externe à destination d'un repo GitHub distant pour rafraîchir un logo de marque automobile.
+    ///
+    /// - Note: Cette propriété génère un "slug" adapté (minuscules, tirets en remplacement d'espaces).
     var logoURL: URL? {
         guard let brand = vehicle.brand else { return nil }
         let slug = brand.lowercased().trimmingCharacters(in: .whitespaces).replacingOccurrences(of: " ", with: "-")
@@ -231,7 +332,6 @@ struct FavoriteRow: View {
                     .fontWeight(.black)
                     .fontDesign(.monospaced) // Style plaque
                 
-                // Note : si votre modèle Vehicle n'a pas de ".model" remplacez-le par ce que vous avez, ou retirez-le !
                 Text("\(vehicle.brand ?? "Inconnu") \(vehicle.model ?? "")")
                     .font(.subheadline)
                     .foregroundColor(.secondary)

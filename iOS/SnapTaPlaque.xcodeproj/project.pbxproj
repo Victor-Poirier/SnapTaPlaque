@@ -10,9 +10,22 @@
 		1CBA2E8F2F74257300984F4C /* SnapTaPlaque.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SnapTaPlaque.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		1C908AEB2F7ACFCC00F37584 /* Exceptions for "SnapTaPlaque" folder in "SnapTaPlaque" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 1CBA2E8E2F74257300984F4C /* SnapTaPlaque */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		1CBA2E912F74257300984F4C /* SnapTaPlaque */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				1C908AEB2F7ACFCC00F37584 /* Exceptions for "SnapTaPlaque" folder in "SnapTaPlaque" target */,
+			);
 			path = SnapTaPlaque;
 			sourceTree = "<group>";
 		};
@@ -78,7 +91,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 2630;
-				LastUpgradeCheck = 2630;
+				LastUpgradeCheck = 2640;
 				TargetAttributes = {
 					1CBA2E8E2F74257300984F4C = {
 						CreatedOnToolsVersion = 26.3;
@@ -184,6 +197,7 @@
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -241,6 +255,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				VALIDATE_PRODUCT = YES;
 			};
@@ -257,9 +272,11 @@
 				DEVELOPMENT_TEAM = VG5JK66HQ3;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = SnapTaPlaque/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSCameraUsageDescription = "Nous utilisons la caméra pour prédire une plaque d'immatriculation sur la photo prise.";
 				INFOPLIST_KEY_NSLocationUsageDescription = "Nous utilisons la localisation pour l'afficher sur le profil.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Nous utilisons votre position pour l'afficher sur votre profil.";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Nous utilisons le microphone pour épeler la plaque d'immatriculation";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -294,9 +311,11 @@
 				DEVELOPMENT_TEAM = VG5JK66HQ3;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = SnapTaPlaque/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSCameraUsageDescription = "Nous utilisons la caméra pour prédire une plaque d'immatriculation sur la photo prise.";
 				INFOPLIST_KEY_NSLocationUsageDescription = "Nous utilisons la localisation pour l'afficher sur le profil.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Nous utilisons votre position pour l'afficher sur votre profil.";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Nous utilisons le microphone pour épeler la plaque d'immatriculation";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;

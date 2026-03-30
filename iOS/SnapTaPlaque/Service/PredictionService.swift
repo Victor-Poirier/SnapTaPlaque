@@ -9,8 +9,24 @@ import Foundation
 import Vision
 import UIKit
 
+/// Service d'analyse d'image chargé de l'extraction et de la mise en forme de la plaque d'immatriculation.
+///
+/// `PredictionService` utilise le framework natif `Vision` d'Apple pour effectuer une reconnaissance 
+/// optique de caractères (OCR) sur une image donnée (`UIImage`). La méthode est optimisée pour 
+/// extraire les plaques françaises au format SIV et renvoie le flux sous forme asynchrone pour SwiftUI.
 class PredictionService {
     
+    /// Analyse une image asynchrone pour y localiser et extraire un numéro de plaque d'immatriculation au format SIV.
+    ///
+    /// Cette méthode initie une requête `VNRecognizeTextRequest` extrêmement précise (`.accurate`) 
+    /// en désactivant la correction de langue pour ne pas altérer les lettres de la plaque. 
+    /// Le flux textuel extrait est ensuite passé au crible par une expression régulière (Regex) 
+    /// afin de trouver le format spécifique (ex: "AB-123-CD").
+    ///
+    /// - Parameter image: L'objet graphique `UIImage` issu de l'appareil photo ou d'un sélecteur média local.
+    /// - Returns: Une chaîne de caractères représentant la plaque correctement formatée (`String`).
+    /// - Throws: `URLError(.cannotDecodeRawData)` si l'image est corrompue, ou `URLError(.cannotParseResponse)` 
+    ///           si aucune plaque au format attendu n'a pu être extraite lisiblement.
     func predictLicensePlate(from image: UIImage) async throws -> String {
         guard let cgImage = image.cgImage else {
             throw URLError(.cannotDecodeRawData)
@@ -81,8 +97,15 @@ class PredictionService {
     }
 }
 
-// Helper d'orientation toujours nécessaire
+/// Modèle d'extension permettant la conversion sécurisée de l'orientation `UIImage` au format `CoreGraphics`.
+///
+/// Nécessaire pour instancier correctement l'orchestrateur `VNImageRequestHandler`
+/// afin que l'OCR lise l'image dans l'angle sous lequel elle a été originellement capturée (portrait / paysage).
 extension CGImagePropertyOrientation {
+    
+    /// Initialise une orientation standard de propriété d'image à partir de la valeur équivalente renvoyée par `UIKit`.
+    ///
+    /// - Parameter orientation: L'orientation d'image (metadata EXIF) issue du système (appareil photo).
     init(_ orientation: UIImage.Orientation) {
         switch orientation {
         case .up: self = .up
