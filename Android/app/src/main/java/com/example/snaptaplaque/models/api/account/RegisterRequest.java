@@ -3,55 +3,58 @@ package com.example.snaptaplaque.models.api.account;
 import com.google.gson.annotations.SerializedName;
 
 /**
- * Représente une requête d'inscription d'utilisateur.
+ * Modèle de données représentant une requête de création de compte (Inscription).
+ * <p>Cette classe encapsule l'ensemble des informations requises par l'API pour enregistrer
+ * un nouvel utilisateur. Elle inclut les identifiants de connexion, les informations
+ * personnelles ainsi que les drapeaux de permissions et de conformité légale.</p>
  */
 public class RegisterRequest {
 
     /**
-     * Adresse email de l'utilisateur.
+     * Adresse e-mail de l'utilisateur servant à la communication et à la récupération de compte.
      */
     @SerializedName("email")
     private String email;
 
     /**
-     * Nom d'utilisateur choisi par l'utilisateur.
+     * Identifiant unique choisi par l'utilisateur pour se connecter à l'application.
      */
     @SerializedName("username")
     private String username;
 
     /**
-     * Mot de passe choisi par l'utilisateur.
+     * Mot de passe sécurisé choisi par l'utilisateur pour protéger son accès.
      */
     @SerializedName("password")
     private String password;
 
     /**
-     * Nom complet de l'utilisateur (prénom + nom).
+     * Identité complète de l'utilisateur (généralement Prénom et Nom).
      */
     @SerializedName("full_name")
     private String full_name;
 
     /**
-     * Indique si l'utilisateur est un administrateur (true) ou un utilisateur standard (false).
+     * Détermine si le compte créé doit disposer des privilèges d'administration.
      */
     @SerializedName("is_admin")
     private boolean is_admin;
 
     /**
-     * Indique si l'utilisateur à donner son consentement au RGPD (true) ou non (false).
+     * État du consentement aux politiques de protection des données (RGPD).
      */
     @SerializedName("gdpr_consent")
     private boolean gdpr_consent;
 
     /**
-     * Constructeur de la classe RegisterRequest.
+     * Constructeur complet pour initialiser une demande d'inscription.
      *
-     * @param email L'adresse email de l'utilisateur.
-     * @param username Le nom d'utilisateur choisi par l'utilisateur.
-     * @param password Le mot de passe choisi par l'utilisateur.
-     * @param full_name Le nom complet de l'utilisateur (prénom + nom).
-     * @param is_admin Indique si l'utilisateur est un administrateur (true) ou un utilisateur standard (false).
-     * @param gdpr_consent Indique si l'utilisateur à donner son consentement au RGPD (true) ou non (false).
+     * @param email        L'adresse e-mail de l'utilisateur.
+     * @param username     Le nom d'utilisateur unique.
+     * @param password     Le mot de passe de l'utilisateur.
+     * @param full_name    Le nom complet de l'utilisateur.
+     * @param is_admin     {@code true} pour un compte administrateur, {@code false} sinon.
+     * @param gdpr_consent {@code true} si l'utilisateur accepte la politique de confidentialité.
      */
     public RegisterRequest(String email,
                            String username,
@@ -67,28 +70,57 @@ public class RegisterRequest {
         this.gdpr_consent = gdpr_consent;
     }
 
+    /**
+     * Récupère l'adresse e-mail fournie dans la requête.
+     *
+     * @return L'adresse e-mail sous forme de {@link String}.
+     */
     public String getEmail() {
         return email;
     }
 
+    /**
+     * Récupère le nom d'utilisateur choisi.
+     *
+     * @return Le nom d'utilisateur sous forme de {@link String}.
+     */
     public String getUsername() {
         return username;
     }
 
+    /**
+     * Récupère le mot de passe défini pour l'inscription.
+     *
+     * @return Le mot de passe sous forme de {@link String}.
+     */
     public String getPassword() {
         return password;
     }
 
+    /**
+     * Récupère le nom complet de l'utilisateur.
+     *
+     * @return Le nom complet sous forme de {@link String}.
+     */
     public String getFull_name() {
         return full_name;
     }
 
+    /**
+     * Vérifie si le futur utilisateur demande des droits d'administration.
+     *
+     * @return {@code true} si l'utilisateur est admin, {@code false} sinon.
+     */
     public boolean is_admin() {
         return is_admin;
     }
 
+    /**
+     * Vérifie si le consentement RGPD a été accordé.
+     *
+     * @return {@code true} si le consentement est validé, {@code false} sinon.
+     */
     public boolean is_gdpr_consent() {
         return gdpr_consent;
     }
-
 }

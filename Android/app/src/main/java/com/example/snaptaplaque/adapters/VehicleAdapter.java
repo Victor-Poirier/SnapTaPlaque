@@ -86,10 +86,32 @@ public class VehicleAdapter extends RecyclerView.Adapter<VehicleAdapter.VehicleV
      */
     private List<Vehicle> vehicleList;
 
+    /**
+     * Listener optionnel notifié lorsque l'utilisateur clique sur le bloc d'un véhicule.
+     *
+     * <p>Si {@code null}, le clic sur l'élément n'a aucun effet.</p>
+     */
     private OnVehicleClickListener vehicleClickListener;
 
+    /**
+     * Référence à l'{@link Activity} parente hébergeant le {@link RecyclerView}.
+     *
+     * <p>Cette instance est nécessaire pour :
+     * <ul>
+     * <li>Lancer une nouvelle activité via {@link Intent} (ex: redirection vers
+     * {@link SignInActivity} en cas d'expiration du token).</li>
+     * <li>Accéder au contexte de l'application pour certaines opérations de navigation.</li>
+     * </ul>
+     * </p>
+     */
     private Activity activity;
 
+    /**
+     * Interface de callback pour les événements de clic sur un élément véhicule.
+     *
+     * <p>Permet de déléguer la logique de navigation ou d'affichage du détail
+     * d'un véhicule à un composant externe (typiquement un fragment).</p>
+     */
     public interface OnVehicleClickListener {
         void onVehicleClick(Vehicle vehicle);
     }
@@ -375,20 +397,37 @@ public class VehicleAdapter extends RecyclerView.Adapter<VehicleAdapter.VehicleV
         }
     }
 
-
-
-
-
-
-    // Endpoint : /v1/favorites/add
+    /**
+     * Envoie une requête à l'API pour ajouter le véhicule identifié par
+     * {@code license_plate} aux favoris de l'utilisateur connecté.
+     *
+     * <p>Correspond à l'endpoint {@code POST /v1/favorites/add}.</p>
+     *
+     * <p>En cas de succès, la réponse est loguée. En cas d'erreur HTTP
+     * {@link ApiService#ERROR_TOKEN_EXPIRE}, l'utilisateur est redirigé vers
+     * {@link SignInActivity} car son token de session est expiré.</p>
+     *
+     * @param license_plate le numéro d'immatriculation du véhicule à ajouter
+     *                      aux favoris ; ne doit pas être {@code null}
+     */
     public void addFavorite(String license_plate){
         FavoritesCall.addFavorite(new FavoritesAddRequest(license_plate), new ApiCallback() {
+            /**
+             * Ajout réussi — logue la réponse de l'API.
+             *
+             * @param response la réponse HTTP retournée par l'API
+             */
             @Override
             public void onResponseSuccess(Response response) {
                 // Mettre à jour l'UI : afficher succès
                 Log.e("Favorites", response.message());
             }
 
+            /**
+             * Échec HTTP — redirige vers {@link SignInActivity} si le token est expiré.
+             *
+             * @param response la réponse HTTP en erreur retournée par l'API
+             */
             @Override
             public void onResponseFailure(Response response) {
                 // Mettre à jour l'UI : afficher erreur
@@ -398,23 +437,49 @@ public class VehicleAdapter extends RecyclerView.Adapter<VehicleAdapter.VehicleV
                 }
             }
 
+            /**
+             * Erreur réseau — logue le message de l'exception.
+             *
+             * @param t l'exception levée lors de l'échec de l'appel réseau
+             */
             @Override
             public void onCallFailure(Throwable t) {
                 Log.e("Favorites", t.getMessage());
             }
         });
-
     }
 
-    // Endpoint : /v1/favorites/remove
+    /**
+     * Envoie une requête à l'API pour retirer le véhicule identifié par
+     * {@code license_plate} des favoris de l'utilisateur connecté.
+     *
+     * <p>Correspond à l'endpoint {@code DELETE /v1/favorites/remove}.</p>
+     *
+     * <p>En cas de succès, la réponse est loguée. En cas d'erreur HTTP
+     * {@link ApiService#ERROR_TOKEN_EXPIRE}, l'utilisateur est redirigé vers
+     * {@link SignInActivity} car son token de session est expiré.</p>
+     *
+     * @param license_plate le numéro d'immatriculation du véhicule à retirer
+     *                      des favoris ; ne doit pas être {@code null}
+     */
     public void removeFavorite(String license_plate){
         FavoritesCall.removeFavorite(new FavoritesRemoveRequest(license_plate), new ApiCallback() {
+            /**
+             * Suppression réussie — logue la réponse de l'API.
+             *
+             * @param response la réponse HTTP retournée par l'API
+             */
             @Override
             public void onResponseSuccess(Response response) {
                 // Mettre à jour l'UI : afficher succès
                 Log.e("Favorites", response.message());
             }
 
+            /**
+             * Échec HTTP — redirige vers {@link SignInActivity} si le token est expiré.
+             *
+             * @param response la réponse HTTP en erreur retournée par l'API
+             */
             @Override
             public void onResponseFailure(Response response) {
                 if ( response.code() == ApiService.ERROR_TOKEN_EXPIRE ){
@@ -423,6 +488,11 @@ public class VehicleAdapter extends RecyclerView.Adapter<VehicleAdapter.VehicleV
                 }
             }
 
+            /**
+             * Erreur réseau — logue le message de l'exception.
+             *
+             * @param t l'exception levée lors de l'échec de l'appel réseau
+             */
             @Override
             public void onCallFailure(Throwable t) {
                 Log.e("Favorites", t.getMessage());

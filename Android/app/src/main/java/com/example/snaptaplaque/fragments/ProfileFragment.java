@@ -45,6 +45,22 @@ import retrofit2.Response;
 
 /**
  * Fragment responsable de l'affichage et de la gestion du profil utilisateur.
+ *
+ * <p>Ce fragment permet à l'utilisateur de :
+ * <ul>
+ * <li>Visualiser ses informations personnelles (nom, email, localisation actuelle)</li>
+ * <li>Changer sa photo de profil via la caméra ou la galerie</li>
+ * <li>Consulter sa liste de véhicules favoris via un {@link RecyclerView}</li>
+ * <li>Se déconnecter ou accéder aux informations complémentaires de l'API</li>
+ * </ul>
+ * </p>
+ *
+ * <p>La gestion des données est synchronisée avec le {@link SharedViewModel} pour les favoris
+ * et le {@link SessionManager} pour l'état de la session.</p>
+ *
+ * @see com.example.snaptaplaque.models.Photo
+ * @see com.example.snaptaplaque.viewmodels.SharedViewModel
+ * @see com.example.snaptaplaque.adapters.VehicleAdapter
  */
 public class ProfileFragment extends Fragment {
 
@@ -55,19 +71,40 @@ public class ProfileFragment extends Fragment {
     private TextView tvEmail;
     private TextView tvCountry;
 
+    /** Launcher pour la demande de permission caméra. */
     private ActivityResultLauncher<String> requestCameraPermissionLauncher;
+
+    /** Launcher pour la demande de permission de localisation. */
     private ActivityResultLauncher<String> requestLocationPermissionLauncher;
+
+    /** Launcher pour le résultat du contrat de capture photo. */
     private ActivityResultLauncher<Uri> cameraLauncher;
+
+    /** Launcher pour le résultat de la sélection en galerie. */
     private ActivityResultLauncher<String> galleryLauncher;
 
+    /** Classe utilitaire pour la gestion des médias (Caméra/Galerie). */
     private Photo photo;
     private RecyclerView recyclerView;
+
+    /** Client Google Play Services pour la géolocalisation. */
     private FusedLocationProviderClient fusedLocationClient;
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 100;
+
+    /** Adaptateur pour la liste des véhicules favoris. */
     private VehicleAdapter adapter;
+
+    /** ViewModel partagé pour observer la liste des favoris. */
     private SharedViewModel sharedViewModel;
+
+    /** Gestionnaire de session pour la déconnexion. */
     private SessionManager sessionManager;
 
+    /**
+     * Initialise le fragment et enregistre les launchers pour les permissions et les activités de capture.
+     *
+     * @param savedInstanceState État sauvegardé du fragment.
+     */
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -128,6 +165,14 @@ public class ProfileFragment extends Fragment {
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity());
     }
 
+    /**
+     * Gonfle la vue du fragment et initialise les composants graphiques et les listeners.
+     *
+     * @param inflater Le {@link LayoutInflater}.
+     * @param container Le conteneur parent.
+     * @param savedInstanceState L'état sauvegardé.
+     * @return La vue {@link View} du fragment.
+     */
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -190,6 +235,10 @@ public class ProfileFragment extends Fragment {
         return view;
     }
 
+    /**
+     * Tente de récupérer la dernière localisation connue de l'utilisateur.
+     * <p>Si la permission n'est pas accordée, demande la permission {@code ACCESS_FINE_LOCATION}.</p>
+     */
     private void getLastLocation() {
         if(androidx.core.app.ActivityCompat.checkSelfPermission(requireContext(),
                 android.Manifest.permission.ACCESS_FINE_LOCATION) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
@@ -210,6 +259,13 @@ public class ProfileFragment extends Fragment {
                 });
     }
 
+    /**
+     * Convertit des coordonnées GPS en une chaîne de caractères localisée (Ville, Région).
+     *
+     * @param latitude  La latitude de la position.
+     * @param longitude La longitude de la position.
+     * @return Une chaîne formatée (ex: "Paris, Île-de-France") ou la valeur par défaut du pays.
+     */
     private String getCityName(double latitude, double longitude) {
         String Location = getString(R.string.country);
         Geocoder geocoder = new Geocoder(requireContext(), Locale.getDefault());
@@ -252,8 +308,23 @@ public class ProfileFragment extends Fragment {
         return Location;
     }
 
+    /**
+     * Récupère les informations textuelles (Profil) et l'image de profil depuis le serveur.
+     *
+     * <p>Cette méthode orchestre deux appels API distincts et asynchrones :
+     * <ul>
+     * <li>{@link AccountCall#me} : Pour les données textuelles (Username, Email).</li>
+     * <li>{@link AccountCall#profilePicture} : Pour le flux binaire de l'image de profil.</li>
+     * </ul>
+     * </p>
+     */
     public void getUserInfo(){
         AccountCall.me(new ApiCallback() {
+            /**
+             * Met à jour les champs textuels du profil avec les données reçues.
+             *
+             * @param response Objet {@link Response} contenant le corps {@link MeResponse}.
+             */
             @Override
             public void onResponseSuccess(Response response) {
                 MeResponse res = (MeResponse)response.body();
@@ -261,6 +332,12 @@ public class ProfileFragment extends Fragment {
                 tvEmail.setText(res.getEmail());
             }
 
+            /**
+             * Gère l'échec de la récupération des données textuelles.
+             * <p>Redirige vers {@link SignInActivity} si la session a expiré.</p>
+             *
+             * @param response Réponse d'erreur du serveur.
+             */
             @Override
             public void onResponseFailure(Response response) {
                 Log.e(this.getClass().getName(), "Erreur récupération données utilisisateur pour affichage");
@@ -277,6 +354,11 @@ public class ProfileFragment extends Fragment {
         }, this.getContext());
 
         AccountCall.profilePicture(new ApiCallback() {
+            /**
+             * Décode le flux binaire reçu en {@link Bitmap} et l'affiche.
+             *
+             * @param response Objet {@link Response} contenant le {@link ResponseBody}.
+             */
             @Override
             public void onResponseSuccess(Response response) {
                 ResponseBody body = (ResponseBody) response.body();
@@ -284,6 +366,11 @@ public class ProfileFragment extends Fragment {
                 ivProfile.setImageBitmap(bitmap);
             }
 
+            /**
+             * Gère l'échec de récupération de l'image.
+             *
+             * @param response Réponse d'erreur du serveur.
+             */
             @Override
             public void onResponseFailure(Response response) {
                 if ( response.code() == ApiService.ERROR_TOKEN_EXPIRE ){
@@ -296,11 +383,13 @@ public class ProfileFragment extends Fragment {
             public void onCallFailure(Throwable t) {
             }
         });
-
     }
 
     /**
-     * Convertit l'Uri en File et compresse l'image en JPEG pour réduire sa taille.
+     * Prépare un fichier temporaire optimisé à partir d'une URI pour l'upload.
+     *
+     * @param uri L'{@link Uri} de l'image source.
+     * @return Un objet {@link java.io.File} pointant vers l'image compressée ou {@code null}.
      */
     private java.io.File prepareImageFile(Uri uri) {
         try {
@@ -328,6 +417,21 @@ public class ProfileFragment extends Fragment {
         }
     }
 
+    /**
+     * Envoie la nouvelle photo de profil au serveur via une requête Multipart.
+     *
+     * <p>Cette méthode orchestre l'upload en trois phases :
+     * <ol>
+     * <li>Vérification de la validité de l'{@link Uri}.</li>
+     * <li>Compression et conversion de l'image en {@link java.io.File} via {@link #prepareImageFile(Uri)}.</li>
+     * <li>Construction du corps de requête {@link okhttp3.MultipartBody.Part} pour l'envoi asynchrone.</li>
+     * </ol>
+     * </p>
+     *
+     * @param uri L'{@link Uri} de l'image sélectionnée ou capturée.
+     * @see AccountCall#changeProfilePicture
+     * @see #prepareImageFile(Uri)
+     */
     public void changeProfilePicture(Uri uri) {
         if (uri == null) {
             Toast.makeText(getContext(), "Aucune image sélectionnée", Toast.LENGTH_SHORT).show();
@@ -348,10 +452,20 @@ public class ProfileFragment extends Fragment {
         okhttp3.MultipartBody.Part body = okhttp3.MultipartBody.Part.createFormData("file", file.getName(), requestFile);
 
         AccountCall.changeProfilePicture(new ApiCallback() {
+            /**
+             * Traite la confirmation de mise à jour de la photo par le serveur.
+             *
+             * @param response Objet {@link Response} indiquant le succès de l'upload.
+             */
             @Override
             public void onResponseSuccess(Response response) {
             }
 
+            /**
+             * Gère les échecs de réponse du serveur (ex: fichier trop lourd ou jeton expiré).
+             *
+             * @param response La réponse d'erreur contenant le code HTTP.
+             */
             @Override
             public void onResponseFailure(Response response) {
                 if ( response.code() == ApiService.ERROR_TOKEN_EXPIRE ){
@@ -360,10 +474,14 @@ public class ProfileFragment extends Fragment {
                 }
             }
 
+            /**
+             * Gère les erreurs de connexion ou les interruptions durant le transfert du fichier.
+             *
+             * @param t L'exception {@link Throwable} décrivant l'échec de l'appel.
+             */
             @Override
             public void onCallFailure(Throwable t) {
             }
         }, body);
     }
-
 }

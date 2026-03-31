@@ -54,30 +54,64 @@ import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
 import retrofit2.Response;
 
+/**
+ * Fragment dédié à la recherche et au scan de plaques d'immatriculation.
+ *
+ * <p>Ce fragment permet à l'utilisateur de capturer une image via l'appareil photo
+ * ou d'en sélectionner une depuis la galerie afin d'identifier un véhicule.
+ * Le processus repose sur une analyse locale par reconnaissance optique (OCR)
+ * suivie d'un appel API pour récupérer les caractéristiques techniques du véhicule.</p>
+ *
+ * <p>Le {@link SharedViewModel} assure la synchronisation des données :
+ * <ul>
+ * <li>Chaque véhicule identifié est ajouté à la liste globale via {@link SharedViewModel#addVehicle(Vehicle)}</li>
+ * <li>Les données sont automatiquement reflétées dans le {@link HistoryFragment}</li>
+ * </ul>
+ * </p>
+ *
+ * @see com.example.snaptaplaque.viewmodels.SharedViewModel
+ * @see HistoryFragment
+ * @see com.example.snaptaplaque.ml.LicensePlateRecognizer
+ * @see com.example.snaptaplaque.models.Photo
+ */
 public class PictureFragment extends Fragment {
 
     private static final String TAG = "PictureFragment";
     private static final int UPLOAD_MAX_DIMENSION = 1024;
     private static final int UPLOAD_JPEG_QUALITY = 80;
 
+    /** Vue affichant l'image sélectionnée ou capturée. */
     private ImageView ivLicencePlate;
+    /** Bouton déclenchant le choix de la source de l'image (Caméra/Galerie). */
     private Button btnPicture;
+    /** TextView affichant le résultat de la détection de texte de la plaque. */
     private TextView showPlate;
+    /** Bouton lançant l'analyse et la recherche du véhicule. */
     private Button btnSearch;
-    private Photo photo;
-    private SharedViewModel sharedViewModel;
-    private ActivityResultLauncher<String> requestPermissionLauncher;
-    private ActivityResultLauncher<Uri> cameraLauncher;
-    private ActivityResultLauncher<String> galleryLauncher;
-    private final ExecutorService imageExecutor = Executors.newSingleThreadExecutor();
 
+    /** Utilitaire gérant la capture d'image et les permissions associées. */
+    private Photo photo;
+    /** ViewModel partagé pour stocker le véhicule détecté dans l'historique. */
+    private SharedViewModel sharedViewModel;
+
+    /** Launcher pour la demande de permission système (Caméra). */
+    private ActivityResultLauncher<String> requestPermissionLauncher;
+    /** Launcher pour capturer une photo et récupérer son URI. */
+    private ActivityResultLauncher<Uri> cameraLauncher;
+    /** Launcher pour sélectionner un contenu dans la galerie. */
+    private ActivityResultLauncher<String> galleryLauncher;
+
+    /** Service d'exécution pour traiter les images lourdement en arrière-plan. */
+    private final ExecutorService imageExecutor = Executors.newSingleThreadExecutor();
+    /** Outil de reconnaissance optique de caractères (OCR) spécialisé pour les plaques. */
     private LicensePlateRecognizer licensePlateRecognizer;
 
     /**
-     * Called when the fragment is first created.
+     * Initialise le fragment et enregistre les contrats d'activité pour les permissions et les médias.
+     * * <p>L'initialisation du {@link LicensePlateRecognizer} est lancée de manière asynchrone
+     * pour ne pas bloquer le démarrage du fragment.</p>
      *
-     * @param savedInstanceState If the fragment is being re-created from
-     * a previous saved state, this is the state.
+     * @param savedInstanceState État sauvegardé du fragment (non utilisé ici).
      */
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -130,17 +164,12 @@ public class PictureFragment extends Fragment {
     }
 
     /**
-     * Called to have the fragment instantiate its user interface view.
+     * Gonfle le layout et configure les interactions de l'interface utilisateur.
      *
-     * @param inflater The LayoutInflater object that can be used to inflate
-     * any views in the fragment,
-     * @param container If non-null, this is the parent view that the fragment's
-     * UI should be attached to.  The fragment should not add the view itself,
-     * but this can be used to generate the LayoutParams of the view.
-     * @param savedInstanceState If non-null, this fragment is being re-constructed
-     * from a previous saved state as given here.
-     *
-     * @return The View for the fragment's UI, or null.
+     * @param inflater Le {@link LayoutInflater} pour gonfler la vue.
+     * @param container Le conteneur parent.
+     * @param savedInstanceState L'état sauvegardé.
+     * @return La vue {@link View} racine du fragment.
      */
     @Nullable
     @Override
@@ -172,7 +201,7 @@ public class PictureFragment extends Fragment {
     }
 
     /**
-     * Affiche les éléments de l'interface utilisateur
+     * Active la visibilité des composants UI nécessaires après l'acquisition d'une image.
      */
     private void showUI() {
         ivLicencePlate.setVisibility(View.VISIBLE);
@@ -180,6 +209,20 @@ public class PictureFragment extends Fragment {
         btnSearch.setVisibility(View.VISIBLE);
     }
 
+    /**
+     * Orchestre le processus de détection et de recherche à partir d'un objet {@link Photo}.
+     * * <p>Cette méthode effectue :
+     * <ol>
+     * <li>L'optimisation du Bitmap pour éviter les erreurs de mémoire</li>
+     * <li>L'analyse OCR via le modèle ML local</li>
+     * <li>L'extraction et le nettoyage du texte détecté</li>
+     * <li>Le lancement de la requête API en cas de détection valide</li>
+     * </ol>
+     * </p>
+     *
+     * @param photo    L'instance contenant l'URI de l'image à traiter.
+     * @param callback {@link Runnable} exécuté à la fin du processus (succès ou échec).
+     */
     public void picturePredict(Photo photo, Runnable callback) {
         Uri imageUri = photo.getTempImageUri();
 
@@ -231,6 +274,12 @@ public class PictureFragment extends Fragment {
         });
     }
 
+    /**
+     * Valide le format de la plaque d'immatriculation par rapport aux normes SIV françaises.
+     *
+     * @param plate Le texte de la plaque à vérifier.
+     * @return {@code true} si le format est valide, {@code false} sinon.
+     */
     private boolean plateComplianceVerification(String plate) {
 
         String regex_1 = "(?i)((?!SS|WW|W)[A-HJ-NP-TV-Z]{2})-((?!000)[0-9]{3})-((?!SS)[A-HJ-NP-TV-Z]{2})";
@@ -244,6 +293,12 @@ public class PictureFragment extends Fragment {
         return true;
     }
 
+    /**
+     * Interroge l'API pour obtenir les détails du véhicule et met à jour le ViewModel.
+     * * <p>En cas de succès, un {@link VehicleDetailDialogFragment} est affiché.</p>
+     *
+     * @param infoRequest L'objet contenant le numéro d'immatriculation cible.
+     */
     private void getInfoVehicle(InfoRequest infoRequest){
         VehiclesCall.vehicleInfo(infoRequest, new ApiCallback() {
             @Override
@@ -272,6 +327,27 @@ public class PictureFragment extends Fragment {
             }
         });
     }
+
+    /**
+     * Génère un fichier JPEG compressé et redimensionné à partir d'une {@link Uri} source.
+     *
+     * <p>Cette méthode effectue une optimisation en plusieurs étapes pour minimiser
+     * l'empreinte mémoire (RAM) et le poids du fichier final :
+     * <ol>
+     * <li><strong>Pré-lecture :</strong> Analyse des dimensions de l'image sans chargement en mémoire via {@code inJustDecodeBounds}.</li>
+     * <li><strong>Sous-échantillonnage :</strong> Calcul du {@code inSampleSize} pour décoder l'image à une résolution proche de la cible.</li>
+     * <li><strong>Redimensionnement :</strong> Ajustement précis aux dimensions {@link #UPLOAD_MAX_DIMENSION}.</li>
+     * <li><strong>Persistance :</strong> Compression au format JPEG avec une qualité de {@link #UPLOAD_JPEG_QUALITY} dans un fichier temporaire.</li>
+     * </ol>
+     * </p>
+     * <p>Le fichier résultant est stocké dans le cache interne de l'application via {@link android.content.Context#getCacheDir()}
+     * avec un nom unique (UUID) pour éviter les collisions.</p>
+     *
+     * @param uri L'{@link Uri} de l'image source (galerie ou caméra).
+     * @return Un objet {@link File} pointant vers l'image optimisée, ou {@code null} en cas d'erreur d'E/S ou de décodage.
+     * @see BitmapFactory.Options#inSampleSize
+     * @see Bitmap#compress(Bitmap.CompressFormat, int, java.io.OutputStream)
+     */
     private File getOptimizedJpegFromUri(Uri uri) {
         try {
             BitmapFactory.Options boundsOptions = new BitmapFactory.Options();
@@ -318,6 +394,14 @@ public class PictureFragment extends Fragment {
         }
     }
 
+    /**
+     * Récupère un {@link Bitmap} optimisé depuis une {@link Uri} locale.
+     * * <p>Applique un sous-échantillonnage (InSampleSize) pour réduire l'empreinte mémoire
+     * avant le chargement complet du fichier.</p>
+     *
+     * @param uri L'URI de l'image source.
+     * @return Un bitmap redimensionné ou {@code null} en cas d'erreur de lecture.
+     */
     private Bitmap getOptimizedBitmapFromUri(Uri uri) {
         try {
             BitmapFactory.Options boundsOptions = new BitmapFactory.Options();
@@ -344,6 +428,13 @@ public class PictureFragment extends Fragment {
         }
     }
 
+    /**
+     * Redimensionne le bitmap pour que sa plus grande dimension ne dépasse pas le maximum spécifié.
+     *
+     * @param bitmap       Le bitmap source.
+     * @param maxDimension La dimension maximale autorisée (px).
+     * @return Un nouveau {@link Bitmap} redimensionné ou le bitmap original.
+     */
     private Bitmap resizeBitmapIfNeeded(Bitmap bitmap, int maxDimension) {
         int width = bitmap.getWidth();
         int height = bitmap.getHeight();
@@ -360,6 +451,14 @@ public class PictureFragment extends Fragment {
         return Bitmap.createScaledBitmap(bitmap, resizedWidth, resizedHeight, true);
     }
 
+    /**
+     * Calcule le ratio de sous-échantillonnage idéal pour décoder une image.
+     *
+     * @param options   Options contenant les dimensions réelles de l'image.
+     * @param reqWidth  Largeur souhaitée.
+     * @param reqHeight Hauteur souhaitée.
+     * @return La valeur {@code inSampleSize} (puissance de 2).
+     */
     private int calculateInSampleSize(BitmapFactory.Options options, int reqWidth, int reqHeight) {
         int height = options.outHeight;
         int width = options.outWidth;
@@ -372,12 +471,22 @@ public class PictureFragment extends Fragment {
         return Math.max(1, inSampleSize);
     }
 
+    /**
+     * Met à jour l'état d'activation de l'interface utilisateur pendant un traitement.
+     *
+     * @param isLoading {@code true} si un traitement est en cours, {@code false} sinon.
+     */
     private void setLoading(boolean isLoading) {
         if (btnSearch != null) {
             btnSearch.setEnabled(!isLoading);
         }
     }
 
+    /**
+     * Exécute une tâche sur le thread principal après avoir vérifié que le fragment est toujours actif.
+     *
+     * @param action Le {@link Runnable} à exécuter.
+     */
     private void runOnMainThread(Runnable action) {
         if (!isAdded()) {
             return;
@@ -390,12 +499,23 @@ public class PictureFragment extends Fragment {
         });
     }
 
+    /**
+     * Ferme l'exécuteur de tâches et libère les ressources ML à la destruction du fragment.
+     */
     @Override
     public void onDestroy() {
         imageExecutor.shutdown();
         super.onDestroy();
     }
 
+    /**
+     * Nettoie et extrait une plaque valide à partir d'une chaîne brute issue de l'OCR.
+     * * <p>Supprime les caractères spéciaux et recherche une correspondance avec
+     * le motif standard AA-123-BB.</p>
+     *
+     * @param noisyText Le texte brut détecté.
+     * @return La chaîne formatée de la plaque ou {@code null} si aucune plaque valide n'est trouvée.
+     */
     private String extractPlate(String noisyText) {
         if (noisyText == null) return null;
 

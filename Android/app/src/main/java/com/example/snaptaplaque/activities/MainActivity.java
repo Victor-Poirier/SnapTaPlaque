@@ -46,6 +46,7 @@ import com.example.snaptaplaque.viewmodels.SharedViewModel;
  *         affichée dans le {@code ViewPager2}</li>
  * </ul>
  * La page affichée par défaut au lancement est la page de recherche (position 1).</p>
+ *
  * @see SharedViewModel
  * @see ViewPageAdapter
  * @see com.example.snaptaplaque.fragments.HistoryFragment
@@ -59,9 +60,13 @@ public class MainActivity extends BaseActivity {
      */
     private ViewPager2 viewPager;
 
-
+    /** Indicateur visuel de l'onglet Historique. */
     private ImageView circleHistory;
+
+    /** Indicateur visuel de l'onglet Recherche. */
     private ImageView circleSearch;
+
+    /** Indicateur visuel de l'onglet Profil. */
     private ImageView circleProfile;
 
     /**
@@ -72,13 +77,18 @@ public class MainActivity extends BaseActivity {
      *     <li>Gonfle le layout {@code activity_search.xml}</li>
      *     <li>Instancie le {@link SharedViewModel} scopé à cette activité</li>
      *     <li>Crée un {@link Profil} utilisateur par défaut et l'attache au ViewModel</li>
-     *     <li>Charge une liste de {@link Vehicle} fictifs dans l'historique du ViewModel</li>
      *     <li>Configure le {@link ViewPager2} avec un {@link ViewPageAdapter}</li>
-     *     <li>Lie la {@link BottomNavigationView} au {@code ViewPager2} pour synchroniser
-     *         la navigation (clic sur onglet ↔ changement de page)</li>
+     *     <li>Associe les clics sur les trois onglets circulaires à {@link #selectTab(int)}</li>
+     *     <li>Enregistre un {@link ViewPager2.OnPageChangeCallback} pour synchroniser
+     *         l'état visuel des onglets lors d'un swipe</li>
      *     <li>Positionne l'affichage initial sur la page de recherche (index 1)</li>
      * </ol>
      * </p>
+     *
+     * <p>Si l'un des composants de navigation ({@code viewPager}, {@code circleHistory},
+     * {@code circleSearch} ou {@code circleProfile}) est introuvable dans le layout,
+     * l'initialisation est interrompue immédiatement afin d'éviter un
+     * {@link NullPointerException}.</p>
      *
      * @param savedInstanceState l'état précédemment sauvegardé de l'activité,
      *                           ou {@code null} s'il s'agit d'un premier lancement
@@ -126,13 +136,32 @@ public class MainActivity extends BaseActivity {
     }
 
 
-    // Change de page
+    /**
+     * Navigue vers le fragment correspondant à l'index donné et met à jour
+     * l'état visuel des onglets.
+     *
+     * @param index position du fragment cible :
+     *              {@code 0} pour l'historique, {@code 1} pour la recherche,
+     *              {@code 2} pour le profil
+     */
     private void selectTab(int index) {
         viewPager.setCurrentItem(index, true);
         updateSelection(index);
     }
 
-    // Met à jour visuellement les gauges
+    /**
+     * Met à jour l'état visuel des trois onglets circulaires en marquant
+     * comme sélectionné ({@link android.view.View#setSelected(boolean) setSelected(true)})
+     * uniquement celui correspondant à {@code selectedIndex}.
+     *
+     * <p>L'apparence sélectionnée/désélectionnée est définie dans le
+     * {@code drawable} associé à chaque {@link ImageView} via l'attribut
+     * {@code android:state_selected}.</p>
+     *
+     * @param selectedIndex index de l'onglet à marquer comme actif :
+     *                      {@code 0} pour l'historique, {@code 1} pour la recherche,
+     *                      {@code 2} pour le profil
+     */
     private void updateSelection(int selectedIndex) {
 
         circleHistory.setSelected(selectedIndex == 0);
