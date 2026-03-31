@@ -19,14 +19,31 @@ import com.example.snaptaplaque.viewmodels.SharedViewModel;
 import com.bumptech.glide.Glide;
 
 /**
- * DialogFragment pour afficher les détails d'un véhicule
- * Affiche une fenêtre transparente avec les détails du véhicule et un bouton pour fermer la fenêtre
- * Utilise un ViewModel partagé pour récupérer la liste des véhicules et trouver le véhicule correspondant
+ * Fragment de dialogue affichant les caractéristiques détaillées d'un véhicule spécifique.
+ *
+ * <p>Ce dialogue s'affiche en plein écran avec un arrière-plan transparent. Il récupère
+ * l'immatriculation cible via ses arguments, puis interroge la liste des véhicules
+ * maintenue dans le {@link SharedViewModel} pour extraire les informations complètes.</p>
+ *
+ * <p>Les fonctionnalités clés incluent :
+ * <ul>
+ * <li>Affichage de la plaque, marque, modèle et motorisation.</li>
+ * <li>Chargement dynamique du logo du constructeur via {@link BrandLogoHelper} et Glide.</li>
+ * <li>Formatage conditionnel des informations techniques additionnelles.</li>
+ * </ul>
+ * </p>
+ *
+ * @see DialogFragment
+ * @see SharedViewModel
+ * @see BrandLogoHelper
  */
 public class VehicleDetailDialogFragment extends DialogFragment {
 
     /**
-     * Construit une instance de la classe VehiculeDetailDialogFragment
+     * Crée une nouvelle instance du fragment avec l'immatriculation en paramètre.
+     *
+     * @param immatriculation Le numéro de plaque servant d'identifiant pour la recherche.
+     * @return Une instance configurée de {@link VehicleDetailDialogFragment}.
      */
     public static VehicleDetailDialogFragment createFrag(String immatriculation) {
         VehicleDetailDialogFragment fragment = new VehicleDetailDialogFragment();
@@ -36,12 +53,30 @@ public class VehicleDetailDialogFragment extends DialogFragment {
         return fragment;
     }
 
+    /**
+     * Configure le thème du dialogue lors de sa création.
+     * <p>Utilise un thème sans barre de titre et compatible plein écran.</p>
+     *
+     * @param savedInstanceState État sauvegardé du fragment.
+     */
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setStyle(DialogFragment.STYLE_NORMAL, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
     }
 
+    /**
+     * Initialise l'interface utilisateur, applique la transparence et lie les données du ViewModel.
+     *
+     * <p>Le fragment observe la {@code LiveData} des véhicules. Dès que la liste est disponible,
+     * il effectue une recherche par immatriculation pour peupler les vues textuelles et
+     * déclencher le chargement du logo via Glide.</p>
+     *
+     * @param inflater           Le {@link LayoutInflater}.
+     * @param container          Le conteneur parent.
+     * @param savedInstanceState L'état sauvegardé.
+     * @return La vue racine {@code dialog_vehicle_detail.xml}.
+     */
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {

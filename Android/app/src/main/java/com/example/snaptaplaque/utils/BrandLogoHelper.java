@@ -3,8 +3,19 @@ package com.example.snaptaplaque.utils;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Utilitaire de gestion des logos de marques automobiles.
+ * <p>Cette classe permet de récupérer l'URL d'un logo au format PNG en haute résolution
+ * à partir du nom d'une marque de voiture, en s'appuyant sur le dataset open-source
+ * "car-logos-dataset".</p>
+ */
 public class BrandLogoHelper {
 
+    /**
+     * Dictionnaire faisant correspondre le nom d'une marque (clé) à son "slug" (identifiant URL).
+     * <p>Utilisé pour les marques dont le nom commercial diffère du nom de fichier
+     * (ex: "MERCEDES" -> "mercedes-benz").</p>
+     */
     private static final Map<String, String> BRAND_LOGO_MAP = new HashMap<>();
 
     static {
@@ -39,9 +50,22 @@ public class BrandLogoHelper {
         BRAND_LOGO_MAP.put("PORSCHE",     "porsche");
     }
 
+    /** URL de base du CDN hébergeant les logos optimisés. */
     private static final String BASE_URL =
             "https://cdn.jsdelivr.net/gh/filippofilip95/car-logos-dataset@latest/logos/optimized/";
 
+    /**
+     * Génère l'URL complète du logo correspondant à la marque fournie.
+     * * <p>Logique de résolution :</p>
+     * <ol>
+     * <li>Normalisation du nom de la marque (suppression des espaces, passage en majuscules).</li>
+     * <li>Recherche dans le dictionnaire {@link #BRAND_LOGO_MAP}.</li>
+     * <li>Si absent, génération d'un slug par défaut (minuscules et remplacement des espaces par des tirets).</li>
+     * </ol>
+     *
+     * @param brand Le nom de la marque (ex: "Renault", "Alfa Romeo", "Toyota").
+     * @return L'URL directe vers l'image PNG, ou {@code null} si la marque est vide.
+     */
     public static String getLogoUrl(String brand) {
         if (brand == null || brand.isEmpty()) return null;
 

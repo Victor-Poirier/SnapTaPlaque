@@ -32,15 +32,41 @@ import java.util.Locale;
 
 import retrofit2.Response;
 
+/**
+ * Fragment permettant la saisie d'une plaque d'immatriculation par reconnaissance vocale.
+ *
+ * <p>Ce fragment utilise l'intention {@link RecognizerIntent} pour capturer la voix de l'utilisateur.
+ * Il applique ensuite des filtres de nettoyage et des expressions régulières pour transformer
+ * la dictée vocale en un format de plaque valide (AA-123-BB).</p>
+ *
+ * <p>Une fois la plaque validée, les informations du véhicule sont récupérées via l'API
+ * et ajoutées à l'historique global via le {@link SharedViewModel}.</p>
+ *
+ * @see RecognizerIntent
+ * @see SharedViewModel
+ * @see VehiclesCall
+ */
 public class VocalFragment extends Fragment {
 
+    /** Code de requête pour identifier le retour de l'activité de reconnaissance vocale. */
     private static final int REQUEST_CODE_SPEECH = 101;
+    /** Champ de saisie affichant la plaque dictée ou modifiée manuellement. */
     private TextInputEditText numberPlate;
+    /** Conteneur du champ de saisie gérant l'icône de déclenchement vocal. */
     private TextInputLayout btnVocal;
+    /** Bouton lançant la recherche du véhicule auprès de l'API. */
     private Button btnSearch;
+    /** ViewModel partagé pour la persistance de l'historique durant la session. */
     private SharedViewModel sharedViewModel;
 
-
+    /**
+     * Initialise l'interface utilisateur et les écouteurs d'événements.
+     *
+     * @param inflater           Le {@link LayoutInflater}.
+     * @param container          Le conteneur parent.
+     * @param savedInstanceState L'état sauvegardé.
+     * @return La vue racine {@code fragment_vocal.xml}.
+     */
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -63,6 +89,12 @@ public class VocalFragment extends Fragment {
         return view;
     }
 
+    /**
+     * Lance l'interface système de reconnaissance vocale de Google.
+     *
+     * <p>Configure l'intention avec un modèle de langage libre et la locale par défaut
+     * de l'appareil. Affiche un message d'erreur si aucun service de reconnaissance n'est disponible.</p>
+     */
     private void askSpeechInput() {
         Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
@@ -76,6 +108,18 @@ public class VocalFragment extends Fragment {
         }
     }
 
+    /**
+     * Récupère le résultat de la dictée vocale et formate la plaque.
+     *
+     * <p>Le traitement inclut :
+     * 1. L'extraction de la meilleure correspondance textuelle.
+     * 2. Le nettoyage des caractères non alphanumériques.
+     * 3. Le formatage automatique avec tirets pour les plaques de 7 caractères (SIV).</p>
+     *
+     * @param requestCode Le code de la requête (doit être {@link #REQUEST_CODE_SPEECH}).
+     * @param resultCode  Le code de résultat de l'activité.
+     * @param data        L'intention contenant les résultats textuels.
+     */
     @Override
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -99,6 +143,12 @@ public class VocalFragment extends Fragment {
         }
     }
 
+    /**
+     * Vérifie la conformité de la plaque par rapport aux standards français (SIV).
+     *
+     * @param plate La chaîne de caractères à vérifier.
+     * @return {@code true} si la plaque respecte le format avec ou sans tirets, {@code false} sinon.
+     */
     private boolean plateComplianceVerification(String plate) {
 
         String regex_1 = "(?i)((?!SS|WW|W)[A-HJ-NP-TV-Z]{2})-((?!000)[0-9]{3})-((?!SS|WW)[A-HJ-NP-TV-Z]{2})";
@@ -112,8 +162,25 @@ public class VocalFragment extends Fragment {
         return true;
     }
 
+    /**
+     * Appelle le service API pour récupérer les informations du véhicule.
+     *
+     * <p>En cas de succès :
+     * <ul>
+     * <li>Le véhicule est créé et ajouté au {@link SharedViewModel}.</li>
+     * <li>Le {@link VehicleDetailDialogFragment} est affiché pour présenter les détails.</li>
+     * </ul>
+     * </p>
+     *
+     * @param infoRequest Objet contenant l'immatriculation à rechercher.
+     */
     private void getInfoVehicle(InfoRequest infoRequest){
         VehiclesCall.vehicleInfo(infoRequest, new ApiCallback() {
+            /**
+             * Traite les données du véhicule reçues et ouvre le dialogue de détails.
+             *
+             * @param response Réponse contenant l'objet {@link InfoResponse}.
+             */
             @Override
             public void onResponseSuccess(Response response) {
                 InfoResponse res = (InfoResponse) response.body();
@@ -125,6 +192,11 @@ public class VocalFragment extends Fragment {
                 dialog.show(getChildFragmentManager(), "detail");
             }
 
+            /**
+             * Gère les erreurs serveur ou les plaques inexistantes.
+             *
+             * @param response Réponse d'erreur.
+             */
             @Override
             public void onResponseFailure(Response response) {
                 Toast.makeText(getContext(), R.string.existence_plate, Toast.LENGTH_SHORT).show();
@@ -134,6 +206,11 @@ public class VocalFragment extends Fragment {
                 }
             }
 
+            /**
+             * Gère l'échec de la communication réseau.
+             *
+             * @param t L'exception rencontrée.
+             */
             @Override
             public void onCallFailure(Throwable t) {
 

@@ -16,12 +16,61 @@ import com.example.snaptaplaque.models.api.account.RegisterRequest;
 import com.example.snaptaplaque.network.apicall.AccountCall;
 import com.example.snaptaplaque.utils.FeedbackManager;
 
+/**
+ * Activité d'inscription de l'application SnapTaPlaque.
+ *
+ * <p>Présente un formulaire permettant à un nouvel utilisateur de créer un compte
+ * en renseignant son identifiant, son nom complet, son adresse e-mail, son mot de
+ * passe et en acceptant la politique de confidentialité. Selon l'action choisie :</p>
+ * <ul>
+ *     <li>Clic sur <b>Inscription</b> -> validation des champs puis appel à
+ *         {@link AccountCall#register(android.content.Context, RegisterRequest)}</li>
+ *     <li>Clic sur <b>Connexion</b> -> redirection vers {@link SignInActivity}</li>
+ *     <li>Clic sur <b>Politique de confidentialité</b> -> affichage de
+ *         {@link PrivacyPolicyDialogFragment}</li>
+ * </ul>
+ *
+ * <p>L'identifiant saisi est automatiquement nettoyé de tout caractère non
+ * alphanumérique avant envoi à l'API.</p>
+ *
+ * @see AccountCall#register(android.content.Context, RegisterRequest)
+ * @see SignInActivity
+ */
 public class SignUpActivity extends BaseActivity {
 
-    private EditText username, fullName, mail, password;
+    /** Champ de saisie de l'identifiant utilisateur. */
+    private EditText username;
 
+    /** Champ de saisie du nom complet de l'utilisateur. */
+    private EditText fullName;
+
+    /** Champ de saisie de l'adresse e-mail. */
+    private EditText mail;
+
+    /** Champ de saisie du mot de passe. */
+    private EditText password;
+
+    /** Interrupteur de consentement à la politique de confidentialité (RGPD). */
     private SwitchCompat rgpd;
 
+    /**
+     * Initialise le layout d'inscription et configure les interactions utilisateur.
+     *
+     * <p>Cette méthode effectue les opérations suivantes :
+     * <ol>
+     *     <li>Gonfle le layout {@code sign_up.xml}</li>
+     *     <li>Récupère les références vers les champs de saisie, le switch RGPD
+     *         et les boutons</li>
+     *     <li>Associe le bouton <b>Inscription</b> à {@link #register()}</li>
+     *     <li>Associe le bouton <b>Connexion</b> à l'ouverture de {@link SignInActivity}</li>
+     *     <li>Associe le lien <b>Politique de confidentialité</b> à l'affichage
+     *         de {@link PrivacyPolicyDialogFragment}</li>
+     * </ol>
+     * </p>
+     *
+     * @param savedInstanceState état sauvegardé de l'activité, ou {@code null}
+     *                           lors du premier lancement
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
@@ -50,6 +99,29 @@ public class SignUpActivity extends BaseActivity {
 
     }
 
+    /**
+     * Récupère et valide les valeurs saisies dans le formulaire, puis déclenche
+     * la requête d'inscription si toutes les conditions sont remplies.
+     *
+     * <p>Comportement selon l'état des champs :</p>
+     * <ul>
+     *     <li>Champ(s) vide(s) ou consentement RGPD non accordé -> affichage d'un
+     *         message d'erreur via
+     *         {@link FeedbackManager#showError(android.content.Context, String, String)}
+     *         et interruption de la procédure</li>
+     *     <li>Tous les champs renseignés et consentement accordé -> construction d'un
+     *         {@link RegisterRequest} et appel à
+     *         {@link AccountCall#register(android.content.Context, RegisterRequest)}</li>
+     * </ul>
+     *
+     * <p>Les valeurs sont nettoyées des espaces superflus via {@link String#trim()}.
+     * L'identifiant est en outre purgé de tout caractère non alphanumérique
+     * ({@code [^a-zA-Z0-9]}) afin de garantir sa conformité avec les contraintes
+     * de l'API.</p>
+     *
+     * <p>Le champ {@code admin} est systématiquement fixé à {@code false} :
+     * le rôle administrateur ne peut pas être auto-attribué lors de l'inscription.</p>
+     */
     private void register() {
         String _fullName = fullName.getText().toString().trim();
         String _email = mail.getText().toString().trim();

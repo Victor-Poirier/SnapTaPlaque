@@ -35,11 +35,14 @@ import com.example.snaptaplaque.adapters.InputSectionAdapter;
  */
 public class SearchFragment extends Fragment {
 
+    /** Composant permettant la navigation par balayage vertical entre les sections de saisie. */
     private ViewPager2 viewPagerSearch;
 
-    // Les indicateurs
+    /** Icône représentant le mode Scan (Index 0). */
     private ImageView indicatorScan;
+    /** Icône représentant le mode Saisie manuelle (Index 1). */
     private ImageView indicatorWheel;
+    /** Icône représentant le mode Saisie vocale (Index 2). */
     private ImageView indicatorVocal;
 
     /**
@@ -75,6 +78,10 @@ public class SearchFragment extends Fragment {
 
             // Synchronisation : Swipe -> Mise à jour visuelle des cercles
             viewPagerSearch.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+                /**
+                 * Déclenché lorsqu'une nouvelle page devient active.
+                 * @param position Index de la nouvelle page sélectionnée.
+                 */
                 @Override
                 public void onPageSelected(int position) {
                     super.onPageSelected(position);
@@ -96,7 +103,9 @@ public class SearchFragment extends Fragment {
     }
 
     /**
-     * Change la page du ViewPager
+     * Change programmatiquement la page affichée par le {@link ViewPager2}.
+     *
+     * @param index L'index de la destination (0 pour Scan, 1 pour Wheel, 2 pour Vocal).
      */
     private void selectPage(int index) {
         if (viewPagerSearch != null) {
@@ -105,7 +114,13 @@ public class SearchFragment extends Fragment {
     }
 
     /**
-     * Met à jour l'état visuel (Selected) des indicateurs
+     * Met à jour l'état visuel des indicateurs de navigation et anime la barre de sélection.
+     *
+     * <p>Cette méthode gère deux aspects visuels :
+     * 1. Modifie l'état {@code selected} des icônes pour activer les sélecteurs de couleur (XML).
+     * 2. Calcule la position verticale de la {@code movingBar} pour l'aligner avec l'icône active.</p>
+     *
+     * @param position L'index de la page actuellement active.
      */
     private void updateIndicators(int position) {
         if (indicatorScan != null && indicatorWheel != null && indicatorVocal != null) {
@@ -133,5 +148,4 @@ public class SearchFragment extends Fragment {
             }
         }
     }
-
 }

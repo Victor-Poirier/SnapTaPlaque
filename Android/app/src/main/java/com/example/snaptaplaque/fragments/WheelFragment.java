@@ -31,20 +31,39 @@ import com.example.snaptaplaque.viewmodels.SharedViewModel;
 
 import retrofit2.Response;
 
+/**
+ * Fragment permettant la saisie d'une plaque d'immatriculation via un système de "roues" rotatives.
+ *
+ * <p>Ce fragment simule un sélecteur de type machine à sous (Slot Machine) composé de 7 {@link RecyclerView}
+ * indépendants. Il gère :
+ * <ul>
+ * <li>Le défilement infini simulé par un décalage vers le centre de {@link Integer#MAX_VALUE}.</li>
+ * <li>Un effet visuel 3D (opacité et échelle) sur les éléments non centrés.</li>
+ * <li>L'alignement automatique (Snapping) pour garantir qu'un caractère est toujours sélectionné au centre.</li>
+ * </ul>
+ * </p>
+ *
+ * @see com.example.snaptaplaque.adapters.SlotAdapter
+ * @see LinearSnapHelper
+ */
 public class WheelFragment extends Fragment {
 
+    /** Tableau contenant les 7 colonnes de sélection. */
     private RecyclerView[] slots;
+    /** Bouton de validation de la saisie. */
     private Button btnSearch;
-
+    /** ViewModel pour l'enregistrement du véhicule trouvé. */
     private SharedViewModel sharedViewModel;
 
     /**
-     * Méthode appelée lorsque le fragment est créé.
+     * Initialise la vue et configure les 7 slots de sélection.
+     * * <p>Définit deux jeux de données (Lettres et Chiffres) et les affecte aux slots
+     * selon le format SIV standard : [AA] [000] [AA].</p>
      *
-     * @param inflater           Le LayoutInflater utilisé pour inflaté le layout du fragment
-     * @param container          Le ViewGroup parent du fragment
-     * @param savedInstanceState Les données sauvegardées du fragment
-     * @return Retourne la vue du fragment
+     * @param inflater           Le LayoutInflater.
+     * @param container          Le conteneur parent.
+     * @param savedInstanceState L'état sauvegardé.
+     * @return La vue du fragment.
      */
     @Nullable
     @Override
@@ -86,10 +105,16 @@ public class WheelFragment extends Fragment {
     }
 
     /**
-     * Méthode qui initialise un NumberPicker avec les données fournies.
+     * Configure un RecyclerView pour se comporter comme une roue de sélection.
      *
-     * @param recyclerView Le RecyclerView qui contiendra le NumberPicker
-     * @param data         Les données à afficher dans le NumberPicker
+     * <p>Cette méthode applique :
+     * 1. Un {@link LinearSnapHelper} pour forcer l'arrêt sur un item.
+     * 2. Un positionnement initial au milieu de {@link Integer#MAX_VALUE} pour simuler l'infini.
+     * 3. Un {@code OnScrollListener} pour l'effet de distorsion visuelle (Alpha/Scale).
+     * 4. Une gestion des touchers pour éviter les conflits avec le ViewPager2 parent.</p>
+     *
+     * @param recyclerView Le RecyclerView à transformer.
+     * @param data         Le tableau de chaînes à afficher.
      */
     private void setupSlot(RecyclerView recyclerView, String[] data) {
         if (recyclerView == null) return;
@@ -122,6 +147,15 @@ public class WheelFragment extends Fragment {
 
         // Mise en transparence des items pas au centre
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            /**
+             * Méthode appelée à chaque mouvement de défilement de la roue.
+             * * <p>Elle calcule dynamiquement l'apparence de chaque cellule en fonction
+             * de sa proximité avec le centre du {@link RecyclerView}.</p>
+             *
+             * @param recyclerView Le composant en cours de défilement.
+             * @param dx           Le déplacement horizontal (0 ici car vertical).
+             * @param dy           Le déplacement vertical en pixels.
+             */
             @Override
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
                 super.onScrolled(recyclerView, dx, dy);
@@ -143,6 +177,13 @@ public class WheelFragment extends Fragment {
 
         // Empêcher le parent (ViewPager2 ou autre) d'intercepter le toucher
         recyclerView.addOnItemTouchListener(new RecyclerView.OnItemTouchListener() {
+            /**
+             * Intercepte l'événement de toucher initial.
+             * @param rv Le {@link RecyclerView} concerné.
+             * @param e  L'événement de mouvement {@link MotionEvent}.
+             * @return {@code false} pour permettre au RecyclerView de traiter normalement le toucher
+             * après avoir prévenu le parent.
+             */
             @Override
             public boolean onInterceptTouchEvent(@NonNull RecyclerView rv, @NonNull MotionEvent e) {
                 int action = e.getAction();
@@ -155,10 +196,18 @@ public class WheelFragment extends Fragment {
                 return false;
             }
 
+            /**
+             * Méthode requise par l'interface, non utilisée ici car le traitement
+             * effectif du scroll est géré nativement par le LayoutManager.
+             */
             @Override
             public void onTouchEvent(@NonNull RecyclerView rv, @NonNull MotionEvent e) {
             }
 
+            /**
+             * Appelée lorsque le parent demande de libérer l'interception.
+             * @param disallowIntercept État de l'interception.
+             */
             @Override
             public void onRequestDisallowInterceptTouchEvent(boolean disallowIntercept) {
             }
@@ -166,9 +215,9 @@ public class WheelFragment extends Fragment {
     }
 
     /**
-     * Retourne la plaque de la voiture.
+     * Reconstruit la plaque d'immatriculation en lisant l'item central de chaque roue.
      *
-     * @return La plaque de la voiture
+     * @return La chaîne formatée (ex: "AB-123-CD").
      */
     private String getPlateString() {
         StringBuilder plate = new StringBuilder();
@@ -192,10 +241,10 @@ public class WheelFragment extends Fragment {
     }
 
     /**
-     * Méthode qui trouve la vue au centre du RecyclerView.
+     * Identifie la vue actuellement centrée (sélectionnée) dans une roue.
      *
-     * @param recyclerView Le RecyclerView
-     * @return La vue au centre du RecyclerView
+     * @param recyclerView Le RecyclerView de la roue cible.
+     * @return La {@link View} au centre ou {@code null}.
      */
     private View findCenterView(RecyclerView recyclerView) {
         // Le SnapHelper sait déjà quelle vue est au centre
@@ -205,7 +254,10 @@ public class WheelFragment extends Fragment {
     }
 
     /**
+     * Vérifie si la plaque générée correspond aux expressions régulières du format SIV.
      *
+     * @param plate La plaque à vérifier.
+     * @return {@code true} si valide, sinon affiche un Toast et retourne {@code false}.
      */
     private boolean plateComplianceVerification(String plate) {
 
@@ -220,8 +272,17 @@ public class WheelFragment extends Fragment {
         return true;
     }
 
+    /**
+     * Envoie la requête API pour obtenir les informations du véhicule et affiche le résultat.
+     *
+     * @param infoRequest Objet de requête contenant la plaque.
+     */
     private void getInfoVehicle(InfoRequest infoRequest){
         VehiclesCall.vehicleInfo(infoRequest, new ApiCallback() {
+            /**
+             * Succès : Ajoute le véhicule au ViewModel et ouvre le dialogue de détails.
+             * @param response Réponse API.
+             */
             @Override
             public void onResponseSuccess(Response response) {
                 InfoResponse res = (InfoResponse) response.body();
@@ -233,6 +294,10 @@ public class WheelFragment extends Fragment {
                 dialog.show(getChildFragmentManager(), "detail");
             }
 
+            /**
+             * Échec : Affiche une erreur et gère l'expiration éventuelle du token.
+             * @param response Réponse d'erreur.
+             */
             @Override
             public void onResponseFailure(Response response) {
                 Toast.makeText(getContext(), R.string.existence_plate, Toast.LENGTH_SHORT).show();
@@ -249,4 +314,3 @@ public class WheelFragment extends Fragment {
         });
     }
 }
-

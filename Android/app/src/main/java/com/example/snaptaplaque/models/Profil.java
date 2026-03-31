@@ -117,6 +117,15 @@ public class Profil {
         return username;
     }
 
+    /**
+     * Met à jour l'intégralité de la liste des véhicules favoris de l'utilisateur.
+     *
+     * <p>Cette méthode est généralement appelée par le {@code SharedViewModel} ou lors de
+     * la récupération des données depuis l'API pour synchroniser localement les favoris
+     * enregistrés sur le compte utilisateur.</p>
+     *
+     * @param favorites La nouvelle liste de {@link Vehicle} à affecter au profil.
+     */
     public void setFavoriteVehicule(List<Vehicle> favorites) {
         this.favoriteVehicule = favorites;
     }

@@ -22,10 +22,14 @@ import retrofit2.Call;
 import retrofit2.http.*;
 
 /**
- * Interface définissant les endpoints de l'API REST utilisée par l'application SnapTaPlaque.
+ * Interface définissant les points d'entrée (endpoints) de l'API REST SnapTaPlaque.
+ * <p>Cette interface est utilisée par Retrofit pour générer les requêtes HTTP.
+ * Elle regroupe les services d'authentification, de gestion de profil,
+ * de prédiction d'IA, de gestion des véhicules et des favoris.</p>
  */
 public interface ApiService {
 
+    /** Code d'erreur HTTP retourné lorsque le jeton JWT n'est plus valide. */
     public static int ERROR_TOKEN_EXPIRE = 401;
 
     /********************/
@@ -33,9 +37,10 @@ public interface ApiService {
     /********************/
 
     /**
-     * Endpoint pour l'authentification d'un utilisateur.
-     *
-     * @return Un objet {@link Call} encapsulant la réponse de l'API, contenant un {@link LoginResponse} en cas de succès.
+     * Authentifie un utilisateur via son pseudonyme et son mot de passe.
+     * @param username Nom d'utilisateur.
+     * @param password Mot de passe.
+     * @return Call pour obtenir le token d'accès.
      */
     @FormUrlEncoded
     @POST("v1/account/login")
@@ -45,36 +50,56 @@ public interface ApiService {
     );
 
     /**
-     * Endpoint pour l'enregistrement d'un nouvel utilisateur.
-     *
-     * @param registerRequest Un objet {@link RegisterRequest} contenant les informations nécessaires à l'inscription (nom d'utilisateur, prénom, nom, mot de passe, email).
-     * @return Un objet {@link Call} encapsulant la réponse de l'API, contenant un {@link RegisterResponse} en cas de succès.
+     * Crée un nouveau compte utilisateur.
+     * @param registerRequest Objet contenant les données d'inscription.
+     * @return Call confirmant la création du compte.
      */
     @POST("v1/account/register")
     Call<RegisterResponse> register(
             @Body RegisterRequest registerRequest
     );
 
+    /**
+     * Récupère les informations personnelles du profil connecté.
+     * @param token Jeton d'authentification (Bearer).
+     */
     @GET("v1/account/me")
     Call<MeResponse> me(
             @Header("Authorization") String token
     );
 
+    /**
+     * Demande l'exportation des données personnelles (RGPD).
+     * @param token Jeton d'authentification.
+     */
     @GET("v1/account/me/data-export")
     Call<DataExportResponse> data_export(
             @Header("Authorization") String token
     );
 
+    /**
+     * Supprime définitivement le compte de l'utilisateur.
+     * @param token Jeton d'authentification.
+     */
     @DELETE("v1/account/me/delete-account")
     Call<DeleteAccountResponse> delete_account(
             @Header("Authorization") String token
     );
 
+    /**
+     * Télécharge l'image de profil sous forme de flux binaire.
+     * @param token Jeton d'authentification.
+     */
     @GET("v1/account/me/profile-picture")
     Call<ResponseBody> profile_picture(
             @Header("Authorization") String token
     );
 
+    /**
+     * Met à jour la photo de profil via un envoi de fichier.
+     * @param token Jeton d'authentification.
+     * @param filePart Partie multipart contenant le fichier image.
+     */
     @Multipart
     @POST("v1/account/me/change-profile-picture")
     Call<ChangeProfilePictureResponse> changeProfilePicture(
@@ -82,6 +107,10 @@ public interface ApiService {
             @Part MultipartBody.Part filePart
     );
 
+    /**
+     * Supprime la photo de profil actuelle.
+     * @param token Jeton d'authentification.
+     */
     @DELETE("v1/account/me/delete-profile-picture")
     Call<DeleteProfilePictureResponse> deleteProfilePicture(
             @Header("Authorization") String token
@@ -92,8 +121,9 @@ public interface ApiService {
     /************************/
 
     /**
-     * Endpoint pour la prédiction de la plaque d'immatriculation à partir d'une image.
-     *
+     * Soumet une image pour analyse et reconnaissance de plaque.
+     * @param token Jeton d'authentification.
+     * @param filePart Image du véhicule/plaque.
      */
     @Multipart
     @POST("v1/predictions/predict")
@@ -102,11 +132,17 @@ public interface ApiService {
             @Part MultipartBody.Part filePart
     );
 
+    /**
+     * Récupère l'historique des analyses effectuées.
+     */
     @GET("v1/predictions/history")
     Call<HistoryResponse> history(
             @Header("Authorization") String token
     );
 
+    /**
+     * Récupère les statistiques d'analyse de l'utilisateur.
+     */
     @GET("v1/predictions/stats")
     Call<StatsResponse> stats(
             @Header("Authorization") String token
@@ -115,12 +151,20 @@ public interface ApiService {
     /*********************/
     /* VEHICLES ENDPOINT */
     /*********************/
+
+    /**
+     * Récupère la fiche technique d'un véhicule à partir de sa plaque.
+     * @param licensePlate Numéro d'immatriculation.
+     */
     @POST("v1/vehicles/info")
     Call<InfoResponse> vehicleInfo(
             @Header("Authorization") String token,
             @Query("license_plate") String licensePlate
     );
 
+    /**
+     * Récupère la liste des véhicules consultés par l'utilisateur.
+     */
     @GET("v1/vehicles/history")
     Call<HistoryVehiclesResponse> vehiclesHistory(
             @Header("Authorization") String token
@@ -129,28 +173,35 @@ public interface ApiService {
     /*******************************/
     /* GLOBAL INFORMATION ENDPOINT */
     /*******************************/
+
     /**
-     * Test si l'API est accessible en effectuant une requête GET sur un endpoint de test.
+     * Vérifie la disponibilité du serveur (Health Check).
      */
     @GET("health")
     Call<HealthResponse> health();
 
     /**
-     * Faire appel à l'endpoint privacy-policy qui renvoie comment l'api utilise
-     * les données fournis et quelles sont les droits de l'utilisateur
-     * (suppression, data-export, ...)
+     * Récupère la politique de confidentialité RGPD.
+     * @param rgpdRequest Requête incluant la langue souhaitée.
      */
     @POST("privacy-policy")
     Call<RgpdResponse> privacy_policy(
             @Body RgpdRequest rgpdRequest
     );
 
+    /**
+     * Liste les versions disponibles de l'API.
+     */
     @GET("versions")
     Call<ApiVersionResponse> versions();
 
     /******************/
     /* MODEL ENDPOINT */
     /******************/
+
+    /**
+     * Récupère les métadonnées sur le modèle de prédiction utilisé.
+     */
     @GET("v1/model/info")
     Call<ModelInfoResponse> modelInfo();
 
@@ -158,21 +209,30 @@ public interface ApiService {
     /* FAVORITES ENDPOINT */
     /**********************/
 
+    /**
+     * Ajoute un véhicule aux favoris.
+     * @param licensePlate Plaque du véhicule à marquer.
+     */
     @POST("v1/favorites/add")
     Call<FavoritesAddResponse> add(
             @Header("Authorization") String token,
             @Query("license_plate") String licensePlate
     );
-
+    /**
+     * Retire un véhicule des favoris.
+     * @param licensePlate Plaque du véhicule à retirer.
+     */
     @DELETE("v1/favorites/remove")
     Call<FavoritesRemoveResponse> remove(
             @Header("Authorization") String token,
             @Query("license_plate") String licensePlate
     );
 
+    /**
+     * Liste tous les favoris de l'utilisateur.
+     */
     @GET("v1/favorites/all")
     Call<FavoriteAllResponse> all(
             @Header("Authorization") String token
     );
-
 }

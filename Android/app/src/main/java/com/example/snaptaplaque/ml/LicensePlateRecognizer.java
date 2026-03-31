@@ -29,18 +29,26 @@ import ai.onnxruntime.OrtException;
 import ai.onnxruntime.OrtSession;
 
 /**
- * Gestionnaire de reconnaissance de plaque (Detection YOLO + OCR ML Kit).
+ * Gestionnaire de reconnaissance de plaque d'immatriculation.
  *
- * Pré-requis :
- * 1. Placer le fichier 'model.onnx' dans app/src/main/assets/
- * 2. Vérifier que le format de sortie du modèle correspond (YOLOv12 : [1, mul_boxes, 5+cls] ou transposé)
+ * <p>Cette classe implémente un pipeline d'intelligence artificielle en deux étapes :
+ * <ol>
+ * <li><strong>Détection :</strong> Utilise un modèle YOLO (v8/v12) via ONNX Runtime pour localiser la plaque dans l'image.</li>
+ * <li><strong>Reconnaissance (OCR) :</strong> Découpe la zone détectée et utilise Google ML Kit pour extraire le texte.</li>
+ * </ol>
+ * </p>
+ *
+ * <p>Pré-requis : Le fichier {@code model.onnx} doit être présent dans le dossier {@code assets}.</p>
  */
 public class LicensePlateRecognizer {
 
     private static final String TAG = "LicensePlateRecognizer";
     private static final String MODEL_FILE = "model.onnx";
+    /** Taille d'entrée requise par le modèle YOLO (640x640). */
     private static final int INPUT_SIZE = 640;
+    /** Seuil de confiance minimal pour accepter une détection de plaque. */
     private static final float CONFIDENCE_THRESHOLD = 0.45f;
+    /** Seuil d'Intersection over Union (IoU) pour supprimer les doublons (NMS). */
     private static final float IOU_THRESHOLD = 0.45f;
 
     private OrtEnvironment ortEnvironment;
@@ -48,11 +56,18 @@ public class LicensePlateRecognizer {
     private final TextRecognizer ocrRecognizer;
     private final Context context;
 
+    /**
+     * Initialise le client OCR de ML Kit.
+     * @param context Contexte de l'application pour accéder aux assets.
+     */
     public LicensePlateRecognizer(Context context) {
         this.context = context;
         this.ocrRecognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS);
     }
 
+    /**
+     * Structure représentant le résultat final d'une analyse (Texte + Position).
+     */
     public static class PlateResult {
         public final String text;
         public final float confidence;
@@ -70,6 +85,9 @@ public class LicensePlateRecognizer {
         }
     }
 
+    /**
+     * Structure interne pour stocker les coordonnées brutes après détection YOLO.
+     */
     private static class DetectionResult {
         final float x1, y1, x2, y2;
         final float score;
@@ -86,7 +104,10 @@ public class LicensePlateRecognizer {
     }
 
     /**
-     * Initialise le modèle ONNX Runtime. Doit être appelé hors du thread principal.
+     * Initialise l'environnement ONNX Runtime et charge le modèle depuis les assets.
+     * <p>Attention : Cette opération est lourde et doit être effectuée sur un thread secondaire.</p>
+     *
+     * @throws Exception Si le fichier modèle est introuvable ou corrompu.
      */
     public void init() throws Exception {
         if (ortSession == null) {
@@ -98,8 +119,16 @@ public class LicensePlateRecognizer {
     }
 
     /**
-     * Traite l'image fournie pour détecter et lire les plaques.
-     * Doit être appelé hors du thread principal.
+     * Pipeline principal de traitement d'image.
+     *
+     * <p>Étapes :
+     * 1. Inférence YOLO pour détecter les rectangles de plaques.
+     * 2. Pour chaque zone trouvée, extraction d'un sous-Bitmap (Crop).
+     * 3. Passage de la zone dans le moteur OCR.
+     * 4. Nettoyage du texte (Majuscules, suppression espaces).</p>
+     *
+     * @param bitmap L'image source (photo ou flux caméra).
+     * @return Liste des plaques identifiées, triée par score de confiance.
      */
     public List<PlateResult> processImage(Bitmap bitmap) {
         try {
@@ -149,6 +178,11 @@ public class LicensePlateRecognizer {
         }
     }
 
+    /**
+     * Gère la partie "Vision" par ordinateur (Détection).
+     * @param bitmap Image d'entrée.
+     * @return Liste de rectangles (bounding boxes) après filtrage NMS.
+     */
     private List<DetectionResult> detect(Bitmap bitmap) throws OrtException {
         // Pré-traitement
         PreprocessResult preprocessResult = preprocess(bitmap);
@@ -173,11 +207,19 @@ public class LicensePlateRecognizer {
         return nms(rawBoxes);
     }
 
+
     private static class PreprocessResult {
         OnnxTensor tensor;
         float scaleX, scaleY;
     }
 
+    /**
+     * Prépare le Bitmap pour l'entrée du modèle (Format NCHW : Batch, Channel, Height, Width).
+     *
+     * @param bitmap Image originale.
+     * @return Un objet contenant le tenseur prêt et les ratios de mise à l'échelle.
+     * @throws OrtException Si la création du tenseur échoue.
+     */
     private PreprocessResult preprocess(Bitmap bitmap) throws OrtException {
         int originalWidth = bitmap.getWidth();
         int originalHeight = bitmap.getHeight();
@@ -220,6 +262,15 @@ public class LicensePlateRecognizer {
         return res;
     }
 
+    /**
+     * Parse les données brutes du modèle YOLO.
+     *
+     * @param data      Le buffer de sortie.
+     * @param shape     La forme du tenseur (permet de détecter le format de sortie).
+     * @param scaleX    Ratio de largeur pour la remise à l'échelle.
+     * @param scaleY    Ratio de hauteur pour la remise à l'échelle.
+     * @return Liste des détections ayant un score supérieur au seuil.
+     */
     private List<DetectionResult> parseYoloOutput(FloatBuffer data, long[] shape, float scaleX, float scaleY) {
         List<DetectionResult> results = new ArrayList<>();
 
@@ -263,6 +314,9 @@ public class LicensePlateRecognizer {
         return results;
     }
 
+    /**
+     * Récupère une valeur spécifique dans le buffer selon l'organisation du tenseur.
+     */
     private float getVal(FloatBuffer data, int boxIdx, int attrIdx, int numFeatures, int numBoxes, boolean isTranspose) {
         if (isTranspose) {
             // [1, features, boxes] -> acces [0, attrIdx, boxIdx]
@@ -275,6 +329,12 @@ public class LicensePlateRecognizer {
         }
     }
 
+    /**
+     * Supprime les détections multiples pour un même objet (Non-Maximum Suppression).
+     *
+     * @param boxes Liste des boîtes candidates.
+     * @return Liste filtrée ne contenant que les meilleures boîtes uniques.
+     */
     private List<DetectionResult> nms(List<DetectionResult> boxes) {
         if (boxes.isEmpty()) return Collections.emptyList();
 
@@ -309,6 +369,9 @@ public class LicensePlateRecognizer {
         return selected;
     }
 
+    /**
+     * Calcule le ratio d'intersection sur union entre deux rectangles.
+     */
     private float calculateIoU(DetectionResult a, DetectionResult b) {
         float xA = Math.max(a.x1, b.x1);
         float yA = Math.max(a.y1, b.y1);
@@ -325,6 +388,9 @@ public class LicensePlateRecognizer {
         return interArea / (boxAArea + boxBArea - interArea);
     }
 
+    /**
+     * Découpe un Bitmap selon les coordonnées d'une détection.
+     */
     private Bitmap cropBitmap(Bitmap source, DetectionResult det) {
         int x = Math.max(0, (int) det.x1);
         int y = Math.max(0, (int) det.y1);
@@ -335,6 +401,12 @@ public class LicensePlateRecognizer {
         return Bitmap.createBitmap(source, x, y, w, h);
     }
 
+    /**
+     * Exécute l'OCR Google ML Kit sur une portion d'image.
+     *
+     * @param bitmap La vignette de la plaque.
+     * @return Le texte brut reconnu.
+     */
     private String runOcr(Bitmap bitmap) {
         try {
             InputImage image = InputImage.fromBitmap(bitmap, 0);
@@ -347,6 +419,14 @@ public class LicensePlateRecognizer {
         }
     }
 
+    /**
+     * Lit un fichier depuis les assets et le retourne sous forme de tableau d'octets.
+     *
+     * @param context  Contexte Android.
+     * @param fileName Nom du fichier dans assets.
+     * @return Le contenu binaire du fichier.
+     * @throws Exception Si le fichier ne peut être lu.
+     */
     private byte[] readAssetFile(Context context, String fileName) throws Exception {
         try (InputStream is = context.getAssets().open(fileName);
              ByteArrayOutputStream buffer = new ByteArrayOutputStream()) {

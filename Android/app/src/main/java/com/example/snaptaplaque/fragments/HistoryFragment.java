@@ -184,6 +184,14 @@ public class HistoryFragment extends Fragment {
         // Configuration de la recherche
         androidx.appcompat.widget.SearchView searchView = view.findViewById(R.id.searchView);
         searchView.setOnQueryTextListener(new androidx.appcompat.widget.SearchView.OnQueryTextListener() {
+            /**
+             * Appelé lorsque l'utilisateur valide sa saisie (ex: appui sur la touche "Entrée").
+             * * <p>Met à jour le filtre global dans le {@link SharedViewModel} et rafraîchit
+             * l'affichage avec la liste finale filtrée.</p>
+             *
+             * @param query le texte final saisi par l'utilisateur
+             * @return {@code true} pour indiquer que l'action a été traitée
+             */
             @Override
             public boolean onQueryTextSubmit(String query) {
                 sharedViewModel.setSearchQuery(query);
@@ -191,6 +199,15 @@ public class HistoryFragment extends Fragment {
                 return true;
             }
 
+            /**
+             * Appelé en temps réel à chaque modification du texte dans la barre de recherche.
+             * * <p>Cette méthode permet une recherche incrémentale : la liste des véhicules
+             * se met à jour dynamiquement au fur et à mesure que l'utilisateur tape
+             * chaque caractère (immatriculation, marque ou modèle).</p>
+             *
+             * @param newText le nouveau contenu de la barre de recherche
+             * @return {@code true} pour indiquer que l'action a été traitée
+             */
             @Override
             public boolean onQueryTextChange(String newText) {
                 sharedViewModel.setSearchQuery(newText);
