@@ -188,7 +188,7 @@ async def privacy_policy(
                 "Guilian BOSSARD",
                 "Nathan PERRON",
                 "Victor POIRIER",
-                "Vincent PROUDY"
+                "Vincent PROUDY",
                 "Mail : [prenom].[nom].etu@univ-lemans.fr"
             ],
             "purpose": "Reconnaissance de plaques d'immatriculation à des fins pédagogiques",
