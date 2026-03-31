@@ -7,21 +7,37 @@
 
 import SwiftUI
 
+/// La vue détaillée d'un véhicule permettant d'afficher ses caractéristiques complètes et de gérer son statut "Favori".
+///
+/// `VehicleDetailView` affiche la plaque formatée, la marque, le modèle, la motorisation ainsi qu'un logo
+/// dynamique (téléchargé de façon asynchrone). Elle embarque des actions interactives
+/// (ajout et retrait des favoris) gérées via `FavoritesService`.
 struct VehicleDetailView: View {
+    // Permet de fermer la vue (modale ou retour de navigation)
     @Environment(\.dismiss) var dismiss
+    
+    /// Le modèle de données du véhicule à afficher.
     let vehicle: Vehicle
     
+    /// État local du favori, actualisé en fonction de l'interaction de l'utilisateur ou des données réseau.
     @State private var isFavorite: Bool
     
+    /// Un indicateur (spinner) spécifiant si une requête réseau sur le statut des favoris est actuellement en transit.
     @State private var isUpdatingFavorite = false
     private let favoritesService = FavoritesService()
     
+    /// Initialise la vue avec un véhicule spécifique.
+    ///
+    /// - Parameter vehicle: L'objet `Vehicle` à présenter. Configure également l'état
+    ///   local du favori via l'attribut natif défini dans l'objet.
     init(vehicle: Vehicle) {
         self.vehicle = vehicle
         _isFavorite = State(initialValue: vehicle.isFavorite)
     }
     
-    // Génération dynamique de l'URL du logo basée sur la marque
+    /// Construit l'URL externe à destination d'un repo GitHub distant pour rafraîchir un logo de marque automobile.
+    ///
+    /// - Note: Cette propriété génère un "slug" adapté (minuscules, tirets en remplacement d'espaces).
     var logoURL: URL? {
         guard let brand = vehicle.brand else { return nil }
         // On transforme "Alfa Romeo" en "alfa-romeo"
@@ -29,6 +45,7 @@ struct VehicleDetailView: View {
         return URL(string: "https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/\(slug).png")
     }
     
+    /// Le contenu visuel (body) de la vue affichant les détails du véhicule.
     var body: some View {
         NavigationView {
             VStack(spacing: 20) {
@@ -112,6 +129,10 @@ struct VehicleDetailView: View {
         }
     }
     
+    /// Inverse l'état du "Favori" en effectuant un appel réseau par alternance (`DELETE` / `POST`).
+    ///
+    /// Basé sur la variable d'état locale `isFavorite`, cette fonction appelle le `FavoritesService`
+    /// tout en prévenant l'interface (`isUpdatingFavorite` = true) pendant l'attente du backend.
     private func toggleFavorite() async {
         isUpdatingFavorite = true
         do {
@@ -128,6 +149,7 @@ struct VehicleDetailView: View {
         isUpdatingFavorite = false
     }
     
+    /// Interroge le serveur silencieusement à l'ouverture de la vue pour confirmer la validité du statut favori du véhicule.
     private func checkFavoriteStatus() async {
         do {
             // On récupère la liste à jour des favoris
@@ -144,9 +166,16 @@ struct VehicleDetailView: View {
     }
 }
 
-// (Le composant DetailRow reste inchangé)
+/// Un composant horizontal (ligne) permettant d'afficher uniformément un titre à gauche et sa valeur d'information à droite.
+///
+/// Ce composant interne à `VehicleDetailView` est particulièrement recommandé pour
+/// rendre l'empilement d'informations (Marque, Modèle, etc.) fluide et lisible.
 struct DetailRow: View {
+    
+    /// L'en-tête (le label) de la caractéristique à renseigner.
     let title: String
+    
+    /// La propriété dynamique extraite du véhicule (modèle, essence, etc.).
     let value: String
     
     var body: some View {

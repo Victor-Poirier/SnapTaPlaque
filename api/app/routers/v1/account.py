@@ -80,22 +80,20 @@ def login(
 
         Authorization: Bearer <access_token>
 
-    Args:
-        request (Request): Objet de requête FastAPI, pour extraire l'adresse IP du client pour
-            le système de rate limiting.
-        form_data (OAuth2PasswordRequestForm): Formulaire OAuth2 contenant
-            les champs ``username`` et ``password``, injecté automatiquement
-            par FastAPI.
-        db (Session): Session SQLAlchemy injectée automatiquement par
-            la dépendance ``get_db``.
+    :param request: Objet de requête FastAPI, pour extraire l'adresse IP du client pour
+                    le système de rate limiting.
+    :type request: Request
+    :param form_data: Formulaire OAuth2 contenant les champs ``username`` et ``password``, 
+                      injecté automatiquement par FastAPI.
+    :type form_data: OAuth2PasswordRequestForm
+    :param db: Session SQLAlchemy injectée automatiquement par la dépendance ``get_db``.
+    :type db: Session
 
-    Returns:
-        dict: Dictionnaire conforme au schéma ``Token`` contenant
-            ``access_token`` (chaîne JWT) et ``token_type`` (``"bearer"``).
-
-    Raises:
-        HTTPException (401): Si le nom d'utilisateur n'existe pas ou si
-            le mot de passe fourni ne correspond pas au hash stocké.
+    :return: Dictionnaire conforme au schéma ``Token`` contenant
+             ``access_token`` (chaîne JWT) et ``token_type`` (``"bearer"``).
+    :rtype: dict
+    :raises HTTPException: Si le nom d'utilisateur n'existe pas ou si le mot de passe 
+                           fourni ne correspond pas au hash stocké (HTTP 401).
     """
     user = crud.get_user_by_username(db, form_data.username)
 
@@ -146,34 +144,26 @@ def register(
           strictement nécessaires à la création du compte sont collectées
           (email, username, password, full_name).
 
-    Args:
-        request (Request): Objet de requête FastAPI, utilisé par le
-            système de rate limiting (``slowapi``) pour identifier
-            l'adresse IP du client.
-        user (schemas.UserCreate): Schéma Pydantic contenant les
-            données d'inscription validées :
-            - ``email`` (str) : Adresse email unique.
-            - ``username`` (str) : Nom d'utilisateur unique.
-            - ``password`` (str) : Mot de passe en clair (haché avant
-              stockage).
-            - ``full_name`` (str) : Nom complet de l'utilisateur.
-            - ``is_admin`` (bool) : Statut administrateur.
-            - ``gdpr_consent`` (bool) : Consentement RGPD explicite.
-        db (Session): Session SQLAlchemy injectée automatiquement par
-            la dépendance ``get_db``.
+    :param request: Objet de requête FastAPI, utilisé par le système de rate limiting 
+                    (``slowapi``) pour identifier l'adresse IP du client.
+    :type request: Request
+    :param user: Schéma Pydantic contenant les données d'inscription validées :
+                 - ``email`` (str) : Adresse email unique.
+                 - ``username`` (str) : Nom d'utilisateur unique.
+                 - ``password`` (str) : Mot de passe en clair (haché avant stockage).
+                 - ``full_name`` (str) : Nom complet de l'utilisateur.
+                 - ``is_admin`` (bool) : Statut administrateur.
+                 - ``gdpr_consent`` (bool) : Consentement RGPD explicite.
+    :type user: schemas.UserCreate
+    :param db: Session SQLAlchemy injectée automatiquement par la dépendance ``get_db``.
+    :type db: Session
 
-    Returns:
-        schemas.UserResponse: Informations publiques de l'utilisateur
-            nouvellement créé (id, email, username, full_name, is_active,
-            is_admin, created_at). Le mot de passe haché est exclu de
-            la réponse.
-
-    Raises:
-        HTTPException (400): Si le consentement RGPD n'est pas donné
-            (``gdpr_consent == False``) ou si l'adresse email est déjà
-            associée à un compte existant.
-        HTTPException (429): Si la limite de 5 inscriptions par minute
-            par adresse IP est dépassée (rate limiting).
+    :return: Informations publiques de l'utilisateur nouvellement créé (id, email, 
+             username, full_name, is_active, is_admin, created_at). Le mot de passe 
+             haché est exclu de la réponse.
+    :rtype: schemas.UserResponse
+    :raises HTTPException: Si le consentement RGPD n'est pas donné (HTTP 400) ou 
+                           si l'adresse email est déjà associée à un compte existant.
     """
     # Vérification du consentement RGPD (Art. 6.1.a) — condition
     # préalable obligatoire avant toute collecte de données personnelles.
@@ -211,14 +201,14 @@ def read_me(
     d'afficher le profil de l'utilisateur connecté sans disposer de son
     identifiant au préalable.
 
-    Args:
-        current_user: Instance de l'utilisateur authentifié, injectée par
-            la dépendance ``get_current_active_user``. Déclenche une
-            erreur HTTP 401 si le token est absent, expiré ou invalide.
+    :param current_user: Instance de l'utilisateur authentifié, injectée par
+                         la dépendance ``get_current_active_user``. Déclenche une
+                         erreur HTTP 401 si le token est absent, expiré ou invalide.
+    :type current_user: User
 
-    Returns:
-        schemas.UserResponse: Informations publiques de l'utilisateur
-            connecté (id, username, email, is_active, is_admin).
+    :return: Informations publiques de l'utilisateur connecté (id, username, email, 
+             is_active, is_admin).
+    :rtype: schemas.UserResponse
     """
     return current_user
 
@@ -236,10 +226,14 @@ def export_my_data(
     données personnelles détenues par la plateforme pour l'utilisateur
     authentifié : informations de profil, historique des prédictions
     et liste des véhicules favoris.
+    
+    :param current_user: Instance de l'utilisateur authentifié.
+    :type current_user: User
+    :param db: Session de base de données.
+    :type db: Session
 
-    Returns:
-        dict: Dictionnaire contenant les clés ``profile``,
-            ``predictions`` et ``favorites``.
+    :return: Dictionnaire contenant les clés ``profile``, ``predictions`` et ``favorites``.
+    :rtype: dict
     """
     predictions = crud.get_user_predictions(db, current_user.id, skip=0, limit=10000)
     favorites = crud.get_user_favorites(db, current_user.id)
@@ -297,23 +291,15 @@ def delete_my_account(
         Cette opération est **irréversible**. Aucune sauvegarde ni
         anonymisation n'est effectuée.
 
-    Args:
-        current_user (User): Utilisateur authentifié dont le compte
-            doit être supprimé, injecté par la dépendance
-            ``get_current_active_user``. Déclenche une erreur HTTP 401
-            si le token JWT est absent, expiré ou invalide.
-        db (Session): Session SQLAlchemy injectée automatiquement par
-            la dépendance ``get_db``. Utilisée pour exécuter les
-            requêtes de suppression et valider la transaction.
+    :param current_user: Utilisateur authentifié dont le compte doit être supprimé.
+    :type current_user: User
+    :param db: Session SQLAlchemy injectée automatiquement par la dépendance ``get_db``.
+    :type db: Session
 
-    Returns:
-        dict: Dictionnaire contenant la clé ``message`` avec un texte
-            de confirmation de la suppression définitive du compte
-            et des données personnelles.
-
-    Raises:
-        HTTPException (401): Si l'utilisateur n'est pas authentifié
-            ou si son compte est désactivé (via ``get_current_active_user``).
+    :return: Dictionnaire contenant la clé ``message`` avec un texte de confirmation.
+    :rtype: dict
+    :raises HTTPException: Si l'utilisateur n'est pas authentifié ou si son compte 
+                           est désactivé (HTTP 401).
     """
     from app.database import user_favorites, user_vehicle_history
 
@@ -339,6 +325,15 @@ def get_profile_picture(
     """
     Récupérer la photo de profil de l'utilisateur connecté.
     Retourne directement le fichier image binaire.
+
+    :param current_user: Utilisateur authentifié.
+    :type current_user: User
+    :param db: Session de base de données SQLAlchemy.
+    :type db: Session
+
+    :return: La réponse contenant le contenu binaire de l'image ("image/jpeg").
+    :rtype: Response
+    :raises HTTPException: Si la photo de profil n'est pas trouvée (HTTP 404).
     """
     user_picture = db.query(UserPicture).filter(UserPicture.user_id == current_user.id).first()
 
@@ -358,6 +353,19 @@ async def change_profile_picture(
     db: Session = Depends(get_db),
     file: UploadFile = File(...),
 ):
+    """
+    Modifier ou uploader la photo de profil de l'utilisateur connecté.
+
+    :param current_user: Utilisateur authentifié.
+    :type current_user: User
+    :param db: Session de base de données SQLAlchemy.
+    :type db: Session
+    :param file: Le fichier image uploadé.
+    :type file: UploadFile
+
+    :return: Message de confirmation.
+    :rtype: dict
+    """
     # Lecture des bytes de l'image
     image_bytes = await file.read()
     
@@ -380,19 +388,13 @@ def delete_profile_picture(
     """
     Supprimer la photo de profil de l'utilisateur connecté.
 
-    Args:
-        current_user (User): Utilisateur authentifié dont la photo de
-            profil doit être supprimée, injecté par la dépendance
-            ``get_current_active_user``. Déclenche une erreur HTTP 401
-            si le token JWT est absent, expiré ou invalide.
-        db (Session): Session SQLAlchemy injectée automatiquement par
-            la dépendance ``get_db``. Utilisée pour supprimer le champ
-            ``picture`` du modèle ``UserPicture`` associé à
-            l'utilisateur.
+    :param current_user: Utilisateur authentifié dont la photo de profil doit être supprimée.
+    :type current_user: User
+    :param db: Session SQLAlchemy injectée automatiquement par la dépendance ``get_db``.
+    :type db: Session
 
-    Returns:
-        dict: Dictionnaire contenant la clé ``message`` avec un texte
-            de confirmation de la suppression de la photo de profil.
+    :return: Dictionnaire contenant la clé ``message`` avec un texte de confirmation.
+    :rtype: dict
     """
     user_picture = db.query(UserPicture).filter(UserPicture.user_id == current_user.id).first()
 

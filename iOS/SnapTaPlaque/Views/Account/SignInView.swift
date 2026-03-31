@@ -7,6 +7,11 @@
 
 import SwiftUI
 
+/// La vue principale d'authentification permettant à un utilisateur existant de se connecter à "SnapTaPlaque".
+///
+/// `SignInView` gère le formulaire de connexion (nom d'utilisateur et mot de passe),
+/// lance les requêtes réseau via `AccountService`, et met à jour l'état de session global (`SessionManager`)
+/// en cas de succès. Elle inclut également des accès rapides vers la page d'inscription et la politique de confidentialité.
 struct SignInView: View {
     // État pour stocker les entrées de l'utilisateur
     @State private var username = ""
@@ -23,29 +28,29 @@ struct SignInView: View {
     // Instance de notre service API
     private let accountService = AccountService()
     
+    /// Le contenu visuel (body) de la vue SwiftUI.
     var body: some View {
         NavigationView { // Permet d'avoir une barre de navigation
             VStack(spacing: 25) {
                 
-                // 1. En-tête / Logo (Ajustez le nom de l'image selon vos assets)
-                Image("logo") // Placeholder, remplacez par Image("VotreLogo")
+                Image("logo2")
                     .resizable()
                     .scaledToFit()
                     .frame(width: 100, height: 100)
-                    .foregroundColor(.blue) // Utilisez votre couleur primaire
+                    .foregroundColor(.blue)
                     .padding(.top, 50)
                 
                 Text("Connexion")
                     .font(.largeTitle)
                     .fontWeight(.bold)
                 
-                // 2. Champs de saisie
+                
                 VStack(spacing: 15) {
                     TextField("Nom d'utilisateur", text: $username)
                         .padding()
-                        .background(Color(.systemGray6)) // Équivalent d'un fond gris clair (cadre_formulaire)
+                        .background(Color(.systemGray6))
                         .cornerRadius(10)
-                        .autocapitalization(.none) // Important pour les noms d'utilisateur
+                        .autocapitalization(.none)
                         .disableAutocorrection(true)
                     
                     SecureField("Mot de passe", text: $password)
@@ -55,14 +60,14 @@ struct SignInView: View {
                 }
                 .padding(.horizontal)
                 
-                // 3. Affichage des erreurs (s'il y en a)
+                
                 if let errorMessage = errorMessage {
                     Text(errorMessage)
                         .foregroundColor(.red)
                         .font(.footnote)
                 }
                 
-                // 4. Bouton de Connexion
+            
                 Button(action: {
                     Task {
                         await performLogin()
@@ -70,7 +75,7 @@ struct SignInView: View {
                 }) {
                     HStack {
                         if isLoading {
-                            ProgressView() // Spinner de chargement
+                            ProgressView()
                                 .progressViewStyle(CircularProgressViewStyle(tint: .white))
                                 .padding(.trailing, 5)
                         }
@@ -79,12 +84,12 @@ struct SignInView: View {
                     }
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(Color.blue) // Remplacez par votre couleur principale
+                    .background(Color.blue)
                     .foregroundColor(.white)
                     .cornerRadius(10)
                 }
                 .padding(.horizontal)
-                .disabled(isLoading || username.isEmpty || password.isEmpty) // Désactive le bouton si vide ou en cours
+                .disabled(isLoading || username.isEmpty || password.isEmpty)
                 
                 Button(action: {
                         showPrivacyPolicy = true
@@ -99,10 +104,10 @@ struct SignInView: View {
                         PrivacyPolicyView()
                     }
                 
-                Spacer() // Pousse le contenu vers le haut
+                Spacer()
         
                 
-                // 5. Lien vers l'inscription
+                
                 NavigationLink(destination: SignUpView()) {
                     Text("Pas encore de compte ? S'inscrire")
                         .font(.footnote)
@@ -116,7 +121,11 @@ struct SignInView: View {
         }
     }
     
-    // Fonction qui exécute l'appel API
+    /// Procède à la vérification des identifiants et tente d'établir une session sécurisée.
+    ///
+    /// Cette méthode asynchrone est déclenchée lors de l'appui sur le bouton "Se Connecter".
+    /// Elle encode les données dans `LoginRequest`, interroge l'API via `AccountService`,
+    /// puis gère les états de l'interface (`isLoading`) ainsi que la sauvegarde du jeton local sur succès.
     private func performLogin() async {
         // Réinitialisation de l'état
         isLoading = true
@@ -140,7 +149,7 @@ struct SignInView: View {
     }
 }
 
-// Pour avoir un aperçu directement dans Xcode
+/// Aperçu en direct (Canvas) de `SignInView` pour Xcode.
 struct SignInView_Previews: PreviewProvider {
     static var previews: some View {
         SignInView()

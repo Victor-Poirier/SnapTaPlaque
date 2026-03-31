@@ -87,25 +87,38 @@ class User(Base):
     email et d'un nom d'utilisateur uniques, d'un mot de passe haché
     (bcrypt), ainsi que de métadonnées de profil et de statut.
 
-    Attributes:
-        id (int): Identifiant unique auto-incrémenté (clé primaire).
-        email (str): Adresse email unique de l'utilisateur. Indexée
-            pour accélérer les recherches par email.
-        username (str): Nom d'utilisateur unique. Indexé pour accélérer
-            les recherches par nom d'utilisateur.
-        hashed_password (str): Hash bcrypt du mot de passe de
-            l'utilisateur. Ne doit jamais être exposé en réponse API.
-        full_name (str): Nom complet de l'utilisateur (prénom et nom).
-        is_active (bool): Indique si le compte est actif. Un compte
-            désactivé ne peut pas s'authentifier. Par défaut ``True``.
-        is_admin (bool): Indique si l'utilisateur possède les privilèges
-            d'administration. Par défaut ``False``.
-        created_at (datetime): Date et heure de création du compte.
-            Définie automatiquement à l'instant de l'insertion.
-        predictions (list[Prediction]): Liste des prédictions associées
-            à cet utilisateur (relation one-to-many).
-        favorites (list[Vehicle]): Liste des véhicules favoris de
-            cet utilisateur (relation many-to-many).
+    :ivar id: Identifiant unique auto-incrémenté (clé primaire).
+    :vartype id: int
+    :ivar email: Adresse email unique de l'utilisateur. Indexée
+        pour accélérer les recherches par email.
+    :vartype email: str
+    :ivar username: Nom d'utilisateur unique. Indexé pour accélérer
+        les recherches par nom d'utilisateur.
+    :vartype username: str
+    :ivar hashed_password: Hash bcrypt du mot de passe de
+        l'utilisateur. Ne doit jamais être exposé en réponse API.
+    :vartype hashed_password: str
+    :ivar full_name: Nom complet de l'utilisateur (prénom et nom).
+    :vartype full_name: str
+    :ivar is_active: Indique si le compte est actif. Un compte
+        désactivé ne peut pas s'authentifier. Par défaut ``True``.
+    :vartype is_active: bool
+    :ivar is_admin: Indique si l'utilisateur possède les privilèges
+        d'administration. Par défaut ``False``.
+    :vartype is_admin: bool
+    :ivar created_at: Date et heure de création du compte.
+        Définie automatiquement à l'instant de l'insertion.
+    :vartype created_at: datetime
+    :ivar predictions: Liste des prédictions associées
+        à cet utilisateur (relation one-to-many).
+    :vartype predictions: list[Prediction]
+    :ivar favorites: Liste des véhicules favoris de
+        cet utilisateur (relation many-to-many).
+    :vartype favorites: list[Vehicle]
+    :ivar vehicles_info_history: Historique des véhicules consultés (relation many-to-many).
+    :vartype vehicles_info_history: list[Vehicle]
+    :ivar gdpr_consent_at: Date de consentement RGPD lors de l'inscription.
+    :vartype gdpr_consent_at: datetime
     """
 
     __tablename__ = "users"
@@ -151,20 +164,25 @@ class Prediction(Base):
     (plaques détectées, scores de confiance, coordonnées des boîtes
     englobantes) stockés au format JSON.
 
-    Attributes:
-        id (int): Identifiant unique auto-incrémenté (clé primaire).
-        user_id (int): Identifiant de l'utilisateur ayant soumis la
-            prédiction (clé étrangère vers ``users.id``).
-        filename (str): Nom du fichier image soumis pour la détection
-            de plaque d'immatriculation.
-        results (dict): Dictionnaire JSON contenant les résultats de
-            la reconnaissance (plaques détectées, scores de confiance,
-            coordonnées des boîtes englobantes, texte OCR, etc.).
-        created_at (datetime): Date et heure de création de la
-            prédiction. Définie automatiquement à l'instant de
-            l'insertion.
-        user (User): Instance ORM de l'utilisateur propriétaire de
-            cette prédiction (relation many-to-one).
+    :ivar id: Identifiant unique auto-incrémenté (clé primaire).
+    :vartype id: int
+    :ivar user_id: Identifiant de l'utilisateur ayant soumis la
+        prédiction (clé étrangère vers ``users.id``).
+    :vartype user_id: int
+    :ivar filename: Nom du fichier image soumis pour la détection
+        de plaque d'immatriculation.
+    :vartype filename: str
+    :ivar results: Dictionnaire JSON contenant les résultats de
+        la reconnaissance (plaques détectées, scores de confiance,
+        coordonnées des boîtes englobantes, texte OCR, etc.).
+    :vartype results: dict
+    :ivar created_at: Date et heure de création de la
+        prédiction. Définie automatiquement à l'instant de
+        l'insertion.
+    :vartype created_at: datetime
+    :ivar user: Instance ORM de l'utilisateur propriétaire de
+        cette prédiction (relation many-to-one).
+    :vartype user: User
     """
 
     __tablename__ = "predictions"
@@ -200,19 +218,25 @@ class Vehicle(Base):
     à travers la table d'association ``user_favorites``, permettant à
     plusieurs utilisateurs de marquer un même véhicule comme favori.
 
-    Attributes:
-        license_plate (str): Plaque d'immatriculation du véhicule
-            (clé primaire). Indexée pour accélérer les recherches.
-        brand (str): Marque du véhicule (ex. : Renault, Peugeot, BMW).
-        model (str): Modèle du véhicule (ex. : Clio, 308, Série 3).
-        color (str): Couleur principale du véhicule.
-        engine (str): Type de motorisation du véhicule (ex. : 1.5 dCi,
-            2.0 TDI, électrique).
-        trim (str): Niveau de finition du véhicule (ex. : Intens,
-            Allure, Sport).
-        favorited_by (list[User]): Liste des utilisateurs ayant ajouté
-            ce véhicule à leurs favoris (relation many-to-many via la
-            table ``user_favorites``).
+    :ivar license_plate: Plaque d'immatriculation du véhicule
+        (clé primaire). Indexée pour accélérer les recherches.
+    :vartype license_plate: str
+    :ivar brand: Marque du véhicule (ex. : Renault, Peugeot, BMW).
+    :vartype brand: str
+    :ivar model: Modèle du véhicule (ex. : Clio, 308, Série 3).
+    :vartype model: str
+    :ivar info: Informations complémentaires du véhicule.
+    :vartype info: str
+    :ivar energy: Type d'énergie du véhicule.
+    :vartype energy: str
+    :ivar favorited_by: Liste des utilisateurs ayant ajouté
+        ce véhicule à leurs favoris (relation many-to-many via la
+        table ``user_favorites``).
+    :vartype favorited_by: list[User]
+    :ivar history_by: Liste des utilisateurs ayant ce véhicule dans
+        leur historique de consultation (relation many-to-many via
+        ``user_vehicle_history``).
+    :vartype history_by: list[User]
     """
 
     __tablename__ = "vehicles"
@@ -233,6 +257,13 @@ class UserPicture(Base):
     """
     Modèle ORM représentant la photo de profil d'un utilisateur.
     Stocke l'image sous forme de données binaires (LargeBinary).
+
+    :ivar user_id: Identifiant de l'utilisateur (clé primaire et étrangère).
+    :vartype user_id: int
+    :ivar picture: Données binaires de la photo de profil.
+    :vartype picture: bytes
+    :ivar user: Relation vers l'utilisateur propriétaire de l'image.
+    :vartype user: User
     """
     __tablename__ = 'user_picture'
 
@@ -273,9 +304,9 @@ def get_db():
     et les fonctions de dépendance nécessitant un accès à la base de
     données.
 
-    Yields:
-        Session: Session SQLAlchemy active, prête à être utilisée pour
+    :yield: Session SQLAlchemy active, prête à être utilisée pour
             des opérations de lecture et d'écriture sur la base de données.
+    :ytype: Session
     """
     db = SessionLocal()
     try:

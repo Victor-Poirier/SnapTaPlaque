@@ -7,21 +7,40 @@
 
 import SwiftUI
 
+/// La vue dédiée à l'acquisition d'une plaque d'immatriculation par commande vocale.
+///
+/// `VocalView` fait appel à `SpeechManager` pour utiliser la reconnaissance vocale d'Apple.
+/// Elle inclut un bouton interactif (micro) dont le comportement dicte l'enregistrement, puis
+/// reformate automatiquement ("A B 123 C D" en "AB-123-CD") la chaîne avant de l'envoyer
+/// au `VehicleService` pour trouver le véhicule ciblé.
 struct VocalView: View {
+    
+    /// Le gestionnaire d'état asynchrone rattaché au framework `Speech` pour capter le microphone et gérer les autorisations.
     @StateObject private var speechManager = SpeechManager()
     
+    /// Le résultat vocal "nettoyé" et formaté selon le modèle SIV (Système d'Immatriculation des Véhicules).
     @State private var formattedPlate = ""
+    
+    /// Indicateur de chargement asynchrone lors de la requête finale à destination de l'API.
     @State private var isLoading = false
+    
+    /// Déclencheur conditionnel d'une carte d'alerte `Alert` en cas d'erreur de reconnaissance ou d'API.
     @State private var showAlert = false
+    
+    /// Le message de l'alerte destiné à l'utilisateur.
     @State private var alertMessage = ""
     
     // Pour l'appel API post-prédiction
     private let vehicleService = VehicleService()
+    
+    /// Object `Vehicle` récupéré si la recherche sur l'API distante avec le numéro dicté a réussi.
+    /// Il déclenchera l'apparition de la modale `.sheet` avec les détails de la plaque.
     @State private var vehicleResult: Vehicle? = nil
     
+    /// L'arborescence UI permettant la dictée et son interprétation.
     var body: some View {
         VStack(spacing: 30) {
-                
+            
             Text("Recherche Vocale")
                 .font(.title2)
                 .fontWeight(.bold)
@@ -92,9 +111,8 @@ struct VocalView: View {
             }
             .padding(.horizontal, 40)
             .disabled(formattedPlate.isEmpty || isLoading)
-                
+            
         }
-        // 👇 TRES IMPORTANT : Maintient le Swipe Vertical 👇
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .contentShape(Rectangle())
         // Demande la permission dès que la vue s'affiche
@@ -120,7 +138,10 @@ struct VocalView: View {
     
     // MARK: - Logique Métier
     
-    /// Transforme "A B 123 C D" en "AB-123-CD"
+    /// Reformate brutalement le texte identifié par la dictée vocale en une plaque SIV standard ("AB-123-CD").
+    ///
+    /// - Parameter rawText: Une phrase extraite d'une diction, comme `"A B 123 C D"`.
+    /// - Returns: Une chaîne formatée pour convenir aux spécifications d'entrée de notre base de données.
     private func formatPlate(_ rawText: String) -> String {
         // Enlève les espaces, les tirets dictés vocalement, et met en majuscules
         let cleaned = rawText.replacingOccurrences(of: " ", with: "")
@@ -139,6 +160,10 @@ struct VocalView: View {
         return cleaned
     }
     
+    /// Interroge le serveur réseau pour télécharger à la volée le véhicule si les données vocales forment une plaque légitime.
+    ///
+    /// Cette méthode asynchrone met à jour la variable d'affichage `isLoading`, déclenche le chargement puis
+    /// manipule `vehicleResult` pour invoquer et passer le relais à `VehicleDetailView`.
     private func searchVehicle() {
         isLoading = true
         Task {
@@ -154,9 +179,9 @@ struct VocalView: View {
     }
 }
 
+/// Aperçu en direct (Canvas) utilisé dans Xcode pour la page de recherche vocale.
 struct VocalView_Previews: PreviewProvider {
     static var previews: some View {
         VocalView()
     }
 }
-

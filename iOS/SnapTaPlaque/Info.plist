@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>SnapTaPlaque a besoin de votre localisation pour l&apos;afficher sur le profil</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>SnapTaPlaque nécessite d&apos;accéder au microphone pour utiliser la reconnaissance vocale.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>SnapTaPlaque nécessite la reconnaissance vocale pour comprendre et dicter les numéros de plaque d&apos;immatriculation.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>SnapTaPlaque a besoin de l&apos;accès à votre galerie pour sélectionner un photo de voiture et détecter la plaque d&apos;immatriculation de celle-ci</string>
+</dict>
+</plist>

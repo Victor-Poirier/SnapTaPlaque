@@ -38,12 +38,12 @@ def get_password_hash(password: str) -> str:
     Le hash résultant est destiné à être stocké en base de données
     en remplacement du mot de passe en clair.
 
-    Args:
-        password (str): Mot de passe en clair à hacher.
+    :param password: Mot de passe en clair à hacher.
+    :type password: str
 
-    Returns:
-        str: Hash bcrypt du mot de passe, incluant le sel et le
-            facteur de coût (format ``$2b$...``).
+    :return: Hash bcrypt du mot de passe, incluant le sel et le
+             facteur de coût (format ``$2b$...``).
+    :rtype: str
     """
     return pwd_context.hash(password)
 
@@ -57,14 +57,15 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     vérification est effectuée en temps constant pour prévenir les
     attaques par canal auxiliaire (timing attacks).
 
-    Args:
-        plain_password (str): Mot de passe en clair soumis par
-            l'utilisateur lors de la tentative d'authentification.
-        hashed_password (str): Hash bcrypt du mot de passe stocké en
-            base de données (format ``$2b$...``).
+    :param plain_password: Mot de passe en clair soumis par
+                           l'utilisateur lors de la tentative d'authentification.
+    :type plain_password: str
+    :param hashed_password: Hash bcrypt du mot de passe stocké en
+                            base de données (format ``$2b$...``).
+    :type hashed_password: str
 
-    Returns:
-        bool: ``True`` si le mot de passe en clair correspond au hash,
-            ``False`` sinon.
+    :return: ``True`` si le mot de passe en clair correspond au hash,
+             ``False`` sinon.
+    :rtype: bool
     """
     return pwd_context.verify(plain_password, hashed_password)

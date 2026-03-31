@@ -15,19 +15,25 @@ Structure du package :
       l'application, enregistrement des routeurs et gestion des
       événements de cycle de vie (démarrage / arrêt).
     - ``database.py``      — Configuration de la connexion à la base
-      de données SQLAlchemy et création des tables.
+      de données SQLAlchemy et déclaration des modèles ORM.
     - ``schemas.py``       — Schémas Pydantic de validation des
       requêtes et de sérialisation des réponses.
     - ``crud.py``          — Fonctions CRUD pour les opérations sur
-      les utilisateurs et les prédictions.
+      la base de données (utilisateurs, véhicules, prédictions).
     - ``security.py``      — Utilitaires de hachage et de vérification
       de mots de passe (bcrypt via Passlib).
-    - ``predictor.py``     — Wrapper du pipeline de reconnaissance de
+    - ``auth.py``          — Middleware d'authentification JWT et
+      dépendances associées.
+    - ``vehicle.py``       — Fonctions liées à la recherche de
+      véhicules.
+    - ``config.py``        — Configuration globale (variables d'environnement).
+    - ``limiter.py``       — Système de rate-limiting (restriction des requêtes).
+    - ``predictor.py``     — Wrapper singleon du pipeline de reconnaissance de
       plaques pour l'intégration avec FastAPI.
     - ``routers/``         — Sous-package contenant les routeurs
-      FastAPI (auth, predictions, admin, model).
+      FastAPI isolés par version (ex: v1, v2).
     - ``model/``           — Sous-package contenant le pipeline LPR
-      (détection YOLO + lecture OCR).
+      (détection YOLO ONNX + lecture EasyOCR).
 
 Version : 1.0.0
 """

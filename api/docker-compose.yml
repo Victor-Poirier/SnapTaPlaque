@@ -1,138 +1,134 @@
 # ==============================================================================
-# Docker Compose Configuration — SnapTaPlaque API
+# Configuration Docker Compose — API SnapTaPlaque
 # ==============================================================================
-# Orchestrates the multi-container setup for the SnapTaPlaque license plate
-# recognition application. This file defines two services:
+# Orchestre le déploiement multi-conteneurs de l'application de reconnaissance de
+# plaques d'immatriculation SnapTaPlaque. Ce fichier définit deux services :
 #
-#   1. db  — PostgreSQL 15 database for persisting users, predictions, and
-#            detection history.
-#   2. api — FastAPI application serving the YOLO + EasyOCR plate recognition
-#            endpoints via Uvicorn.
+#   1. db  — Base de données PostgreSQL 15 pour la persistance des utilisateurs,
+#            des prédictions et de l'historique des détections.
+#   2. api — Application FastAPI exposant les endpoints de reconnaissance de
+#            plaques basés sur YOLO + EasyOCR, servie par Uvicorn.
 #
-# The services communicate over a dedicated bridge network
-# (snaptaplaque-network) and the database data is stored in a named Docker
-# volume (postgres_data) so it survives container restarts.
+# Les services communiquent via un réseau bridge dédié (snaptaplaque-network) 
+# et les données de la base de données sont stockées dans un volume Docker 
+# nommé (postgres_data) afin de survivre aux redémarrages des conteneurs.
 #
-# Usage:
-#   Start the stack:
+# Utilisation :
+#   Démarrer la stack :
 #     docker-compose up --build
 #
-#   Stop the stack (data is preserved):
+#   Arrêter la stack (les données sont préservées) :
 #     docker-compose down
 #
-#   Stop the stack AND delete all data (wipes the database volume):
+#   Arrêter la stack ET supprimer toutes les données (efface le volume) :
 #     docker-compose down -v
 #
-# Environment variables:
-#   SECRET_KEY — JWT signing key. Falls back to a dev default if not set.
-#                Override via a .env file or shell export for production.
+# Variables d'environnement :
+#   SECRET_KEY — Clé de signature JWT. Utilise une valeur par défaut en dev si 
+#                elle n'est pas définie. À surcharger via un fichier .env ou un 
+#                export shell en production.
 #
-# Prerequisites:
+# Prérequis :
 #   - Docker Engine ≥ 20.10
-#   - Docker Compose ≥ 1.29 (or Compose V2)
+#   - Docker Compose ≥ 1.29 (ou Compose V2)
 # ==============================================================================
 
 # version: '3.8'
 
 services:
   # ============================================================================
-  # PostgreSQL Database
+  # Base de données PostgreSQL
   # ============================================================================
-  # Lightweight Alpine-based PostgreSQL 15 instance.
-  # Stores all application data: users, predictions, and detection history.
+  # Instance allégée de PostgreSQL 15 basée sur Alpine.
+  # Stocke toutes les données métier : utilisateurs, prédictions, historique.
   #
-  # Credentials and database name are configured via environment variables
-  # and must match the DATABASE_URL passed to the api service.
+  # Les informations d'identification et le nom de la base sont configurés via
+  # des variables d'environnement et doivent correspondre à la DATABASE_URL 
+  # transmise au service api.
   #
-  # A health check ensures the api service does not start until the database
-  # is ready to accept connections (see depends_on → condition below).
+  # Un healthcheck garantit que l'API ne démarre pas avant que la base ne soit 
+  # prête à accepter des connexions (voir depends_on → condition ci-dessous).
   # ============================================================================
   db:
     image: postgres:15-alpine
     container_name: snaptaplaque-db
     environment:
-      # Database superuser name used for connections
+      # Nom du superutilisateur de la base de données
       POSTGRES_USER: plate_user
-      # Database superuser password (change in production)
+      # Mot de passe du superutilisateur (à changer en production)
       POSTGRES_PASSWORD: plate_password
-      # Name of the default database created on first start
+      # Nom de la base de données par défaut créée au premier lancement
       POSTGRES_DB: snaptaplaque_db
     ports:
-      # Expose PostgreSQL on the host for local tooling (pgAdmin, psql, etc.)
+      # Expose PostgreSQL sur l'hôte pour un accès local (pgAdmin, psql, etc.)
       - "5432:5432"
     volumes:
-      # Named volume — persists database files across container restarts.
-      # Data is only removed when running `docker-compose down -v`.
+      # Volume nommé — persiste les fichiers de DB même après un arrêt
+      # Supprimé uniquement via `docker-compose down -v`.
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      # pg_isready returns 0 when the server is accepting connections
+      # pg_isready retourne 0 quand le serveur accepte les connexions
       test: ["CMD-SHELL", "pg_isready -U plate_user -d snaptaplaque_db"]
-      interval: 10s    # Time between health check attempts
-      timeout: 5s      # Maximum time a single check may take
-      retries: 5       # Number of consecutive failures before "unhealthy"
+      interval: 10s    # Délai entre deux tentatives de vérification
+      timeout: 5s      # Temps d'attente maximum pour une vérification
+      retries: 5       # Essais consécutifs avant déclaration d'état "unhealthy"
     networks:
       - snaptaplaque-network
 
   # ============================================================================
-  # FastAPI Application (SnapTaPlaque API)
+  # Application FastAPI (API SnapTaPlaque)
   # ============================================================================
-  # Builds the API image from the Dockerfile in the current directory.
-  # Runs Uvicorn on port 8000 to serve the FastAPI application.
+  # Construit l'image de l'API à partir du Dockerfile dans le dossier courant.
+  # Fait tourner Uvicorn sur le port 8000 pour servir l'application FastAPI.
   #
-  # The service waits for the db health check to pass before starting,
-  # ensuring the database is available when the application boots.
-  #
-  # NOTE: For Alembic migrations to run automatically on startup, add an
-  #       entrypoint script that executes `alembic upgrade head` before
-  #       launching Uvicorn (see Dockerfile / entrypoint.sh).
+  # Le service attend que le healthcheck de "db" passe au vert avant de démarrer,
+  # ce qui s'assure que l'API puisse se connecter à la base dès son lancement.
   # ============================================================================
   api:
     command: bash -c "python init_bd.py && uvicorn app.main:app --host 0.0.0.0 --port 8000"
     build:
-      context: .             # Build context is the api/ directory
-      dockerfile: Dockerfile # Dockerfile located at api/Dockerfile
+      context: .             # Contexte de build basé sur le répertoire api/
+      dockerfile: Dockerfile # Cible le Dockerfile de l'API
     container_name: snaptaplaque-api
     ports:
-      # Expose the API on the host so clients can reach it at localhost:8000
+      # Expose l'API sur le port de l'hôte
       - "8000:8000"
     environment:
-      # SQLAlchemy connection string — references the db service by hostname
+      # Chaîne de connexion SQLAlchemy — cible le service "db" via le réseau interne
       - DATABASE_URL=postgresql://plate_user:plate_password@db:5432/snaptaplaque_db
-      # JWT secret key — defaults to a dev value; override via .env in production
+      # Clé secrète JWT — à surcharger en production via le .env
       - SECRET_KEY=${SECRET_KEY:-dev-secret-key-change-in-production}
-      # Disable debug mode (set to True for verbose SQLAlchemy query logging)
+      # Désactivation du mode debug (sinon requêtes SQLAlchemy verbeuses)
       - DEBUG=False
-      # Prevent runtime pip installs by Ultralytics inside the container
+      # Bloque l'installation potentiellement inopportune via pip d'Ultralytics 
       - YOLO_AUTOINSTALL=False
     depends_on:
       db:
-        # Wait until the db health check reports healthy before starting
+        # Attend que la base soit saine (healthcheck vert)
         condition: service_healthy
     volumes:
-      # Persist EasyOCR models so they are downloaded only once
+      # Persiste les modèles EasyOCR pour éviter un re-téléchargement à chaque lancement
       - easyocr-models:/root/.EasyOCR
     networks:
       - snaptaplaque-network
-    # Automatically restart the container unless it was explicitly stopped
+    # Redémarre automatiquement sauf suite à un arrêt manuel (ex: docker-compose stop)
     restart: unless-stopped
 
 # ==============================================================================
-# Named Volumes
+# Volumes Nommés
 # ==============================================================================
-# postgres_data — Persistent storage for the PostgreSQL data directory.
-#                 Ensures database contents survive `docker-compose down`
-#                 (without the -v flag).
+# postgres_data  — Persistance des fichiers de base de données PostgreSQL.
+# easyocr-models — Persistance des fichiers de modèles OCR.
 # ==============================================================================
 volumes:
   postgres_data:
   easyocr-models:
 
 # ==============================================================================
-# Networks
+# Réseaux (Networks)
 # ==============================================================================
-# snaptaplaque-network — Isolated bridge network allowing the api and db
-#                        services to communicate using their service names
-#                        as hostnames (e.g., db:5432).
+# snaptaplaque-network — Réseau isolé de type bridge pour permettre à l'API et
+#                        à la DB de communiquer via leurs noms de service (ex: db:5432).
 # ==============================================================================
 networks:
   snaptaplaque-network:

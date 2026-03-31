@@ -1,9 +1,19 @@
 import SwiftUI
 
+/// La vue de recherche principale qui agrège les différentes méthodes d'acquisition de plaque (Image, Roulette, Vocale).
+///
+/// `SearchView` agit comme un carrousel vertical (Pager) interactif. Elle contient trois sous-vues
+/// de même taille (`PictureView`, `WheelView`, `VocalView`) et y applique une logique de geste
+/// (DragGesture) pour glisser verticalement d'un mode de recherche à l'autre de façon fluide et animée.
 struct SearchView: View {
+    
+    /// L'index courant du mode de recherche affiché à l'écran (0 = Picture, 1 = Wheel, 2 = Vocal).
     @State private var currentIndex = 0
+    
+    /// La valeur du déplacement en temps réel sur l'axe vertical, servant à animer le rendu d'entraînement.
     @State private var dragOffset: CGFloat = 0
     
+    /// Le contenu déclaratif de la vue, s'appuyant sur un `GeometryReader` pour forcer chaque page en hauteur complète.
     var body: some View {
         GeometryReader { geometry in
             ZStack(alignment: .trailing) {
@@ -20,14 +30,10 @@ struct SearchView: View {
                 .offset(y: -CGFloat(currentIndex) * geometry.size.height + dragOffset)
                 .animation(.spring(response: 0.4, dampingFraction: 0.8), value: dragOffset)
                 .animation(.spring(response: 0.4, dampingFraction: 0.8), value: currentIndex)
-                
-                // 🛠️ LA CORRECTION EST ICI :
-                // On utilise .gesture au lieu de .simultaneousGesture,
-                // et on ajoute une distance minimum de 20 pixels.
                 .gesture(
                     DragGesture(minimumDistance: 20)
                         .onChanged { value in
-                            // Suit le doigt en temps réel UNIQUEMENT si c'est un swipe vertical
+                            // Suit le doigt en temps réel si c'est un swipe vertical
                             if abs(value.translation.height) > abs(value.translation.width) {
                                 if (currentIndex == 0 && value.translation.height > 0) ||
                                    (currentIndex == 2 && value.translation.height < 0) {

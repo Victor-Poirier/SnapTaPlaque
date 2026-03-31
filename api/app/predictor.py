@@ -42,10 +42,10 @@ class PlatePredictor:
     FastAPI. Le modèle est chargé de manière explicite via ``load_model``
     et son état peut être vérifié via ``is_loaded`` avant toute prédiction.
 
-    Attributes:
-        pipeline (LPRPipeline | None): Instance du pipeline LPR chargée
-            en mémoire. ``None`` si le modèle n'a pas encore été chargé
-            ou si le chargement a échoué.
+    :ivar pipeline: Instance du pipeline LPR chargée en mémoire. ``None`` 
+                    si le modèle n'a pas encore été chargé ou si le 
+                    chargement a échoué.
+    :vartype pipeline: LPRPipeline | None
     """
 
     def __init__(self):
@@ -68,8 +68,12 @@ class PlatePredictor:
         immédiatement (utile au démarrage pour éviter le premier 503).
         Sinon, le chargement se fait en arrière-plan.
 
-        Returns:
-            bool: ``True`` si le chargement est déclenché ou déjà actif.
+        :param blocking: Indique si le processus doit bloquer le thread 
+                         courant jusqu'à la fin du chargement. Si ``False``, 
+                         le chargement se fait en tâche de fond.
+        :type blocking: bool
+        :return: ``True`` si le chargement est déclenché ou déjà actif.
+        :rtype: bool
         """
         import threading
         import logging
@@ -111,9 +115,9 @@ class PlatePredictor:
         le modèle est opérationnel avant de soumettre une image pour
         prédiction.
 
-        Returns:
-            bool: ``True`` si le pipeline est chargé et prêt à recevoir
-                des prédictions, ``False`` sinon.
+        :return: ``True`` si le pipeline est chargé et prêt à recevoir
+                 des prédictions, ``False`` sinon.
+        :rtype: bool
         """
         return self.pipeline is not None
 
@@ -127,30 +131,29 @@ class PlatePredictor:
         détectées, le résultat ayant le score de confiance le plus élevé
         est retourné.
 
-        Args:
-            image_bytes (bytes): Données binaires de l'image soumise
-                pour la détection (formats supportés : JPEG, PNG, BMP,
-                et tout format pris en charge par ``cv2.imdecode``).
+        :param image_bytes: Données binaires de l'image soumise
+                            pour la détection (formats supportés : JPEG, PNG, BMP,
+                            et tout format pris en charge par ``cv2.imdecode``).
+        :type image_bytes: bytes
 
-        Returns:
-            dict: Dictionnaire contenant les clés suivantes :
-                - ``plate_text`` (str | None) : Texte de la plaque
-                  d'immatriculation détectée, ou ``None`` si aucune
-                  plaque n'a été reconnue.
-                - ``confidence`` (float) : Score de confiance de la
-                  détection, compris entre 0.0 et 1.0, arrondi à
-                  4 décimales. Vaut ``0.0`` si aucune plaque n'est
-                  détectée.
-                - ``bounding_box`` (None) : Coordonnées de la boîte
-                  englobante de la plaque. Actuellement ``None`` car
-                  ``LPRPipeline`` ne retourne pas les bounding boxes
-                  finales.
+        :return: Dictionnaire contenant les clés suivantes :
+                 - ``plate_text`` (str | None) : Texte de la plaque
+                   d'immatriculation détectée, ou ``None`` si aucune
+                   plaque n'a été reconnue.
+                 - ``confidence`` (float) : Score de confiance de la
+                   détection, compris entre 0.0 et 1.0, arrondi à
+                   4 décimales. Vaut ``0.0`` si aucune plaque n'est
+                   détectée.
+                 - ``bounding_box`` (None) : Coordonnées de la boîte
+                   englobante de la plaque. Actuellement ``None`` car
+                   ``LPRPipeline`` ne retourne pas les bounding boxes
+                   finales.
+        :rtype: dict
 
-        Raises:
-            RuntimeError: Si le pipeline n'est pas chargé en mémoire
-                (``is_loaded()`` retourne ``False``).
-            ValueError: Si les données binaires fournies ne peuvent pas
-                être décodées en image valide par OpenCV.
+        :raises RuntimeError: Si le pipeline n'est pas chargé en mémoire
+                              (``is_loaded()`` retourne ``False``).
+        :raises ValueError: Si les données binaires fournies ne peuvent pas
+                            être décodées en image valide par OpenCV.
         """
         if not self.is_loaded():
             raise RuntimeError("Modèle non chargé")

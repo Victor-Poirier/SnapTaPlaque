@@ -72,28 +72,30 @@ async def predict_plate(
     Si aucune plaque n'est détectée, la prédiction est tout de même
     enregistrée en base avec une liste de résultats vide.
 
-    Args:
-        request (Request): Objet de requête FastAPI, pour extraire l'adresse IP du client pour
-            le système de rate limiting.
-        file (UploadFile): Fichier image uploadé par le client, injecté
-            automatiquement par FastAPI via ``File(...)``.
-        current_user (User): Utilisateur authentifié, injecté par
-            ``get_current_active_user``. Déclenche une erreur HTTP 401
-            si le token est absent, expiré ou invalide.
-        db (Session): Session SQLAlchemy injectée automatiquement par
-            la dépendance ``get_db``.
+    :param request: Objet de requête FastAPI, pour extraire l'adresse IP du client pour
+                    le système de rate limiting.
+    :type request: Request
+    :param file: Fichier image uploadé par le client, injecté
+                 automatiquement par FastAPI via ``File(...)``.
+    :type file: UploadFile
+    :param current_user: Utilisateur authentifié, injecté par
+                         ``get_current_active_user``. Déclenche une erreur HTTP 401
+                         si le token est absent, expiré ou invalide.
+    :type current_user: User
+    :param db: Session SQLAlchemy injectée automatiquement par
+               la dépendance ``get_db``.
+    :type db: Session
 
-    Returns:
-        dict: Dictionnaire contenant ``filename`` (nom du fichier
-            soumis), ``results`` (liste des plaques détectées avec
-            ``plate_text`` et ``confidence``) et ``prediction_id``
-            (identifiant unique de la prédiction en base).
+    :return: Dictionnaire contenant ``filename`` (nom du fichier
+             soumis), ``results`` (liste des plaques détectées avec
+             ``plate_text`` et ``confidence``) et ``prediction_id``
+             (identifiant unique de la prédiction en base).
+    :rtype: dict
 
-    Raises:
-        HTTPException (503): Si le modèle de prédiction n'a pas encore
-            été chargé en mémoire.
-        HTTPException (400): Si le fichier fourni n'est pas une image
-            valide exploitable par le pipeline de détection.
+    :raises HTTPException: (503) Si le modèle de prédiction n'a pas encore
+                           été chargé en mémoire.
+    :raises HTTPException: (400) Si le fichier fourni n'est pas une image
+                           valide exploitable par le pipeline de détection.
     """
     contents = await file.read()
 
@@ -146,21 +148,24 @@ async def get_prediction_history(
     qui s'appliquent au niveau des prédictions en base (et non au niveau
     des entrées individuelles retournées).
 
-    Args:
-        skip (int): Nombre de prédictions à ignorer depuis le début de
-            la liste (offset). Par défaut ``0``.
-        limit (int): Nombre maximum de prédictions à récupérer. Par
-            défaut ``100``.
-        current_user (User): Utilisateur authentifié, injecté par
-            ``get_current_active_user``. Déclenche une erreur HTTP 401
-            si le token est absent, expiré ou invalide.
-        db (Session): Session SQLAlchemy injectée automatiquement par
-            la dépendance ``get_db``.
+    :param skip: Nombre de prédictions à ignorer depuis le début de
+                 la liste (offset). Par défaut ``0``.
+    :type skip: int
+    :param limit: Nombre maximum de prédictions à récupérer. Par
+                  défaut ``100``.
+    :type limit: int
+    :param current_user: Utilisateur authentifié, injecté par
+                         ``get_current_active_user``. Déclenche une erreur HTTP 401
+                         si le token est absent, expiré ou invalide.
+    :type current_user: User
+    :param db: Session SQLAlchemy injectée automatiquement par
+               la dépendance ``get_db``.
+    :type db: Session
 
-    Returns:
-        dic[list[PlateHistory]]: Liste des entrées d'historique contenant
-            chacune ``id``, ``plate_text``, ``confidence`` et
-            ``created_at``.
+    :return: Liste des entrées d'historique contenant
+             chacune ``id``, ``plate_text``, ``confidence`` et
+             ``created_at``.
+    :rtype: dict[list[PlateHistory]]
     """
     predictions = get_user_predictions(db, current_user.id, skip=skip, limit=limit)
     history = []
@@ -202,15 +207,16 @@ async def get_prediction_statistics(
     front-end permettant à l'utilisateur de suivre son activité sur
     la plateforme.
 
-    Args:
-        current_user (User): Utilisateur authentifié, injecté par
-            ``get_current_active_user``. Déclenche une erreur HTTP 401
-            si le token est absent, expiré ou invalide.
-        db (Session): Session SQLAlchemy injectée automatiquement par
-            la dépendance ``get_db``.
+    :param current_user: Utilisateur authentifié, injecté par
+                         ``get_current_active_user``. Déclenche une erreur HTTP 401
+                         si le token est absent, expiré ou invalide.
+    :type current_user: User
+    :param db: Session SQLAlchemy injectée automatiquement par
+               la dépendance ``get_db``.
+    :type db: Session
 
-    Returns:
-        PlateStats: Statistiques agrégées des prédictions de
-            l'utilisateur (total, réussies, taux de détection, etc.).
+    :return: Statistiques agrégées des prédictions de
+             l'utilisateur (total, réussies, taux de détection, etc.).
+    :rtype: PlateStats
     """
     return get_user_prediction_stats(db, current_user.id)

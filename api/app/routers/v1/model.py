@@ -43,19 +43,17 @@ async def get_model_info():
     et les tableaux de bord de supervision afin de s'assurer que le modèle
     est opérationnel avant de soumettre des requêtes de prédiction.
 
-    Returns:
-        dict: Dictionnaire contenant les clés suivantes :
-            - ``loaded`` (bool) : ``True`` si le modèle est chargé en
-              mémoire et prêt à effectuer des prédictions.
-            - ``model_type`` (str) : Description du pipeline utilisé
-              (``"YOLO ONNX (HuggingFace) + EasyOCR"``).
-            - ``pipeline`` (str) : Nom interne du pipeline
-              (``"LPRPipeline"``).
-
-    Raises:
-        HTTPException (500) : Si une erreur inattendue survient lors de
-            l'interrogation du prédicteur (modèle non initialisé,
-            dépendance manquante, etc.).
+    :return: Dictionnaire contenant les clés suivantes :
+             - ``loaded`` (bool) : ``True`` si le modèle est chargé en
+               mémoire et prêt à effectuer des prédictions.
+             - ``model_type`` (str) : Description du pipeline utilisé
+               (``"YOLO ONNX (HuggingFace) + EasyOCR"``).
+             - ``pipeline`` (str) : Nom interne du pipeline
+               (``"LPRPipeline"``).
+    :rtype: dict
+    :raises HTTPException: (500) Si une erreur inattendue survient lors de
+                           l'interrogation du prédicteur (modèle non initialisé,
+                           dépendance manquante, etc.).
     """
     try:
         return {

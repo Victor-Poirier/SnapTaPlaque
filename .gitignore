@@ -22,4 +22,5 @@ local.properties
 /build
 /scripts
 model.mlpackage
-.xcodeproj
+*.xcodeproj
+*.doccarchive

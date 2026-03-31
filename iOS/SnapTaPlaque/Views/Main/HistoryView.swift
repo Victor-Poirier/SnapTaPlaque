@@ -7,17 +7,29 @@
 
 import SwiftUI
 
+/// La vue principale affichant l'historique complet des véhicules scannés par l'utilisateur.
+///
+/// `HistoryView` utilise le `VehicleService` pour interroger l'API distante de manière asynchrone
+/// et dresse une liste chronologique (`.reversed()`) des différentes requêtes passées via un composant SwiftUI orienté `List`.
+/// Un clic sur une cellule ouvre le véhicule concerné pour afficher des détails approfondis.
 struct HistoryView: View {
+    
+    /// Un tableau stockant l'ensemble de l'historique téléchargé depuis l'API.
     @State private var historyList: [HistoryVehicleItem] = []
+    
+    /// Détermine si un appel réseau (rafraîchissement ou accès initial) est en cours de téléchargement.
     @State private var isLoading = true
+    
+    /// Une chaîne de caractères contenant une erreur métier si le réseau échoue.
     @State private var errorMessage: String?
     
-    // NOUVEAU : Variables pour gérer la modale
+    /// Un pointeur vers le véhicule que l'utilisateur souhaite scruter en détail.
+    /// Si cette donnée est renseignée, la modale (`sheet`) s'ouvre automatiquement.
     @State private var selectedVehicle: Vehicle? = nil
-    
     
     private let vehicleService = VehicleService()
     
+    /// Le contenu visuel (body) de la vue d'historique `HistoryView`.
     var body: some View {
         NavigationView {
             ZStack {
@@ -52,14 +64,12 @@ struct HistoryView: View {
                     }
                 } else {
                     List(historyList) { historyItem in
-                        // NOUVEAU : On rend la ligne cliquable
                         Button(action: {
                             // On convertit l'historique en véhicule
                             selectedVehicle = historyItem.toVehicle()
                         }) {
                             HistoryRow(vehicle: historyItem)
                         }
-                        // Pour que le bouton n'ait pas le style "texte bleu" par défaut
                         .buttonStyle(.plain)
                     }
                     .listStyle(.insetGrouped)
@@ -75,6 +85,11 @@ struct HistoryView: View {
         }
     }
     
+    /// Lance un rafraîchissement global de l'historique de recherche en sollicitant l'API réseau.
+    ///
+    /// Extrait la grappe JSON via le composant asynchrone `getHistory()`,
+    /// manipule (`.reversed()`) les résultats pour présenter les dernières immatriculations en premier,
+    /// puis clôture l'indicateur de chargement (`isLoading = false`).
     private func loadHistory() async {
         if historyList.isEmpty { isLoading = true }
         errorMessage = nil
@@ -82,7 +97,6 @@ struct HistoryView: View {
         do {
             let response = try await vehicleService.getHistory()
             
-            // NOUVEAU : On utilise .reversed() pour mettre la dernière recherche tout en haut !
             historyList = response.history.reversed()
             
         } catch {
@@ -95,13 +109,22 @@ struct HistoryView: View {
 }
 
 // MARK: - Le design d'une ligne (Cellule) de la liste
+
+/// Un composant horizontal représentant une unique ligne (cellule) au sein du tableau d'historique global.
+///
+/// Modèle structuré pour dévoiler le logo (téléchargé asynchronement depuis l'URL formatée GitHub à l'aide de
+/// la méthode de nommage par slug), ainsi que le numéro de plaque avec la police `.monospaced` et le nom du modèle.
 struct HistoryRow: View {
+    
+    /// La structure de données provenant de l'historique API.
     let vehicle: HistoryVehicleItem
     
-    // On réutilise la même logique que pour la modale
+    /// Construit l'URL externe à destination d'un repo GitHub distant pour rafraîchir un logo de marque automobile.
+    ///
+    /// - Note: Cette propriété génère un "slug" adapté (minuscules, tirets en remplacement d'espaces).
     var logoURL: URL? {
         guard let brand = vehicle.brand else { return nil }
-        let slug = brand.lowercased().trimmingCharacters(in: .whitespaces).replacingOccurrences(of: " ", with: "-")
+        let slug = brand.lowercased().trimmingCharacters(in: .whitespaces).replacingOccurrences(of: " ", with: "-").replacingOccurrences(of: "ë", with: "e")
         return URL(string: "https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/\(slug).png")
     }
     

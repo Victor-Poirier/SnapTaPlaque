@@ -16,7 +16,14 @@ from huggingface_hub import hf_hub_download
 
 
 class CFG:
-    """Configuration du moteur LPR HuggingFace."""
+    """
+    Configuration du moteur LPR HuggingFace.
+    
+    Cette classe regroupe l'ensemble des paramètres de configuration statiques
+    utilisés par le pipeline de reconnaissance de plaques d'immatriculation.
+    Les valeurs sont initialisées par défaut ou peuvent être surchargées via 
+    des variables d'environnement.
+    """
 
     hf_repo_id = os.getenv("LPR_HF_REPO_ID", "0xnu/european-license-plate-recognition")
     hf_model_filename = os.getenv("LPR_HF_MODEL_FILENAME", "model.onnx")
@@ -37,8 +44,23 @@ class CFG:
 
 
 class LPRPipeline:
+    """
+    Pipeline de reconnaissance de plaques (LPR) combinant YOLOv12 et EasyOCR.
+    
+    Cette classe gère le téléchargement des modèles depuis HuggingFace, l'initialisation
+    des moteurs de détection (YOLO) et de lecture (EasyOCR), ainsi que le traitement 
+    des images pour en extraire le texte des plaques d'immatriculation.
+    """
+
     def __init__(self):
-        """Initialise YOLO ONNX + EasyOCR avec fallback offline."""
+        """
+        Initialise YOLO ONNX + EasyOCR avec fallback offline.
+        
+        Ce constructeur télécharge les poids et la configuration du modèle YOLO 
+        depuis le HuggingFace Hub s'ils ne sont pas déjà en cache. Il instancie ensuite
+        les objets YOLO et EasyOCR. Si activé dans la configuration, un système de 
+        préchauffage (warmup) est lancé.
+        """
         warnings.filterwarnings("ignore")
 
         # Téléchargement via HuggingFace Hub (utilise le cache si disponible)
@@ -66,7 +88,13 @@ class LPRPipeline:
             self._warmup()
 
     def _warmup(self) -> None:
-        """Lance une passe a blanc pour compiler les kernels ONNX avant la 1ere requete."""
+        """
+        Lance une passe à blanc pour compiler les kernels ONNX avant la 1ere requête.
+        
+        Permet d'éviter un pic de latence lors de la première utilisation de l'inférence.
+        En cas d'échec du préchauffage, l'erreur est volontairement ignorée pour ne pas 
+        bloquer l'exécution globale.
+        """
         try:
             size = CFG.warmup_img_size
             dummy = np.zeros((size, size, 3), dtype=np.uint8)
@@ -76,7 +104,17 @@ class LPRPipeline:
             pass
 
     def extract_roi(self, image: np.ndarray, bbox: list) -> np.ndarray:
-        """Extrait une ROI en bornant les coordonnees a l'image."""
+        """
+        Extrait une région d'intérêt (ROI) de l'image en bornant les coordonnées.
+
+        :param image: L'image source depuis laquelle extraire la région.
+        :type image: numpy.ndarray
+        :param bbox: Une liste contenant les coordonnées de la boîte englobante 
+                     au format [x_min, y_min, x_max, y_max].
+        :type bbox: list
+        :return: L'image recadrée correspondante à la région d'intérêt.
+        :rtype: numpy.ndarray
+        """
         x_min, y_min, x_max, y_max = map(int, bbox)
 
         h, w = image.shape[:2]
@@ -88,7 +126,20 @@ class LPRPipeline:
         return image[y_min:y_max, x_min:x_max]
 
     def extract_ocr(self, roi_img: np.ndarray) -> tuple:
-        """Retourne (texte_plaque, confiance_max) pour un crop de plaque."""
+        """
+        Extrait le texte de la plaque d'immatriculation via EasyOCR sur une zone recadrée.
+
+        Traite l'image par conversion en niveaux de gris, amélioration du contraste 
+        (CLAHE), redimensionnement si nécessaire et ajout de bordures, avant d'appliquer 
+        la reconnaissance optique de caractères.
+
+        :param roi_img: Image recadrée (Région d'Intérêt) représentant la plaque.
+        :type roi_img: numpy.ndarray
+        :return: Un tuple contenant le texte reconnu et le score de confiance maximum.
+                 Retourne ("", 0.0) si l'image est vide ou si aucune reconnaissance 
+                 n'atteint le seuil de confiance minimal.
+        :rtype: tuple (str, float)
+        """
         if roi_img.size == 0:
             return "", 0.0
 
@@ -126,8 +177,16 @@ class LPRPipeline:
 
     def run(self, image_np: np.ndarray) -> list:
         """
-        Execute la detection et retourne une liste de:
-        {"plate": <str>, "confidence": <float>}.
+        Exécute la détection des plaques puis l'OCR sur une image complète.
+
+        Cette méthode prend une image en entrée, lance la détection avec le modèle YOLO, 
+        extrait chaque zone détectée avec une légère marge de tolérance, et y applique l'OCR.
+
+        :param image_np: L'image complète sur laquelle rechercher les plaques, au format BGR.
+        :type image_np: numpy.ndarray
+        :return: Une liste de dictionnaires, chaque dictionnaire contenant le texte 
+                 de la plaque (clé "plate") et sa confiance (clé "confidence").
+        :rtype: list
         """
         plates_found = []
 

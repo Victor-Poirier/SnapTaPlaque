@@ -42,19 +42,19 @@ def get_current_user(db: Session = Depends(get_db), username: str = "admin") -> 
         valeur doit être extraite du token d'authentification ou d'un
         autre mécanisme d'identification sécurisé.
 
-    Args:
-        db (Session): Session SQLAlchemy injectée automatiquement par
-            la dépendance ``get_db``.
-        username (str): Nom d'utilisateur à rechercher en base de
-            données. Par défaut ``"admin"``.
+    :param db: Session SQLAlchemy injectée automatiquement par
+               la dépendance ``get_db``.
+    :type db: Session
+    :param username: Nom d'utilisateur à rechercher en base de
+                     données. Par défaut ``"admin"``.
+    :type username: str
 
-    Returns:
-        User: Instance ORM de l'utilisateur authentifié et actif.
+    :return: Instance ORM de l'utilisateur authentifié et actif.
+    :rtype: User
 
-    Raises:
-        HTTPException (401): Si aucun utilisateur ne correspond au nom
-            fourni ou si le compte de l'utilisateur est désactivé
-            (``is_active=False``).
+    :raises HTTPException: (401) Si aucun utilisateur ne correspond au nom
+                           fourni ou si le compte de l'utilisateur est désactivé
+                           (``is_active=False``).
     """
     user = get_user_by_username(db, username=username)
     if not user or not user.is_active:
@@ -75,17 +75,16 @@ def get_current_admin_user(current_user: User = Depends(get_current_user)) -> Us
     nécessitant des privilèges élevés (gestion des utilisateurs,
     consultation des statistiques globales, etc.).
 
-    Args:
-        current_user (User): Utilisateur authentifié et actif, injecté
-            automatiquement par la dépendance ``get_current_user``.
+    :param current_user: Utilisateur authentifié et actif, injecté
+                         automatiquement par la dépendance ``get_current_user``.
+    :type current_user: User
 
-    Returns:
-        User: Instance ORM de l'utilisateur authentifié, actif et
-            disposant des privilèges d'administration.
+    :return: Instance ORM de l'utilisateur authentifié, actif et
+             disposant des privilèges d'administration.
+    :rtype: User
 
-    Raises:
-        HTTPException (403): Si l'utilisateur ne possède pas le rôle
-            administrateur (``is_admin=False``).
+    :raises HTTPException: (403) Si l'utilisateur ne possède pas le rôle
+                           administrateur (``is_admin=False``).
     """
     if not current_user.is_admin:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not an admin")

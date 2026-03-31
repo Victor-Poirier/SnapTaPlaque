@@ -8,9 +8,20 @@
 import Foundation
 import Combine
 
+/// Un gestionnaire de session utilisateur chargé de maintenir l'état d'authentification.
+///
+/// `SessionManager` utilise `UserDefaults` pour persister le jeton d'accès (JWT) de l'utilisateur.
+/// Il vérifie automatiquement l'expiration du jeton au lancement et expose l'état de connexion (`isLoggedIn`)
+/// pour réagir dynamiquement dans les vues SwiftUI.
 class SessionManager: ObservableObject {
+    
+    /// L'instance partagée (singleton) du gestionnaire de session.
     static let shared = SessionManager()
     
+    /// Indique si un utilisateur est actuellement authentifié.
+    ///
+    /// Cette propriété est publiée (`@Published`), ce qui permet aux vues SwiftUI
+    /// de se recharger automatiquement lors d'une connexion ou déconnexion.
     @Published var isLoggedIn: Bool = false
     
     private let tokenKey = "user_access_token"
@@ -20,7 +31,9 @@ class SessionManager: ObservableObject {
         verifySessionOnLaunch()
     }
     
-    /// Vérifie si le token existe ET s'il n'est pas expiré
+    /// Vérifie si le jeton existe et s'il n'est pas expiré au démarrage de l'application.
+    ///
+    /// Si le jeton est expiré, la session est automatiquement fermée via `logout()`.
     private func verifySessionOnLaunch() {
         guard let token = getToken() else {
             self.isLoggedIn = false
@@ -36,6 +49,11 @@ class SessionManager: ObservableObject {
         }
     }
     
+    /// Sauvegarde le jeton d'accès de l'utilisateur et met à jour l'état de la session.
+    ///
+    /// Le jeton est persisté de manière asynchrone pour recharger l'interface en toute sécurité.
+    ///
+    /// - Parameter token: Le jeton JWT (JSON Web Token) sous forme de chaîne de caractères.
     func saveToken(_ token: String) {
         UserDefaults.standard.set(token, forKey: tokenKey)
         DispatchQueue.main.async {
@@ -43,10 +61,14 @@ class SessionManager: ObservableObject {
         }
     }
     
+    /// Récupère le jeton d'accès actuellement persisté.
+    ///
+    /// - Returns: Le jeton JWT s'il existe, sinon `nil`.
     func getToken() -> String? {
         return UserDefaults.standard.string(forKey: tokenKey)
     }
     
+    /// Déconnecte l'utilisateur en supprimant son jeton d'accès et met à jour l'état de la session.
     func logout() {
         UserDefaults.standard.removeObject(forKey: tokenKey)
         DispatchQueue.main.async {
@@ -55,7 +77,11 @@ class SessionManager: ObservableObject {
     }
     
     // MARK: - JWT Decoder
-    /// Décode le JWT localement pour lire la date d'expiration ("exp")
+    
+    /// Décode localement un jeton JWT pour vérifier sa date d'expiration (`exp`).
+    ///
+    /// - Parameter token: Le jeton JWT à analyser.
+    /// - Returns: `true` si le jeton est expiré ou invalide, `false` s'il est encore valide.
     private func isTokenExpired(token: String) -> Bool {
         let parts = token.components(separatedBy: ".")
         guard parts.count == 3 else { return true } // Un JWT a toujours 3 parties

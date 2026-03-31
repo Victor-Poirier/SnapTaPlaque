@@ -7,6 +7,11 @@
 
 import SwiftUI
 
+/// La vue dédiée à l'inscription d'un nouvel utilisateur sur "SnapTaPlaque".
+///
+/// `SignUpView` permet à l'utilisateur de renseigner ses informations personnelles (pseudo, email, nom, mot de passe),
+/// de valider son consentement RGPD (obligatoire) et déclenche l'appel réseau vers l'API. Sur une inscription réussie,
+/// l'utilisateur est automatiquement connecté.
 struct SignUpView: View {
     // Permet de revenir en arrière (vers la page de connexion)
     @Environment(\.dismiss) var dismiss
@@ -25,19 +30,20 @@ struct SignUpView: View {
     
     private let accountService = AccountService()
     
+    /// Le contenu visuel (body) de la vue d'inscription SwiftUI.
     var body: some View {
         ScrollView {
             VStack(spacing: 20) {
                 
                 // 1. Logo
-                Image("logo") // Remplacez par Image("logo")
+                Image("logo2")
                     .resizable()
                     .scaledToFit()
                     .frame(width: 140, height: 100)
                     .foregroundColor(.blue)
                     .padding(.top, 24)
                 
-                // 2. Conteneur principal (équivalent de votre LinearLayout @drawable/cadre_formulaire)
+                // 2. Conteneur principal
                 VStack(spacing: 16) {
                     Text("Rejoignez-nous")
                         .font(.title2)
@@ -49,7 +55,6 @@ struct SignUpView: View {
                         TextField("Identifiant", text: $username)
                             .autocapitalization(.none)
                             .onChange(of: username) { _, newValue in
-                                // Équivalent de replaceAll("[^a-zA-Z0-9]", "")
                                 username = newValue.filter { $0.isLetter || $0.isNumber }
                             }
                         
@@ -65,7 +70,7 @@ struct SignUpView: View {
                     .background(Color(.systemGray6))
                     .cornerRadius(10)
                     
-                    // RGPD (équivalent du SwitchCompat)
+                    // RGPD
                     Toggle(isOn: $gdprConsent) {
                         Text("J'accepte la politique de confidentialité")
                             .font(.footnote)
@@ -104,7 +109,7 @@ struct SignUpView: View {
                     .padding(.top, 10)
                 }
                 .padding(20)
-                .background(Color(.systemBackground)) // Fond blanc/noir selon thème
+                .background(Color(.systemBackground))
                 .cornerRadius(20)
                 .shadow(radius: 5)
                 .padding(.horizontal, 24)
@@ -141,7 +146,12 @@ struct SignUpView: View {
         }
     }
     
-    // Logique d'inscription
+    /// Procède à la validation locale des champs puis amorce l'inscription via l'API réseau.
+    ///
+    /// Cette fonction asynchrone réalise un nettoyage de base sur les entrées de texte (retrait des espaces).
+    /// Si le formulaire est valide et que le RGPD est accepté, elle envoie une `RegisterRequest`.
+    /// En cas de succès, elle lance de manière consécutive une requête `login` (connexion tacite)
+    /// et enregistre le token via le `SessionManager` pour charger automatiquement la vue principale.
     private func performRegister() async {
         let cleanUsername = username.trimmingCharacters(in: .whitespaces)
         let cleanEmail = email.trimmingCharacters(in: .whitespaces)
@@ -172,7 +182,7 @@ struct SignUpView: View {
             // 2. Connexion automatique
             let loginResponse = try await accountService.login(credentials: LoginRequest(username: cleanUsername, password: password))
             
-            // 3. Sauvegarde du token (C'est ceci qui va déclencher le changement d'écran !)
+            // 3. Sauvegarde du token
             SessionManager.shared.saveToken(loginResponse.accessToken)
             
         } catch {

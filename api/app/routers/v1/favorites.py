@@ -50,23 +50,23 @@ def add_favorite(
     authentifié. Si le véhicule est déjà présent dans les favoris,
     une erreur HTTP 400 est retournée.
 
-    Args:
-        license_plate (str): Plaque d'immatriculation du véhicule à
-            ajouter aux favoris, transmise en paramètre de requête.
-        db (Session): Session SQLAlchemy injectée automatiquement par
-            la dépendance ``get_db``.
-        current_user (User): Utilisateur authentifié, injecté par
-            ``get_current_user``. Déclenche une erreur HTTP 401 si le
-            token est absent, expiré ou invalide.
+    :param license_plate: Plaque d'immatriculation du véhicule à
+                          ajouter aux favoris, transmise en paramètre de requête.
+    :type license_plate: str
+    :param db: Session SQLAlchemy injectée automatiquement par
+               la dépendance ``get_db``.
+    :type db: Session
+    :param current_user: Utilisateur authentifié, injecté par
+                         ``get_current_user``. Déclenche une erreur HTTP 401 si le
+                         token est absent, expiré ou invalide.
+    :type current_user: User
 
-    Returns:
-        dict: Message de confirmation contenant la clé ``message``.
-
-    Raises:
-        HTTPException (404): Si aucun véhicule ne correspond à la plaque
-            d'immatriculation fournie.
-        HTTPException (400): Si le véhicule est déjà présent dans la
-            liste des favoris de l'utilisateur.
+    :return: Message de confirmation contenant la clé ``message``.
+    :rtype: dict
+    :raises HTTPException: (404) Si aucun véhicule ne correspond à la plaque
+                           d'immatriculation fournie.
+    :raises HTTPException: (400) Si le véhicule est déjà présent dans la
+                           liste des favoris de l'utilisateur.
     """
     vehicle = crud.get_vehicle_by_license_plate(db, license_plate)
     if not vehicle:
@@ -100,17 +100,19 @@ def remove_favorite(
     requête. Si le véhicule n'était pas dans les favoris, l'opération
     est silencieusement ignorée.
 
-    Args:
-        license_plate (str): Plaque d'immatriculation du véhicule à
-            retirer des favoris, transmise en paramètre de requête.
-        db (Session): Session SQLAlchemy injectée automatiquement par
-            la dépendance ``get_db``.
-        current_user (User): Utilisateur authentifié, injecté par
-            ``get_current_user``. Déclenche une erreur HTTP 401 si le
-            token est absent, expiré ou invalide.
+    :param license_plate: Plaque d'immatriculation du véhicule à
+                          retirer des favoris, transmise en paramètre de requête.
+    :type license_plate: str
+    :param db: Session SQLAlchemy injectée automatiquement par
+               la dépendance ``get_db``.
+    :type db: Session
+    :param current_user: Utilisateur authentifié, injecté par
+                         ``get_current_user``. Déclenche une erreur HTTP 401 si le
+                         token est absent, expiré ou invalide.
+    :type current_user: User
 
-    Returns:
-        dict: Message de confirmation contenant la clé ``message``.
+    :return: Message de confirmation contenant la clé ``message``.
+    :rtype: dict
     """
     crud.remove_favorite(db, current_user.id, license_plate)
     return {"message": "Véhicule retiré des favoris."}
@@ -131,17 +133,18 @@ def get_favorites(
     ``VehicleInfoResponse``. Si l'utilisateur n'a aucun favori, une
     liste vide est retournée.
 
-    Args:
-        db (Session): Session SQLAlchemy injectée automatiquement par
-            la dépendance ``get_db``.
-        current_user (User): Utilisateur authentifié, injecté par
-            ``get_current_user``. Déclenche une erreur HTTP 401 si le
-            token est absent, expiré ou invalide.
+    :param db: Session SQLAlchemy injectée automatiquement par
+               la dépendance ``get_db``.
+    :type db: Session
+    :param current_user: Utilisateur authentifié, injecté par
+                         ``get_current_user``. Déclenche une erreur HTTP 401 si le
+                         token est absent, expiré ou invalide.
+    :type current_user: User
 
-    Returns:
-        Liste des véhicules favoris de
-            l'utilisateur avec leurs informations complètes (plaque,
-            marque, modèle, année, etc.).
+    :return: Un dictionnaire contenant la liste des véhicules favoris de
+             l'utilisateur avec leurs informations complètes (plaque,
+             marque, modèle, année, etc.) sous la clé ``favorites``.
+    :rtype: dict
     """
     return  {
             "favorites":

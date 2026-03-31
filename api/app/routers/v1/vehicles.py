@@ -45,9 +45,9 @@ async def get_vehicle_info(
     :type db: Session
     :param current_user: Utilisateur extrait du token JWT.
     :type current_user: User
-    :raises HTTPException 404: Si le véhicule est introuvable.
-    :raises HTTPException 503: Si le service tiers est indisponible.
-    :returns: Objet contenant les détails du véhicule.
+    :raises HTTPException: (404) Si le véhicule est introuvable.
+    :raises HTTPException: (503) Si le service tiers est indisponible.
+    :return: Objet contenant les détails du véhicule.
     :rtype: schemas.VehicleInfoResponse
     """
     # 1. Nettoyage de la plaque
@@ -102,8 +102,10 @@ async def get_vehicle_info_history(
     :type db: Session
     :param current_user: Utilisateur extrait du token JWT.
     :type current_user: User
-    :returns: Liste d'entrées d'historique des véhicules.
+    :return: Liste d'entrées d'historique des véhicules sous le schéma attendu.
     :rtype: schemas.VehicleInfoHistoryResponse
+    :raises HTTPException: (503) Si une erreur survient lors de la récupération, 
+                           notamment lors de l'accès à la base de données.
     """
     try:
         history_entries = crud.get_vehicle_info_history_by_user(db, current_user.id)
@@ -114,4 +116,4 @@ async def get_vehicle_info_history(
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Erreur lors de la récupération de l'historique des véhicules."
-        )  
+        )

@@ -7,14 +7,21 @@
 
 import SwiftUI
 
+/// Composant racinaire de l'application gérant la navigation principale via des onglets.
+///
+/// `MainTabView` encapsule les vues principales de l'application (`HistoryView`, `SearchView` et `ProfileView`)
+/// dans un pager swipable en s'appuyant sur un menu de navigation personnalisé et flottant placé au bas de l'écran.
 struct MainTabView: View {
+    
+    /// Suit l'index actuellement actif (0 = Historique, 1 = Recherche, 2 = Profil).
+    /// Est initialisé à 1 pour ouvrir l'application directement sur l'onglet de Recherche (Le scanner).
     @State private var selectedTab = 1
     
+    /// Le rendu déclaratif configurant la pagination entre les trois vues de premier niveau.
     var body: some View {
         ZStack(alignment: .bottom) {
             
-            // --- CORRECTION : Un fond global qui force le remplissage jusqu'en bas ---
-            Color(.systemBackground) // Utilisez .systemGroupedBackground si vous préférez un fond légèrement gris
+            Color(.systemBackground)
                 .ignoresSafeArea()
             
             // 1. Le contenu principal swipable horizontalement
@@ -41,13 +48,20 @@ struct MainTabView: View {
 }
 
 // MARK: - La Barre de Navigation Premium
+
+/// Le menu de navigation flottant (Dock) personnalisé affiché en bas de l'écran.
+///
+/// Cette vue remplace avantageusement le style iOS basique en introduisant
+/// une barre encapsulée dans une forme `Capsule` avec un effet translucide (`.ultraThinMaterial`).
 struct CustomBottomNavBar: View {
+    
+    /// Une liaison avec la variable parente qui gère l'état global de tabulation en affichant un effet d'animation.
     @Binding var selectedTab: Int
     
     var body: some View {
         HStack(spacing: 0) {
             NavBarItem(icon: "clock.fill", title: "Historique", isActive: selectedTab == 0) {
-                selectedTab = 0 // L'animation est maintenant gérée globalement
+                selectedTab = 0
             }
             
             Spacer()
@@ -68,17 +82,30 @@ struct CustomBottomNavBar: View {
         .clipShape(Capsule())
         .shadow(color: Color.black.opacity(0.15), radius: 15, x: 0, y: 8)
         .padding(.horizontal, 30)
-        // Petit ajustement pour bien la placer au-dessus de la barre d'accueil iOS
         .padding(.bottom, 10)
         .ignoresSafeArea(.all, edges: .bottom)
     }
 }
 
 // MARK: - Un bouton dynamique
+
+/// Élément individuel interactif constituant l'un des onglets de `CustomBottomNavBar`.
+///
+/// Ce composant réagit visuellement à l'état `isActive`. Lorsqu'il est sélectionné, sa forme
+/// s'étire via un fond bleu encerclant et affichant dynamiquement la propriété texte du `title`
+/// à côté de l'image vectorielle SF Symbols.
 struct NavBarItem: View {
+    
+    /// Le nom de l'icône à exploiter depuis la bibliothèque SF Symbols (ex: `"clock.fill"`).
     let icon: String
+    
+    /// L'étiquette de texte s'animant sur l'interface si l'élément est actif.
     let title: String
+    
+    /// Condition booléenne vérifiant si le bouton représente actuellement l'onglet en surbrillance.
     let isActive: Bool
+    
+    /// Une closure (bloc de fonction) exécutée localement par SwiftUI lors du tap sur l'objet ciblé.
     let action: () -> Void
     
     var body: some View {
@@ -109,4 +136,3 @@ struct MainTabView_Previews: PreviewProvider {
         MainTabView()
     }
 }
-

@@ -7,31 +7,53 @@
 
 import SwiftUI
 
+/// La vue dédiée à l'analyse d'image (OCR) et à la recherche automatisée de véhicule par immatriculation.
+///
+/// `PictureView` orchestre l'ensemble du flux photographique de l'application :
+/// - Sélection d'une image (depuis la caméra ou la photothèque locale).
+/// - Extration asynchrone du texte via `PredictionService` (basé sur le framework Vision d'Apple).
+/// - Affichage du résultat, et appel ultérieur éventuel au `VehicleService` pour
+///   récupérer les détails complets de la plaque si celle-ci a été identifiée sur le réseau.
 struct PictureView: View {
-    // Gestion du menu et du sélecteur
+    
+    /// Déclenche l'apparition de la modale réclamant à l'utilisateur s'il souhaite prendre une nouvelle photo
+    /// ou utiliser une image existante depuis sa photothèque.
     @State private var showActionSheet = false
+    
+    /// Lance l'affichage du widget système natif `UIImagePickerController`.
     @State private var showImagePicker = false
+    
+    /// Retient la source du média désirée par l'utilisateur (caméra / photothèque).
     @State private var imageSourceType: UIImagePickerController.SourceType = .camera
     
+    /// La photo récupérée avec succès une fois le processus de l'ImagePicker finalisé.
     @State private var capturedImage: UIImage? = nil
     
+    /// Détermine si le service d'analyse (`Vision API`) est actuellement en train de traiter l'image.
     @State private var isPredicting = false
+    
+    /// Résultat stringifié de l'analyse (numéro de plaque "nettoyé").
     @State private var predictedPlate: String = ""
     
     private let vehicleService = VehicleService()
     private let predictionService = PredictionService()
     
+    /// Object `Vehicle` récupéré si la recherche sur l'API distante avec le numéro de plaque a réussi.
+    /// Il déclenchera automatiquement l'affichage modal `.sheet` de `VehicleDetailView`.
     @State private var vehicleResult: Vehicle? = nil
+    
+    /// Le corps du message d'erreur éventuel lors de l'étude (image corrompue, plaque introuvable).
     @State private var errorMessage: String?
+    
+    /// Déclencheur conditionnel d'une carte d'alerte `Alert` à l'écran concernant l'attribut `errorMessage`.
     @State private var showAlert = false
     
+    /// Le rendu déclaratif SwiftUI représentant le scanner dynamique de la vue.
     var body: some View {
         VStack(spacing: 30) {
             
             if let image = capturedImage {
                 
-                
-                // ... (GARDEZ TOUT LE BLOC D'AFFICHAGE DE L'IMAGE ET DES RÉSULTATS ICI) ...
                 
                 Image(uiImage: image)
                     .resizable()
@@ -146,6 +168,12 @@ struct PictureView: View {
     
     // MARK: - Logique
     
+    /// Délègue le travail d'extraction visuelle de l'image (OCR) à notre couche de service asynchrone.
+    ///
+    /// - Parameter image: L'objet complexe en mémoire (`UIImage`) issu directement du sélecteur `ImagePicker`.
+    ///
+    /// - Note: Bascule la variable d'état local `isPredicting` à `true` pendant la phase de traitement et met
+    ///         à jour la vue exclusivement sur le `$MainActor` afin de respecter la boucle SwiftUI.
     private func runPrediction(on image: UIImage) {
         isPredicting = true
         predictedPlate = ""
@@ -168,6 +196,10 @@ struct PictureView: View {
         }
     }
     
+    /// Recherche la plaque récemment extraite pour obtenir la "carte d'identification" complète du véhicule via le serveur.
+    ///
+    /// Cette méthode asynchrone prend le relais de l'OCR. Elle traduit la réponse distante JSON en modèle natif (`Vehicle`)
+    /// de façon à déclencher immédiatement la vue de détail liée.
     private func searchDetectedPlate() {
         Task {
             do {
@@ -181,9 +213,9 @@ struct PictureView: View {
     }
 }
 
+/// Aperçu dans l'éditeur (Canvas) pour la vue `PictureView`.
 struct PictureView_Previews: PreviewProvider {
     static var previews: some View {
         PictureView()
     }
 }
-

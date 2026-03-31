@@ -13,7 +13,7 @@ Modules :
       connexion, consultation du profil via token JWT).
     - ``predictions.py``   — Endpoints de soumission d'images et de
       consultation des résultats de reconnaissance de plaques
-      (pipeline YOLOv8 + EasyOCR).
+      (pipeline YOLOv12 ONNX + EasyOCR).
     - ``admin.py``         — Endpoints d'administration réservés aux
       utilisateurs avec le rôle administrateur (liste des utilisateurs,
       statistiques globales de la plateforme).
