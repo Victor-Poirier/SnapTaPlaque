@@ -168,6 +168,9 @@ async def startup_event():
     malgré tout mais les endpoints de prédiction retourneront une
     erreur HTTP 503 tant que le modèle n'aura pas été chargé avec
     succès.
+
+    :return: None
+    :rtype: NoneType
     """
 
     create_tables()
@@ -187,6 +190,9 @@ async def shutdown_event():
     Gestionnaire d'événement FastAPI exécuté lors de l'arrêt propre
     du serveur ASGI. Il journalise un message signalant l'arrêt de
     l'API pour faciliter le suivi opérationnel et le diagnostic.
+
+    :return: None
+    :rtype: NoneType
     """
     logger.info("🛑 Arrêt de l'API LRS")
 

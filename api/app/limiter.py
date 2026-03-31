@@ -52,13 +52,18 @@ Version : 1.0.0
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 
-# Instance globale du Limiter slowapi, configuré pour utiliser
-# l'adresse IP du client comme clé d'identification pour appliquer
-# les limites de requêtes. On protège ainsi l'API contre les abus
-# pour ne pas faire ralentir le service pour les autres utilisateurs.
-#
-# Cette instance est importée par :
-#   - ``app.main``              -> ``app.state.limiter = limiter``
-#   - ``app.routers.auth``      -> ``@limiter.limit("10/minute")``
-#   - ``app.routers.predictions`` -> ``@limiter.limit("5/minute")``
 limiter: Limiter = Limiter(key_func=get_remote_address)
+"""
+Instance globale du Limiter slowapi.
+
+Configuré pour utiliser l'adresse IP du client comme clé d'identification 
+pour appliquer les limites de requêtes. On protège ainsi l'API contre les abus 
+pour ne pas faire ralentir le service pour les autres utilisateurs.
+
+Cette instance est importée par :
+  - ``app.main``              -> ``app.state.limiter = limiter``
+  - ``app.routers.auth``      -> ``@limiter.limit("10/minute")``
+  - ``app.routers.predictions`` -> ``@limiter.limit("5/minute")``
+
+:type: Limiter
+"""

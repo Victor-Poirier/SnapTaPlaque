@@ -1,43 +1,43 @@
 """
-init_bd.py — Database initialization and seed script for SnapTaPlaque.
+init_bd.py — Script d'initialisation et de peuplement de la base de données pour SnapTaPlaque.
 
-This script bootstraps the PostgreSQL database by creating all
-SQLAlchemy-mapped tables and seeding default user accounts (an administrator
-and a test user) as well as sample vehicles. It is designed to be run once
-during initial deployment or after a complete database reset.
+Ce script amorce la base de données PostgreSQL en créant toutes les tables
+définies par les modèles SQLAlchemy et en insérant des comptes utilisateurs
+par défaut (un administrateur et un utilisateur de test) ainsi que des véhicules
+d'exemple. Il est conçu pour être exécuté une seule fois lors du déploiement
+initial ou après une réinitialisation complète de la base de données.
 
-Usage::
+Utilisation ::
 
     python init_bd.py
 
-Behaviour:
-    1. Creates all tables defined in the SQLAlchemy ``Base.metadata`` via
-       ``create_tables()`` (idempotent — safe to call multiple times).
-    2. Seeds a default **admin** account if one does not already exist.
-    3. Seeds a default **test user** account if one does not already exist.
-    4. Seeds sample **vehicles** if they do not already exist.
-    5. Rolls back the current transaction on any unexpected error to leave
-       the database in a consistent state.
+Comportement :
+    1. Crée toutes les tables définies dans ``Base.metadata`` via
+       ``create_tables()`` (idempotent — peut être appelé plusieurs fois sans danger).
+    2. Insère un compte **admin** par défaut s'il n'existe pas déjà.
+    3. Insère un compte **testuser** par défaut s'il n'existe pas déjà.
+    4. Annule (rollback) la transaction courante en cas d'erreur inattendue afin de
+       laisser la base de données dans un état cohérent.
 
-Default credentials (change immediately in production):
-    +-----------+----------+-----------+
-    | Username  | Password | Role      |
-    +-----------+----------+-----------+
-    | admin     | admin123 | Admin     |
-    | testuser  | test123  | Standard  |
-    +-----------+----------+-----------+
+Identifiants par défaut (à modifier immédiatement en production) :
+    +-----------+----------+---------------+
+    | Username  | Password | Rôle          |
+    +-----------+----------+---------------+
+    | admin     | admin123 | Administrateur|
+    | testuser  | test123  | Standard      |
+    +-----------+----------+---------------+
 
-WARNING:
-    This script contains **hard-coded credentials** for convenience during
-    development. In a production environment, replace them with values
-    sourced from environment variables or a secrets manager. Never ship
-    default passwords to production.
+.. warning::
+    Ce script contient des **identifiants codés en dur** pour des raisons de 
+    commodité lors du développement. Dans un environnement de production, 
+    remplacez-les par des valeurs extraites de variables d'environnement ou d'un 
+    gestionnaire de secrets. Ne déployez jamais de mots de passe par défaut en production.
 
-NOTE:
-    If Alembic is managing schema migrations, consider removing the
-    ``create_tables()`` call and running ``alembic upgrade head`` instead
-    to avoid conflicts between Alembic's revision tracking and direct DDL
-    issued by ``Base.metadata.create_all()``.
+.. note::
+    Si Alembic gère les migrations de schéma, envisagez de supprimer l'appel à
+    ``create_tables()`` et d'exécuter ``alembic upgrade head`` à la place pour
+    éviter les conflits entre le suivi des révisions d'Alembic et les commandes
+    DDL directes émises par ``Base.metadata.create_all()``.
 """
 
 from sqlalchemy.orm import Session
@@ -51,26 +51,24 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 def init_database():
-    """Initialise the database schema and seed default user accounts and vehicles.
+    """
+    Initialiser le schéma de la base de données et insérer les comptes par défaut.
 
-    This function performs the following steps in order:
+    Cette fonction effectue les étapes suivantes dans l'ordre :
 
-    1. **Table creation** — ensures every SQLAlchemy model is materialised
-       as a database table (no-op if the tables already exist).
-    2. **Admin seeding** — inserts an ``admin`` user with elevated
-       privileges (``is_admin=True``) unless one already exists.
-    3. **Test user seeding** — inserts a ``testuser`` account intended for
-       development / QA use unless one already exists.
-    4. **Vehicle seeding** — inserts sample vehicles for testing unless
-       they already exist.
+    1. **Création des tables** — s'assure que chaque modèle SQLAlchemy est matérialisé
+       sous forme de table dans la base de données (aucune action si elles existent déjà).
+    2. **Création de l'admin** — insère un utilisateur ``admin`` avec des privilèges
+       élevés (``is_admin=True``) à moins qu'il n'en existe déjà un.
+    3. **Création de l'utilisateur de test** — insère un compte ``testuser`` destiné 
+       au développement / tests QA, à moins qu'il n'en existe déjà un.
 
-    Each seed step is idempotent: running the function multiple times will
-    never create duplicate rows.
+    Chaque étape d'insertion est idempotente : exécuter la fonction plusieurs fois
+    ne créera jamais de doublons.
 
-    Raises:
-        Exception: Any unexpected database error is caught, logged, and
-            the transaction is rolled back. The exception is **not**
-            re-raised, allowing the process to exit gracefully.
+    :raises Exception: Toute erreur inattendue de la base de données est interceptée,
+                       journalisée, et la transaction est annulée. L'exception n'est
+                       **pas** renvoyée, ce qui permet au processus de se terminer proprement.
     """
     logger.info("🔄 Initialisation de la base de données...")
 

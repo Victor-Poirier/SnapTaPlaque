@@ -46,13 +46,14 @@ def get_user_by_email(db: Session, email: str) -> User:
     enregistrement dont l'adresse email correspond exactement à la
     valeur fournie.
 
-    Args:
-        db (Session): Session SQLAlchemy active.
-        email (str): Adresse email à rechercher.
+    :param db: Session SQLAlchemy active.
+    :type db: Session
+    :param email: Adresse email à rechercher.
+    :type email: str
 
-    Returns:
-        User: Instance ORM de l'utilisateur trouvé, ou ``None`` si
-            aucun utilisateur ne correspond à l'email fourni.
+    :return: Instance ORM de l'utilisateur trouvé, ou ``None`` si
+             aucun utilisateur ne correspond à l'email fourni.
+    :rtype: User
     """
     return db.query(User).filter(User.email == email).first()
 
@@ -65,13 +66,14 @@ def get_user_by_username(db: Session, username: str) -> User:
     enregistrement dont le nom d'utilisateur correspond exactement à la
     valeur fournie.
 
-    Args:
-        db (Session): Session SQLAlchemy active.
-        username (str): Nom d'utilisateur à rechercher.
+    :param db: Session SQLAlchemy active.
+    :type db: Session
+    :param username: Nom d'utilisateur à rechercher.
+    :type username: str
 
-    Returns:
-        User: Instance ORM de l'utilisateur trouvé, ou ``None`` si
-            aucun utilisateur ne correspond au nom fourni.
+    :return: Instance ORM de l'utilisateur trouvé, ou ``None`` si
+             aucun utilisateur ne correspond au nom fourni.
+    :rtype: User
     """
     return db.query(User).filter(User.username == username).first()
 
@@ -94,23 +96,22 @@ def create_user(db: Session, user: UserCreate) -> User:
         à ``None`` (bien que l'endpoint ``/register`` rejette la
         requête en amont dans ce cas).
 
-    Args:
-        db (Session): Session SQLAlchemy active, injectée par la
-            dépendance ``get_db``.
-        user (UserCreate): Schéma Pydantic contenant les données
-            d'inscription validées :
-            - ``email`` (str) : Adresse email unique.
-            - ``username`` (str) : Nom d'utilisateur unique.
-            - ``password`` (str) : Mot de passe en clair (haché avant
-              stockage, jamais persisté en clair).
-            - ``full_name`` (str) : Nom complet de l'utilisateur.
-            - ``is_admin`` (bool) : Statut administrateur.
-            - ``gdpr_consent`` (bool) : Consentement RGPD explicite.
+    :param db: Session SQLAlchemy active, injectée par la dépendance ``get_db``.
+    :type db: Session
+    :param user: Schéma Pydantic contenant les données d'inscription validées :
+        - ``email`` (str) : Adresse email unique.
+        - ``username`` (str) : Nom d'utilisateur unique.
+        - ``password`` (str) : Mot de passe en clair (haché avant
+          stockage, jamais persisté en clair).
+        - ``full_name`` (str) : Nom complet de l'utilisateur.
+        - ``is_admin`` (bool) : Statut administrateur.
+        - ``gdpr_consent`` (bool) : Consentement RGPD explicite.
+    :type user: UserCreate
 
-    Returns:
-        User: Instance ORM de l'utilisateur nouvellement créé, avec
-            tous les champs rafraîchis depuis la base de données
-            (y compris ``id`` auto-incrémenté et ``created_at``).
+    :return: Instance ORM de l'utilisateur nouvellement créé, avec
+             tous les champs rafraîchis depuis la base de données
+             (y compris ``id`` auto-incrémenté et ``created_at``).
+    :rtype: User
     """
     # Hachage du mot de passe en clair via bcrypt avant stockage.
     # Le mot de passe en clair n'est jamais persisté en base de données
@@ -152,18 +153,20 @@ def create_prediction(
     soumis l'image. L'instance ORM est rafraîchie après le commit pour
     inclure les champs générés par la base (``id``, ``created_at``, etc.).
 
-    Args:
-        db (Session): Session SQLAlchemy active.
-        user_id (int): Identifiant de l'utilisateur propriétaire de
-            la prédiction.
-        filename (str): Nom du fichier image soumis pour la détection.
-        results (dict): Dictionnaire contenant les résultats de la
-            reconnaissance (plaques détectées, scores de confiance,
-            coordonnées des boîtes englobantes, etc.).
+    :param db: Session SQLAlchemy active.
+    :type db: Session
+    :param user_id: Identifiant de l'utilisateur propriétaire de la prédiction.
+    :type user_id: int
+    :param filename: Nom du fichier image soumis pour la détection.
+    :type filename: str
+    :param results: Dictionnaire contenant les résultats de la reconnaissance
+        (plaques détectées, scores de confiance, coordonnées des boîtes
+        englobantes, etc.).
+    :type results: dict
 
-    Returns:
-        Prediction: Instance ORM de la prédiction nouvellement créée,
-            incluant son identifiant généré par la base de données.
+    :return: Instance ORM de la prédiction nouvellement créée,
+             incluant son identifiant généré par la base de données.
+    :rtype: Prediction
     """
     db_prediction = Prediction(
         user_id=user_id,
@@ -184,18 +187,17 @@ def get_user_predictions(db: Session, user_id: int, skip: int = 0, limit: int = 
     l'identifiant de l'utilisateur, avec support de la pagination via
     les paramètres ``skip`` (offset) et ``limit``.
 
-    Args:
-        db (Session): Session SQLAlchemy active.
-        user_id (int): Identifiant de l'utilisateur dont on souhaite
-            récupérer les prédictions.
-        skip (int): Nombre d'enregistrements à ignorer en début de
-            résultat (offset). Par défaut ``0``.
-        limit (int): Nombre maximal d'enregistrements à retourner.
-            Par défaut ``100``.
+    :param db: Session SQLAlchemy active.
+    :type db: Session
+    :param user_id: Identifiant de l'utilisateur dont on souhaite récupérer les prédictions.
+    :type user_id: int
+    :param skip: Nombre d'enregistrements à ignorer en début de résultat (offset). Par défaut ``0``.
+    :type skip: int
+    :param limit: Nombre maximal d'enregistrements à retourner. Par défaut ``100``.
+    :type limit: int
 
-    Returns:
-        list[Prediction]: Liste des instances ORM ``Prediction``
-            correspondant aux critères de recherche.
+    :return: Liste des instances ORM ``Prediction`` correspondant aux critères de recherche.
+    :rtype: list[Prediction]
     """
     return db.query(Prediction).filter(Prediction.user_id == user_id).offset(skip).limit(limit).all()
 
@@ -207,14 +209,14 @@ def get_user_prediction_stats(db: Session, user_id: int):
     Compte le nombre total de prédictions enregistrées en base de
     données pour l'utilisateur spécifié.
 
-    Args:
-        db (Session): Session SQLAlchemy active.
-        user_id (int): Identifiant de l'utilisateur dont on souhaite
-            obtenir les statistiques.
+    :param db: Session SQLAlchemy active.
+    :type db: Session
+    :param user_id: Identifiant de l'utilisateur dont on souhaite obtenir les statistiques.
+    :type user_id: int
 
-    Returns:
-        dict: Dictionnaire contenant la clé ``total_predictions`` (int)
-            indiquant le nombre total de prédictions de l'utilisateur.
+    :return: Dictionnaire contenant la clé ``total_predictions`` (int)
+             indiquant le nombre total de prédictions de l'utilisateur.
+    :rtype: dict
     """
     total = db.query(Prediction).filter(Prediction.user_id == user_id).count()
     return {"total_predictions": total}
@@ -228,12 +230,11 @@ def get_all_users(db: Session):
     l'ensemble des enregistrements. Cette fonction est principalement
     destinée aux endpoints d'administration.
 
-    Args:
-        db (Session): Session SQLAlchemy active.
+    :param db: Session SQLAlchemy active.
+    :type db: Session
 
-    Returns:
-        list[User]: Liste de toutes les instances ORM ``User``
-            présentes en base de données.
+    :return: Liste de toutes les instances ORM ``User`` présentes en base de données.
+    :rtype: list[User]
     """
     return db.query(User).all()
 
@@ -247,15 +248,13 @@ def get_global_stats(db: Session) -> dict:
     fonction est principalement destinée aux tableaux de bord
     d'administration et de supervision.
 
-    Args:
-        db (Session): Session SQLAlchemy active.
+    :param db: Session SQLAlchemy active.
+    :type db: Session
 
-    Returns:
-        dict: Dictionnaire contenant les clés suivantes :
-            - ``total_users`` (int) : Nombre total d'utilisateurs
-              enregistrés sur la plateforme.
-            - ``total_predictions`` (int) : Nombre total de prédictions
-              effectuées sur la plateforme.
+    :return: Dictionnaire contenant les clés suivantes :
+             - ``total_users`` (int) : Nombre total d'utilisateurs enregistrés.
+             - ``total_predictions`` (int) : Nombre total de prédictions effectuées.
+    :rtype: dict
     """
     total_users = db.query(func.count(User.id)).scalar()
     total_predictions = db.query(func.count(Prediction.id)).scalar()
@@ -275,14 +274,15 @@ def add_favorite(db: Session, user_id: int, license_plate: str):
     exception d'intégrité sera levée par la base de données (contrainte
     d'unicité sur le couple ``user_id`` / ``license_plate``).
 
-    Args:
-        db (Session): Session SQLAlchemy active.
-        user_id (int): Identifiant de l'utilisateur souhaitant ajouter
-            le véhicule à ses favoris.
-        license_plate (str): Plaque d'immatriculation du véhicule à
-            ajouter aux favoris.Raises:
-        IntegrityError: Si le véhicule est déjà présent dans la liste
-            des favoris de l'utilisateur (doublon détecté par la base).
+    :param db: Session SQLAlchemy active.
+    :type db: Session
+    :param user_id: Identifiant de l'utilisateur souhaitant ajouter le véhicule.
+    :type user_id: int
+    :param license_plate: Plaque d'immatriculation du véhicule à ajouter aux favoris.
+    :type license_plate: str
+
+    :raises IntegrityError: Si le véhicule est déjà présent dans la liste
+                            des favoris de l'utilisateur (doublon détecté par la base).
     """
     stmt = user_favorites.insert().values(user_id=user_id, license_plate=license_plate)
     db.execute(stmt)
@@ -298,12 +298,12 @@ def remove_favorite(db: Session, user_id: int, license_plate: str):
     Si l'association n'existe pas, l'opération est silencieusement
     ignorée (aucune ligne supprimée, pas d'erreur levée).
 
-    Args:
-        db (Session): Session SQLAlchemy active.
-        user_id (int): Identifiant de l'utilisateur souhaitant retirer
-            le véhicule de ses favoris.
-        license_plate (str): Plaque d'immatriculation du véhicule à
-            retirer des favoris.
+    :param db: Session SQLAlchemy active.
+    :type db: Session
+    :param user_id: Identifiant de l'utilisateur souhaitant retirer le véhicule.
+    :type user_id: int
+    :param license_plate: Plaque d'immatriculation du véhicule à retirer.
+    :type license_plate: str
     """
     stmt = user_favorites.delete().where(
         (user_favorites.c.user_id == user_id) &
@@ -322,15 +322,15 @@ def get_user_favorites(db: Session, user_id: int):
     ``User``. Cette relation exploite la table d'association
     ``user_favorites`` pour résoudre les véhicules liés.
 
-    Args:
-        db (Session): Session SQLAlchemy active.
-        user_id (int): Identifiant de l'utilisateur dont on souhaite
-            récupérer les véhicules favoris.
+    :param db: Session SQLAlchemy active.
+    :type db: Session
+    :param user_id: Identifiant de l'utilisateur dont on souhaite récupérer les favoris.
+    :type user_id: int
 
-    Returns:
-        list[Vehicle]: Liste des instances ORM ``Vehicle`` présentes
-            dans les favoris de l'utilisateur. Retourne une liste vide
-            si l'utilisateur n'existe pas ou s'il n'a aucun favori.
+    :return: Liste des instances ORM ``Vehicle`` présentes dans les favoris
+             de l'utilisateur. Retourne une liste vide si l'utilisateur
+             n'existe pas ou s'il n'a aucun favori.
+    :rtype: list[Vehicle]
     """
     user = db.query(User).filter(User.id == user_id).first()
     return user.favorites if user else []
@@ -344,13 +344,14 @@ def get_vehicle_by_license_plate(db: Session, license_plate: str) :
     enregistrement dont la plaque d'immatriculation correspond exactement à
     la valeur fournie.
 
-    Args:
-        db (Session): Session SQLAlchemy active.
-        license_plate (str): Plaque d'immatriculation à rechercher.
+    :param db: Session SQLAlchemy active.
+    :type db: Session
+    :param license_plate: Plaque d'immatriculation à rechercher.
+    :type license_plate: str
 
-    Returns:
-        Instance ORM de ``Vehicle`` correspondant à la plaque d'immatriculation fournie,
-        ou ``None`` si aucun véhicule ne correspond.
+    :return: Instance ORM de ``Vehicle`` correspondant à la plaque trouvée,
+             ou ``None`` si aucun véhicule ne correspond.
+    :rtype: Vehicle | None
     """
     return db.query(Vehicle).filter(Vehicle.license_plate == license_plate).first()
 
@@ -358,14 +359,15 @@ def create_vehicle(db: Session, vehicle_data: dict) -> Vehicle:
     """
     Créer un nouvel enregistrement de véhicule en base de données.
 
-    Args:
-        db (Session): Session SQLAlchemy active.
-        vehicle_data (dict): Dictionnaire contenant les données du véhicule
-            à créer. Doit inclure au minimum la clé ``license_plate``.
+    :param db: Session SQLAlchemy active.
+    :type db: Session
+    :param vehicle_data: Dictionnaire contenant les données du véhicule
+                         à créer. Doit inclure au minimum ``license_plate``.
+    :type vehicle_data: dict
 
-    Returns:
-        Vehicle: Instance ORM du véhicule nouvellement créé, avec tous les
-            champs rafraîchis depuis la base de données (y compris ``id``).
+    :return: Instance ORM du véhicule nouvellement créé, avec tous les
+             champs rafraîchis depuis la base de données.
+    :rtype: Vehicle
     """
     db_vehicle = Vehicle(**vehicle_data)
     db.add(db_vehicle)
@@ -375,13 +377,37 @@ def create_vehicle(db: Session, vehicle_data: dict) -> Vehicle:
     return db_vehicle
 
 def get_vehicle_info_history_by_user(db: Session, user_id: int):
-    # Récupérer l'historique des informations de véhicules consultés ou enregistrés par un utilisateur. L'historique 
-    # ce situe dans la table User et est lié à la table Vehicle via une relation one-to-many. 
+    """
+    Récupérer l'historique des informations de véhicules consultés ou enregistrés par un utilisateur.
+    
+    L'historique se situe dans la table User et est lié à la table Vehicle via une relation one-to-many. 
+    
+    :param db: Session SQLAlchemy active.
+    :type db: Session
+    :param user_id: Identifiant de l'utilisateur dont on souhaite récupérer l'historique.
+    :type user_id: int
+
+    :return: Liste des instances ORM ``Vehicle`` présentes dans l'historique de l'utilisateur.
+    :rtype: list[Vehicle]
+    """
     user = db.query(User).filter(User.id == user_id).first()
     return user.vehicles_info_history if user else []
 
 def create_vehicle_info_history(db: Session, user_id: int, license_plate: str):
-    # Ajouter une entrée dans l'historique des informations de véhicules consultés...
+    """
+    Ajouter une entrée dans l'historique des informations de véhicules consultés.
+
+    Recherche le véhicule et l'utilisateur en base. Si les deux existent et que
+    le véhicule n'est pas déjà dans l'historique de l'utilisateur, l'ajoute et
+    sauvegarde l'association.
+
+    :param db: Session SQLAlchemy active.
+    :type db: Session
+    :param user_id: Identifiant de l'utilisateur.
+    :type user_id: int
+    :param license_plate: Plaque d'immatriculation du véhicule consulté.
+    :type license_plate: str
+    """
     vehicle = get_vehicle_by_license_plate(db, license_plate)
     user = db.query(User).filter(User.id == user_id).first()
 

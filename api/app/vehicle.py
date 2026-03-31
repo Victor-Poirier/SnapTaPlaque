@@ -2,6 +2,22 @@ import httpx
 import logging
 from typing import Optional, Dict, Any, Tuple
 
+"""
+vehicle.py — Services de consultation de données véhicules pour l'API SnapTaPlaque.
+
+Ce module fournit les utilitaires nécessaires pour interroger un
+service tiers (Oscaro) afin de récupérer les caractéristiques techniques
+des véhicules à partir de leur plaque d'immatriculation.
+
+Composants exposés :
+    - ``_get_oscaro_csrf_token``          — Récupère le token CSRF et les
+      cookies de session requis par l'API tiers.
+    - ``_fetch_vehicle_data_from_provider`` — Interroge le service tiers
+      et formate la réponse sous forme de dictionnaire compatible avec
+      le modèle de données interne.
+
+Version : 1.0.0
+"""
 
 # Configuration du logger
 logger = logging.getLogger(__name__)
@@ -14,8 +30,9 @@ def _get_oscaro_csrf_token() -> Tuple[Optional[str], Optional[httpx.Cookies]]:
     """
     Récupère le token CSRF et les cookies nécessaires auprès d'Oscaro.
 
-    :returns: Un tuple contenant le token CSRF et les cookies de session.
-    :rtype: Tuple[Optional[str], Optional[httpx.Cookies]]
+    :return: Un tuple contenant le token CSRF et les cookies de session.
+             Retourne ``(None, None)`` en cas d'erreur.
+    :rtype: tuple[str | None, httpx.Cookies | None]
     :raises httpx.HTTPError: En cas de problème de connexion au service tiers.
     """
     url = "https://www.oscaro.com/xhr/init-client"
@@ -42,8 +59,9 @@ def _fetch_vehicle_data_from_provider(plate: str) -> Optional[Dict[str, Any]]:
 
     :param plate: Plaque d'immatriculation nettoyée (ex: "AB123CD").
     :type plate: str
-    :returns: Dictionnaire des données véhicule ou None si non trouvé.
-    :rtype: Optional[Dict[str, Any]]
+    :return: Dictionnaire des données véhicule (marque, modèle, info, énergie)
+             ou ``None`` si le véhicule n'est pas trouvé ou en cas d'erreur.
+    :rtype: dict | None
     """
     csrf_token, cookies = _get_oscaro_csrf_token()
 

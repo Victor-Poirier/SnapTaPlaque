@@ -49,14 +49,9 @@ async def root():
 
     Aucune authentification n'est requise pour accéder à cet endpoint.
 
-    Returns:
-        dict: Dictionnaire contenant les clés suivantes :
-            - ``message`` (str) : Message indiquant que
-              l'authentification est requise pour accéder à l'API.
-            - ``documentation`` (str) : Chemin vers la documentation
-              interactive Swagger UI (``/docs``).
-            - ``version`` (str) : Version sémantique de l'API, lue
-              depuis la configuration centralisée (settings.API_VERSION).
+    :return: Dictionnaire contenant les clés ``message`` (str), 
+             ``documentation`` (str) et ``version`` (str).
+    :rtype: dict
     """
     return {
         "message": "API LRS - Authentification requise",
@@ -96,17 +91,9 @@ async def list_versions():
 
     Aucune authentification n'est requise pour accéder à cet endpoint.
 
-    Returns:
-        dict: Dictionnaire contenant les clés suivantes :
-            - ``versions`` (dict) : Liste de dictionnaires, chacun
-              décrivant une version avec les clés :
-                - ``version`` (str) : Identifiant de la version (ex. "v1").
-                - ``status`` (str) : Statut de la version parmi
-                  "stable", "beta" ou "deprecated".
-                - ``pipeline`` (str) : Description du pipeline IA
-                  utilisé par cette version (ex. "YOLOv12 + EasyOCR").
-            - ``latest`` (str) : Version sémantique de la dernière
-              version stable, lue depuis settings.API_VERSION.
+    :return: Dictionnaire contenant les clés ``versions`` (dict) décrivant 
+             chaque version et ``latest`` (str) indiquant la dernière version.
+    :rtype: dict
     """
     return {
         "versions": {
@@ -159,27 +146,12 @@ async def privacy_policy(
     (Art. 5.1.c RGPD) et à la protection des données dès la
     conception (Art. 25 RGPD).
 
-    Returns:
-        dict: Dictionnaire contenant les clés suivantes :
-            - ``controller`` (str) : Nom du responsable de traitement.
-            - ``contact`` (str) : Adresse email de contact pour les
-              questions relatives à la protection des données.
-            - ``purpose`` (str) : Finalité du traitement.
-            - ``legal_basis`` (str) : Base légale du traitement
-              conformément à l'article 6 du RGPD.
-            - ``data_collected`` (list[str]) : Liste des catégories
-              de données personnelles collectées par la plateforme.
-            - ``retention_period`` (str) : Politique de durée de
-              conservation des données personnelles.
-            - ``user_rights`` (dict) : Dictionnaire décrivant les
-              droits des utilisateurs avec les clés :
-                - ``access`` (str) : Endpoint pour le droit d'accès.
-                - ``erasure`` (str) : Endpoint pour le droit à l'effacement.
-                - ``rectification`` (str) : Procédure de rectification.
-            - ``data_sharing`` (str) : Information sur les transferts
-              de données à des tiers.
-            - ``security_measures`` (list[str]) : Liste des mesures
-              de sécurité techniques implémentées (Art. 32 RGPD).
+    :param language: Requête spécifiant la langue souhaitée ("fr" ou "en").
+    :type language: RGPDRequest
+    :return: Dictionnaire contenant les informations de la politique 
+             de confidentialité dans la langue demandée.
+    :rtype: dict
+    :raises ValueError: Si la langue demandée n'est ni "fr" ni "en".
     """
     if language.language == "fr":
         content = {
@@ -266,12 +238,9 @@ async def health_check():
     plus complet incluant l'état des dépendances, un endpoint
     /health/ready pourrait être ajouté ultérieurement.
 
-    Returns:
-        dict: Dictionnaire contenant les clés suivantes :
-            - ``status`` (str) : État de l'API, valeur "healthy"
-              si l'instance répond correctement.
-            - ``version`` (str) : Version sémantique de l'API, lue
-              depuis la configuration centralisée (settings.API_VERSION).
+    :return: Dictionnaire contenant les clés ``status`` (str) avec la 
+             valeur "healthy" et ``version`` (str).
+    :rtype: dict
     """
     return {
         "status": "healthy",

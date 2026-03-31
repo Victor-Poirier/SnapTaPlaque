@@ -41,29 +41,41 @@ class Settings(BaseSettings):
     validation de type à l'instanciation. Chaque attribut de classe
     représente un paramètre configurable avec sa valeur par défaut.
 
-    Attributes:
-        BASE_DIR (Path): Chemin absolu vers le répertoire racine du
-            projet (parent du dossier ``app``). Calculé dynamiquement
-            à partir de l'emplacement de ce fichier.
-        DATABASE_URL (str): URL de connexion à la base de données
-            PostgreSQL au format ``postgresql://user:password@host:port/db``.
-        SECRET_KEY (str): Clé secrète utilisée pour signer les tokens
-            JWT. Doit impérativement être modifiée en environnement de
-            production.
-        ALGORITHM (str): Algorithme de signature JWT. Par défaut
-            ``"HS256"`` (HMAC-SHA256, algorithme symétrique).
-        ACCESS_TOKEN_EXPIRE_MINUTES (int): Durée de validité des tokens
-            d'accès en minutes. Par défaut ``30``.
-        API_TITLE (str): Titre de l'API affiché dans la documentation
-            OpenAPI (Swagger UI / ReDoc).
-        API_VERSION (str): Version sémantique de l'API.
-        API_ENV (str): Environnement d'exécution courant
-            (``"development"``, ``"staging"``, ``"production"``).
-        DEBUG (bool): Active le mode debug (logs détaillés, rechargement
-            automatique). Doit être désactivé en production.
-        MODEL_CONFIG (dict): Dictionnaire décrivant le pipeline de
-            reconnaissance de plaques (nom, algorithme, version,
-            fonctionnalités).
+    :ivar BASE_DIR: Chemin absolu vers le répertoire racine du
+        projet (parent du dossier ``app``). Calculé dynamiquement
+        à partir de l'emplacement de ce fichier.
+    :vartype BASE_DIR: pathlib.Path
+    :ivar DATABASE_URL: URL de connexion à la base de données
+        PostgreSQL au format ``postgresql://user:password@host:port/db``.
+    :vartype DATABASE_URL: str
+    :ivar SECRET_KEY: Clé secrète utilisée pour signer les tokens
+        JWT. Doit impérativement être modifiée en environnement de
+        production.
+    :vartype SECRET_KEY: str
+    :ivar ALGORITHM: Algorithme de signature JWT. Par défaut
+        ``"HS256"`` (HMAC-SHA256, algorithme symétrique).
+    :vartype ALGORITHM: str
+    :ivar ACCESS_TOKEN_EXPIRE_MINUTES: Durée de validité des tokens
+        d'accès en minutes. Par défaut ``30``.
+    :vartype ACCESS_TOKEN_EXPIRE_MINUTES: int
+    :ivar API_TITLE: Titre de l'API affiché dans la documentation
+        OpenAPI (Swagger UI / ReDoc).
+    :vartype API_TITLE: str
+    :ivar API_DESCRIPTION: Courte description de l'API ajoutée à la
+        documentation OpenAPI.
+    :vartype API_DESCRIPTION: str
+    :ivar API_VERSION: Version sémantique de l'API.
+    :vartype API_VERSION: str
+    :ivar API_ENV: Environnement d'exécution courant
+        (``"development"``, ``"staging"``, ``"production"``).
+    :vartype API_ENV: str
+    :ivar DEBUG: Active le mode debug (logs détaillés, rechargement
+        automatique). Doit être désactivé en production.
+    :vartype DEBUG: bool
+    :ivar MODEL_CONFIG: Dictionnaire décrivant le pipeline de
+        reconnaissance de plaques (nom, algorithme, version,
+        fonctionnalités).
+    :vartype MODEL_CONFIG: dict
     """
 
     # ================== CHEMINS ==================
@@ -123,12 +135,13 @@ class Settings(BaseSettings):
         """
         Configuration interne de Pydantic BaseSettings.
 
-        Attributes:
-            env_file (str): Chemin vers le fichier ``.env`` contenant
-                les variables d'environnement à charger.
-            case_sensitive (bool): Si ``True``, les noms des variables
-                d'environnement doivent correspondre exactement à la
-                casse des attributs de la classe ``Settings``.
+        :ivar env_file: Chemin vers le fichier ``.env`` contenant
+            les variables d'environnement à charger.
+        :vartype env_file: str
+        :ivar case_sensitive: Si ``True``, les noms des variables
+            d'environnement doivent correspondre exactement à la
+            casse des attributs de la classe ``Settings``.
+        :vartype case_sensitive: bool
         """
 
         env_file = ".env"

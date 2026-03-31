@@ -36,11 +36,12 @@ class LoginRequest(BaseModel):
     vérifiés côté serveur via comparaison avec le hash bcrypt stocké
     en base de données.
 
-    Attributes:
-        username (str): Nom d'utilisateur unique identifiant le compte
-            à authentifier.
-        password (str): Mot de passe en clair de l'utilisateur, qui
-            sera comparé au hash bcrypt stocké en base de données.
+    :ivar username: Nom d'utilisateur unique identifiant le compte
+        à authentifier.
+    :vartype username: str
+    :ivar password: Mot de passe en clair de l'utilisateur, qui
+        sera comparé au hash bcrypt stocké en base de données.
+    :vartype password: str
     """
 
     username: str
@@ -55,13 +56,14 @@ class Token(BaseModel):
     authentification réussie. Ce schéma suit la convention OAuth2
     avec les champs ``access_token`` et ``token_type``.
 
-    Attributes:
-        access_token (str): Token JWT signé contenant les informations
-            d'identification de l'utilisateur (claims), utilisé pour
-            authentifier les requêtes ultérieures via le header
-            ``Authorization: Bearer <token>``.
-        token_type (str): Type du token, toujours ``"bearer"``
-            conformément à la spécification OAuth2.
+    :ivar access_token: Token JWT signé contenant les informations
+        d'identification de l'utilisateur (claims), utilisé pour
+        authentifier les requêtes ultérieures via le header
+        ``Authorization: Bearer <token>``.
+    :vartype access_token: str
+    :ivar token_type: Type du token, toujours ``"bearer"``
+        conformément à la spécification OAuth2.
+    :vartype token_type: str
     """
 
     access_token: str
@@ -77,13 +79,15 @@ class TokenWithRefresh(Token):
     ré-authentifier. Le refresh token possède une durée de validité
     plus longue que le token d'accès.
 
-    Attributes:
-        access_token (str): Token JWT d'accès (hérité de ``Token``).
-        token_type (str): Type du token, ``"bearer"`` (hérité de
-            ``Token``).
-        refresh_token (str): Token JWT de rafraîchissement, utilisé
-            pour obtenir un nouveau token d'accès lorsque celui-ci
-            expire.
+    :ivar access_token: Token JWT d'accès (hérité de ``Token``).
+    :vartype access_token: str
+    :ivar token_type: Type du token, ``"bearer"`` (hérité de
+        ``Token``).
+    :vartype token_type: str
+    :ivar refresh_token: Token JWT de rafraîchissement, utilisé
+        pour obtenir un nouveau token d'accès lorsque celui-ci
+        expire.
+    :vartype refresh_token: str
 
     Configuration:
         ``json_schema_extra`` — Exemple de réponse intégré à la
@@ -97,10 +101,10 @@ class TokenWithRefresh(Token):
         """
         Configuration interne du schéma Pydantic.
 
-        Attributes:
-            json_schema_extra (dict): Exemple de réponse intégré à la
-                documentation OpenAPI pour faciliter la compréhension
-                du format de retour.
+        :ivar json_schema_extra: Exemple de réponse intégré à la
+            documentation OpenAPI pour faciliter la compréhension
+            du format de retour.
+        :vartype json_schema_extra: dict
         """
 
         json_schema_extra = {
@@ -121,14 +125,15 @@ class TokenData(BaseModel):
     est utilisé en interne par les dépendances d'authentification pour
     transmettre l'identité de l'utilisateur aux endpoints protégés.
 
-    Attributes:
-        username (str | None): Nom d'utilisateur extrait du claim
-            ``sub`` (subject) du token JWT. ``None`` si le claim est
-            absent ou invalide.
-        token_type (str | None): Type du token extrait des claims
-            personnalisés, permettant de distinguer les tokens d'accès
-            (``"access"``) des tokens de rafraîchissement
-            (``"refresh"``). ``None`` si le type n'est pas spécifié.
+    :ivar username: Nom d'utilisateur extrait du claim
+        ``sub`` (subject) du token JWT. ``None`` si le claim est
+        absent ou invalide.
+    :vartype username: str | None
+    :ivar token_type: Type du token extrait des claims
+        personnalisés, permettant de distinguer les tokens d'accès
+        (``"access"``) des tokens de rafraîchissement
+        (``"refresh"``). ``None`` si le type n'est pas spécifié.
+    :vartype token_type: str | None
     """
 
     username: Optional[str] = None
@@ -144,17 +149,19 @@ class DetectionResult(BaseModel):
     reconnaissance de plaques d'immatriculation (détection YOLO + OCR)
     pour une plaque unique détectée dans une image soumise.
 
-    Attributes:
-        plate_text (str | None): Texte de la plaque d'immatriculation
-            reconnu par le moteur OCR. ``None`` si aucune plaque n'a
-            été détectée ou si la lecture OCR a échoué.
-        confidence (float | None): Score de confiance de la détection,
-            compris entre 0.0 et 1.0. ``None`` si aucune plaque n'a
-            été détectée.
-        bounding_box (dict | None): Dictionnaire contenant les
-            coordonnées de la boîte englobante de la plaque détectée
-            dans l'image. ``None`` si les coordonnées ne sont pas
-            disponibles.
+    :ivar plate_text: Texte de la plaque d'immatriculation
+        reconnu par le moteur OCR. ``None`` si aucune plaque n'a
+        été détectée ou si la lecture OCR a échoué.
+    :vartype plate_text: str | None
+    :ivar confidence: Score de confiance de la détection,
+        compris entre 0.0 et 1.0. ``None`` si aucune plaque n'a
+        été détectée.
+    :vartype confidence: float | None
+    :ivar bounding_box: Dictionnaire contenant les
+        coordonnées de la boîte englobante de la plaque détectée
+        dans l'image. ``None`` si les coordonnées ne sont pas
+        disponibles.
+    :vartype bounding_box: dict | None
     """
 
     plate_text: Optional[str] = None
@@ -171,20 +178,24 @@ class PredictionResponse(BaseModel):
     métadonnées (identifiant, utilisateur, fichier, date) et la liste
     des résultats de détection associés.
 
-    Attributes:
-        id (int): Identifiant unique auto-incrémenté de la prédiction
-            (clé primaire).
-        user_id (int): Identifiant de l'utilisateur ayant soumis la
-            prédiction (clé étrangère vers ``users.id``).
-        filename (str): Nom du fichier image soumis pour la détection
-            de plaque d'immatriculation.
-        results (list[DetectionResult]): Liste des résultats de
-            détection de plaques contenus dans l'image. Chaque élément
-            représente une plaque détectée avec son texte, son score
-            de confiance et ses coordonnées.
-        created_at (datetime): Date et heure de création de la
-            prédiction. Définie automatiquement à l'instant de
-            l'insertion en base de données.
+    :ivar id: Identifiant unique auto-incrémenté de la prédiction
+        (clé primaire).
+    :vartype id: int
+    :ivar user_id: Identifiant de l'utilisateur ayant soumis la
+        prédiction (clé étrangère vers ``users.id``).
+    :vartype user_id: int
+    :ivar filename: Nom du fichier image soumis pour la détection
+        de plaque d'immatriculation.
+    :vartype filename: str
+    :ivar results: Liste des résultats de
+        détection de plaques contenus dans l'image. Chaque élément
+        représente une plaque détectée avec son texte, son score
+        de confiance et ses coordonnées.
+    :vartype results: list[DetectionResult]
+    :ivar created_at: Date et heure de création de la
+        prédiction. Définie automatiquement à l'instant de
+        l'insertion en base de données.
+    :vartype created_at: datetime
 
     Configuration:
         ``from_attributes`` — Active la compatibilité avec les instances
@@ -210,9 +221,9 @@ class PlateStats(BaseModel):
     détection de plaques d'un utilisateur, incluant le nombre total
     de prédictions effectuées.
 
-    Attributes:
-        total_predictions (int): Nombre total de prédictions de
-            reconnaissance de plaques effectuées par l'utilisateur.
+    :ivar total_predictions: Nombre total de prédictions de
+        reconnaissance de plaques effectuées par l'utilisateur.
+    :vartype total_predictions: int
     """
 
     total_predictions: int
@@ -228,17 +239,20 @@ class PlateHistory(BaseModel):
     confiance, date). Ce schéma est utilisé pour les endpoints de
     consultation d'historique paginé.
 
-    Attributes:
-        id (int): Identifiant unique auto-incrémenté de la prédiction
-            (clé primaire).
-        plate_text (str | None): Texte de la plaque d'immatriculation
-            reconnu. ``None`` si aucune plaque n'a été détectée ou si
-            la lecture OCR a échoué.
-        confidence (float | None): Score de confiance de la détection,
-            compris entre 0.0 et 1.0. ``None`` si aucune plaque n'a
-            été détectée.
-        created_at (datetime): Date et heure de création de la
-            prédiction.
+    :ivar id: Identifiant unique auto-incrémenté de la prédiction
+        (clé primaire).
+    :vartype id: int
+    :ivar plate_text: Texte de la plaque d'immatriculation
+        reconnu. ``None`` si aucune plaque n'a été détectée ou si
+        la lecture OCR a échoué.
+    :vartype plate_text: str | None
+    :ivar confidence: Score de confiance de la détection,
+        compris entre 0.0 et 1.0. ``None`` si aucune plaque n'a
+        été détectée.
+    :vartype confidence: float | None
+    :ivar created_at: Date et heure de création de la
+        prédiction.
+    :vartype created_at: datetime
 
     Configuration:
         ``from_attributes`` — Active la compatibilité avec les instances
@@ -272,20 +286,25 @@ class UserCreate(BaseModel):
     de Pydantic. Le mot de passe est transmis en clair et sera haché
     via bcrypt avant d'être stocké en base de données.
 
-    Attributes:
-        email (EmailStr): Adresse email unique de l'utilisateur, validée
-            automatiquement par le type ``EmailStr`` de Pydantic.
-        username (str): Nom d'utilisateur unique identifiant le compte
-            sur la plateforme.
-        password (str): Mot de passe en clair de l'utilisateur. Sera
-            haché via bcrypt avant d'être persisté en base de données.
-        full_name (str): Nom complet de l'utilisateur (prénom et nom).
-        is_admin (bool): Indique si l'utilisateur doit être créé avec
-            les privilèges d'administration. Par défaut ``False``.
-        gdpr_consent (bool): Indique si l'utilisateur a explicitement
-            accepté la politique de confidentialité (RGPD). Doit être
-            ``True`` pour permettre la création du compte, conformément
-            aux exigences légales.
+    :ivar email: Adresse email unique de l'utilisateur, validée
+        automatiquement par le type ``EmailStr`` de Pydantic.
+    :vartype email: EmailStr
+    :ivar username: Nom d'utilisateur unique identifiant le compte
+        sur la plateforme.
+    :vartype username: str
+    :ivar password: Mot de passe en clair de l'utilisateur. Sera
+        haché via bcrypt avant d'être persisté en base de données.
+    :vartype password: str
+    :ivar full_name: Nom complet de l'utilisateur (prénom et nom).
+    :vartype full_name: str
+    :ivar is_admin: Indique si l'utilisateur doit être créé avec
+        les privilèges d'administration. Par défaut ``False``.
+    :vartype is_admin: bool
+    :ivar gdpr_consent: Indique si l'utilisateur a explicitement
+        accepté la politique de confidentialité (RGPD). Doit être
+        ``True`` pour permettre la création du compte, conformément
+        aux exigences légales.
+    :vartype gdpr_consent: bool
     """
 
     email: EmailStr
@@ -308,15 +327,14 @@ class UserCreate(BaseModel):
         alphanumériques (lettres ASCII et chiffres). Les caractères
         spéciaux, espaces et signes de ponctuation sont interdits.
 
-        Args:
-            v (str): Valeur du champ ``username`` à valider.
+        :param v: Valeur du champ ``username`` à valider.
+        :type v: str
 
-        Returns:
-            str: Nom d'utilisateur validé, inchangé.
+        :return: Nom d'utilisateur validé, inchangé.
+        :rtype: str
 
-        Raises:
-            ValueError: Si le nom d'utilisateur contient des caractères
-                non alphanumériques.
+        :raises ValueError: Si le nom d'utilisateur contient des caractères
+            non alphanumériques.
         """
         if not v.isalnum():
             raise ValueError("Username must be alphanumeric")
@@ -330,18 +348,24 @@ class UserResponse(BaseModel):
     utilisateur. Ce schéma exclut volontairement le mot de passe haché
     afin de ne jamais exposer cette donnée sensible via l'API.
 
-    Attributes:
-        id (int): Identifiant unique auto-incrémenté de l'utilisateur.
-        email (str): Adresse email de l'utilisateur.
-        username (str): Nom d'utilisateur unique.
-        full_name (str | None): Nom complet de l'utilisateur (prénom et
-            nom). ``None`` si non renseigné.
-        is_active (bool): Indique si le compte de l'utilisateur est
-            actif. Un compte désactivé ne peut pas s'authentifier.
-        is_admin (bool): Indique si l'utilisateur possède les privilèges
-            d'administration.
-        created_at (datetime): Date et heure de création du compte
-            utilisateur.
+    :ivar id: Identifiant unique auto-incrémenté de l'utilisateur.
+    :vartype id: int
+    :ivar email: Adresse email de l'utilisateur.
+    :vartype email: str
+    :ivar username: Nom d'utilisateur unique.
+    :vartype username: str
+    :ivar full_name: Nom complet de l'utilisateur (prénom et
+        nom). ``None`` si non renseigné.
+    :vartype full_name: str | None
+    :ivar is_active: Indique si le compte de l'utilisateur est
+        actif. Un compte désactivé ne peut pas s'authentifier.
+    :vartype is_active: bool
+    :ivar is_admin: Indique si l'utilisateur possède les privilèges
+        d'administration.
+    :vartype is_admin: bool
+    :ivar created_at: Date et heure de création du compte
+        utilisateur.
+    :vartype created_at: datetime
 
     Configuration:
         ``from_attributes`` — Active la compatibilité avec les instances
@@ -371,14 +395,18 @@ class VehicleInfoResponse(BaseModel):
     une recherche en base de données à partir de la plaque détectée par
     le pipeline de reconnaissance.
 
-    Attributes:
-        plate (str): Plaque d'immatriculation du véhicule
-            (identifiant unique en base de données).
-        brand (str): Marque du véhicule (ex. : Renault, Peugeot, BMW).
-        model (str): Modèle du véhicule (ex. : Clio, 308, Série 3).
-        info (str): Informations complémentaires sur le véhicule
-        energy (str): Type d'énergie du véhicule (ex. : Essence, Diesel,
-            Électrique).
+    :ivar license_plate: Plaque d'immatriculation du véhicule
+        (identifiant unique en base de données).
+    :vartype license_plate: str
+    :ivar brand: Marque du véhicule (ex. : Renault, Peugeot, BMW).
+    :vartype brand: str
+    :ivar model: Modèle du véhicule (ex. : Clio, 308, Série 3).
+    :vartype model: str
+    :ivar info: Informations complémentaires sur le véhicule
+    :vartype info: str
+    :ivar energy: Type d'énergie du véhicule (ex. : Essence, Diesel,
+        Électrique).
+    :vartype energy: str
 
     Configuration:
         ``from_attributes`` — Active la compatibilité avec les instances
@@ -403,10 +431,9 @@ class AllFavoritesResponse(BaseModel):
     favorites d'un utilisateur, incluant les informations détaillées de
     chaque plaque (texte, marque, modèle, énergie).
 
-    Attributes:
-        favorites (list[VehicleInfoResponse]): Liste des plaques
-            favorites de l'utilisateur, avec leurs informations
-            détaillées.
+    :ivar favorites: Liste des plaques favorites de l'utilisateur, 
+        avec leurs informations détaillées.
+    :vartype favorites: list[VehicleInfoResponse]
     """
     favorites: List[VehicleInfoResponse]
 
@@ -421,8 +448,9 @@ class VehicleInfoHistoryResponse(BaseModel):
     plaques d'immatriculation consultées ou enregistrées par un
     utilisateur, avec les détails de chaque véhicule.
 
-    Attributes: 
-        history (list[VehicleInfoResponse]): Liste des entrées d'historique, chacune contenant les détails d'un véhicule consulté ou enregistré par l'utilisateur.
+    :ivar history: Liste des entrées d'historique, chacune contenant les détails 
+        d'un véhicule consulté ou enregistré par l'utilisateur.
+    :vartype history: list[VehicleInfoResponse]
     """
     history: List[VehicleInfoResponse]
 
@@ -434,11 +462,12 @@ class RGPDRequest(BaseModel):
     Schéma de validation pour une requête de consentement RGPD.
     Valide les données soumises par l'utilisateur pour donner son consentement explicite à la politique de confidentialité (RGPD) lors de l'inscription ou de la
     modification de son compte. L'utilisateur doit accepter la politique pour pouvoir créer ou maintenir son compte actif.
-    Attributes:
-        language (str): Langue préférée de l'utilisateur pour la
-            communication de la politique de confidentialité. Permet
-            d'adapter le contenu de la politique en fonction de la
-            langue choisie par l'utilisateur.
+    
+    :ivar language: Langue préférée de l'utilisateur pour la
+        communication de la politique de confidentialité. Permet
+        d'adapter le contenu de la politique en fonction de la
+        langue choisie par l'utilisateur.
+    :vartype language: str
     """
     language: str
 

@@ -45,16 +45,17 @@ def list_users(
     le schéma ``UserResponse`` (les champs sensibles tels que
     ``hashed_password`` sont exclus de la réponse).
 
-    Args:
-        db (Session): Session SQLAlchemy injectée automatiquement par
-            la dépendance ``get_db``.
-        admin: Utilisateur administrateur authentifié, injecté par
-            ``get_current_admin_user``. Déclenche une erreur HTTP 401/403
-            si l'utilisateur n'est pas connecté ou n'est pas administrateur.
+    :param db: Session SQLAlchemy injectée automatiquement par
+               la dépendance ``get_db``.
+    :type db: Session
+    :param admin: Utilisateur administrateur authentifié, injecté par
+                  ``get_current_admin_user``. Déclenche une erreur HTTP 401/403
+                  si l'utilisateur n'est pas connecté ou n'est pas administrateur.
+    :type admin: User
 
-    Returns:
-        list[UserResponse]: Liste de tous les utilisateurs avec leurs
-            informations publiques (id, username, email, is_active, is_admin).
+    :return: Liste de tous les utilisateurs avec leurs
+             informations publiques (id, username, email, is_active, is_admin).
+    :rtype: list[UserResponse]
     """
     return get_all_users(db)
 
@@ -74,15 +75,16 @@ def global_stats(
     Ces statistiques sont utiles pour les tableaux de bord de supervision
     et le suivi opérationnel de la plateforme.
 
-    Args:
-        db (Session): Session SQLAlchemy injectée automatiquement par
-            la dépendance ``get_db``.
-        admin: Utilisateur administrateur authentifié, injecté par
-            ``get_current_admin_user``. Déclenche une erreur HTTP 401/403
-            si l'utilisateur n'est pas connecté ou n'est pas administrateur.
+    :param db: Session SQLAlchemy injectée automatiquement par
+               la dépendance ``get_db``.
+    :type db: Session
+    :param admin: Utilisateur administrateur authentifié, injecté par
+                  ``get_current_admin_user``. Déclenche une erreur HTTP 401/403
+                  si l'utilisateur n'est pas connecté ou n'est pas administrateur.
+    :type admin: User
 
-    Returns:
-        dict: Dictionnaire contenant les statistiques globales, typiquement
-            ``total_users``, ``active_users`` et ``admin_users``.
+    :return: Dictionnaire contenant les statistiques globales, typiquement
+             ``total_users``, ``active_users`` et ``admin_users``.
+    :rtype: dict
     """
     return get_global_stats(db)

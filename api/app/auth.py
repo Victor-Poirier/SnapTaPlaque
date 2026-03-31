@@ -79,12 +79,12 @@ def get_password_hash(password: str) -> str:
     Utilise le contexte Passlib configuré pour produire un hash bcrypt
     sécurisé, incluant un sel aléatoire généré automatiquement.
 
-    Args:
-        password (str): Mot de passe en clair à hacher.
+    :param password: Mot de passe en clair à hacher.
+    :type password: str
 
-    Returns:
-        str: Hash bcrypt du mot de passe, prêt à être stocké en base
-            de données.
+    :return: Hash bcrypt du mot de passe, prêt à être stocké en base
+             de données.
+    :rtype: str
     """
     return pwd_context.hash(password)
 
@@ -97,13 +97,14 @@ def verify_password(plain: str, hashed: str) -> bool:
     en base de données. La comparaison est effectuée en temps constant
     pour prévenir les attaques par analyse temporelle (timing attacks).
 
-    Args:
-        plain (str): Mot de passe en clair soumis par l'utilisateur.
-        hashed (str): Hash bcrypt stocké en base de données.
+    :param plain: Mot de passe en clair soumis par l'utilisateur.
+    :type plain: str
+    :param hashed: Hash bcrypt stocké en base de données.
+    :type hashed: str
 
-    Returns:
-        bool: ``True`` si le mot de passe correspond au hash,
-            ``False`` sinon.
+    :return: ``True`` si le mot de passe correspond au hash,
+             ``False`` sinon.
+    :rtype: bool
     """
     return pwd_context.verify(plain, hashed)
 
@@ -118,16 +119,14 @@ def create_access_token(
     ``{"sub": username}``) et une date d'expiration. Le token est signé
     avec la clé secrète de l'application en utilisant l'algorithme HS256.
 
-    Args:
-        data (dict): Dictionnaire des claims à inclure dans le payload
-            du token. Doit contenir au minimum la clé ``"sub"`` avec
-            le nom d'utilisateur.
-        expires_delta (Optional[timedelta]): Durée de validité du token.
-            Si ``None``, une durée par défaut de 15 minutes est appliquée.
+    :param data: Dictionnaire des claims à inclure dans le payload
+                 du token. Doit contenir au minimum la clé ``"sub"`` avec
+                 le nom d'utilisateur.
+    :type data: dict
 
-    Returns:
-        str: Token JWT encodé sous forme de chaîne de caractères,
-            prêt à être transmis au client.
+    :return: Token JWT encodé sous forme de chaîne de caractères,
+             prêt à être transmis au client.
+    :rtype: str
     """
     to_encode = data.copy()
     expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
@@ -144,16 +143,14 @@ def decode_access_token(token: str) -> dict:
     En cas d'échec (signature invalide, token expiré, format incorrect),
     une exception HTTP 401 est levée.
 
-    Args:
-        token (str): Token JWT encodé à décoder.
+    :param token: Token JWT encodé à décoder.
+    :type token: str
 
-    Returns:
-        dict: Payload décodé du token contenant les claims (``sub``,
-            ``exp``, etc.).
-
-    Raises:
-        HTTPException (401): Si le token est invalide, expiré ou si
-            sa signature ne peut pas être vérifiée.
+    :return: Payload décodé du token contenant les claims (``sub``,
+             ``exp``, etc.).
+    :rtype: dict
+    :raises HTTPException: (401) Si le token est invalide, expiré ou si
+                           sa signature ne peut pas être vérifiée.
     """
     try:
         return jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
@@ -180,19 +177,18 @@ def get_current_user(
     et peut être injectée directement dans les endpoints nécessitant
     une authentification sans vérification du statut actif.
 
-    Args:
-        token (str): Token JWT extrait automatiquement de l'en-tête
-            ``Authorization: Bearer <token>`` par le schéma OAuth2.
-        db (Session): Session SQLAlchemy injectée automatiquement par
-            la dépendance ``get_db``.
+    :param token: Token JWT extrait automatiquement de l'en-tête
+                  ``Authorization: Bearer <token>`` par le schéma OAuth2.
+    :type token: str
+    :param db: Session SQLAlchemy injectée automatiquement par
+               la dépendance ``get_db``.
+    :type db: Session
 
-    Returns:
-        database.User: Instance ORM de l'utilisateur authentifié.
-
-    Raises:
-        HTTPException (401): Si le token est invalide, si le claim
-            ``sub`` est absent ou si aucun utilisateur correspondant
-            n'est trouvé en base de données.
+    :return: Instance ORM de l'utilisateur authentifié.
+    :rtype: database.User
+    :raises HTTPException: (401) Si le token est invalide, si le claim
+                           ``sub`` est absent ou si aucun utilisateur correspondant
+                           n'est trouvé en base de données.
     """
     payload = decode_access_token(token)
     username: str | None = payload.get("sub")
@@ -222,16 +218,14 @@ def get_current_active_user(
     protégés de l'application pour garantir à la fois l'authentification
     et l'activation du compte.
 
-    Args:
-        current_user (database.User): Utilisateur authentifié, injecté
-            automatiquement par la dépendance ``get_current_user``.
+    :param current_user: Utilisateur authentifié, injecté
+                         automatiquement par la dépendance ``get_current_user``.
+    :type current_user: database.User
 
-    Returns:
-        database.User: Instance ORM de l'utilisateur authentifié et actif.
-
-    Raises:
-        HTTPException (403): Si le compte de l'utilisateur est désactivé
-            (``is_active=False``).
+    :return: Instance ORM de l'utilisateur authentifié et actif.
+    :rtype: database.User
+    :raises HTTPException: (403) Si le compte de l'utilisateur est désactivé
+                           (``is_active=False``).
     """
     if not current_user.is_active:
         raise HTTPException(status_code=403, detail="Compte désactivé")

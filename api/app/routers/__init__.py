@@ -13,7 +13,7 @@ Architecture du versionnage :
 
         routers/
         ├── __init__.py          ← ce fichier (package racine)
-        ├── v1/                  ← Version 1 — pipeline YOLOv8 + EasyOCR
+        ├── v1/                  ← Version 1 — pipeline YOLOv12 ONNX + EasyOCR
         │   ├── __init__.py
         │   ├── auth.py          ← Inscription, connexion, profil JWT
         │   ├── predictions.py   ← Détection et reconnaissance de plaques
@@ -71,7 +71,7 @@ Ajout d'une nouvelle version :
        nouvelle version.
 
 .. seealso::
-    - ``app.routers.v1`` — Version 1 des routeurs (pipeline YOLOv8 + EasyOCR).
+    - ``app.routers.v1`` — Version 1 des routeurs (pipeline YOLOv12 ONNX + EasyOCR).
     - ``app.routers.v2`` — Version 2 des routeurs (nouveau pipeline IA).
     - ``app.main`` — Point d'entrée FastAPI où les routeurs de chaque
       version sont montés avec leurs préfixes respectifs.
